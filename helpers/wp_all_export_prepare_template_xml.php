@@ -256,7 +256,7 @@ function wp_all_export_prepare_template_xml($exportOptions, &$templateOptions)
 						$templateOptions['acf'][$field_options['group_id']] = 1;
 					}					
 
-					$field_tpl_key = 'acf_' . $element_name . '[1]';
+					$field_tpl_key = $element_name . '[1]';
 
 					$acf_list[] = '[' . $field_options['name'] . '] ' . $field_options['label'];
 
