@@ -14,7 +14,7 @@ function pmxe_admin_menu() {
 		add_submenu_page('pmxe-admin-home', __('Export to XML', 'wp_all_export_plugin') . ' &lsaquo; ' . __('WP All Export', 'wp_all_export_plugin'), __('New Export', 'wp_all_export_plugin'), 'manage_options', 'pmxe-admin-export', array(PMXE_Plugin::getInstance(), 'adminDispatcher'));		
 		add_submenu_page('pmxe-admin-home', __('Manage Exports', 'wp_all_export_plugin') . ' &lsaquo; ' . __('WP All Export', 'wp_all_export_plugin'), __('Manage Exports', 'wp_all_export_plugin'), 'manage_options', 'pmxe-admin-manage', array(PMXE_Plugin::getInstance(), 'adminDispatcher'));		
 		add_submenu_page('pmxe-admin-home', __('Settings', 'wp_all_export_plugin') . ' &lsaquo; ' . __('WP All Export', 'wp_all_export_plugin'), __('Settings', 'wp_all_export_plugin'), 'manage_options', 'pmxe-admin-settings', array(PMXE_Plugin::getInstance(), 'adminDispatcher'));
-		add_submenu_page('pmxe-admin-home', __('Feedback', 'wp_all_export_plugin') . ' &lsaquo; ' . __('WP All Export', 'wp_all_export_plugin'), __('Feedback', 'wp_all_export_plugin'), 'manage_options', 'pmxe-admin-feedback', array(PMXE_Plugin::getInstance(), 'adminDispatcher'));		
+		// add_submenu_page('pmxe-admin-home', __('Feedback', 'wp_all_export_plugin') . ' &lsaquo; ' . __('WP All Export', 'wp_all_export_plugin'), __('Feedback', 'wp_all_export_plugin'), 'manage_options', 'pmxe-admin-feedback', array(PMXE_Plugin::getInstance(), 'adminDispatcher'));		
 		add_submenu_page('pmxe-admin-home', __('Support', 'wp_all_export_plugin') . ' &lsaquo; ' . __('WP All Export', 'wp_all_export_plugin'), __('Support', 'wp_all_export_plugin'), 'manage_options', 'pmxe-admin-help', array(PMXE_Plugin::getInstance(), 'adminDispatcher'));		
 		
 	}	

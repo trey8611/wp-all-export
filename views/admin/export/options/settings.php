@@ -2,7 +2,7 @@
 	<div class="wpallexport-collapsed wpallexport-section">
 		<div class="wpallexport-content-section">
 			<div class="wpallexport-collapsed-header" style="padding-left: 25px;">
-				<h3><?php _e('Advanced Export','wp_all_export_plugin');?></h3>	
+				<h3><?php _e('Configure Advanced Settings','wp_all_export_plugin');?></h3>	
 			</div>
 			<div class="wpallexport-collapsed-content" style="padding: 0;">
 				<div class="wpallexport-collapsed-content-inner">				

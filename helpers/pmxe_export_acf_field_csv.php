@@ -71,11 +71,9 @@ function pmxe_export_acf_field_csv($field_value, $exportOptions, $ID, $recordID,
 				$put_to_csv = false;
 
 				break;
-			case 'paypal_item':						
+			case 'paypal_item':										
 
-				$acfs[] = $element_name . '_item_name';
-				$acfs[] = $element_name . '_item_description';
-				$acfs[] = $element_name . '_price';
+				$acfs[] = array($element_name . '_item_name', $element_name . '_item_description', $element_name . '_price');
 
 				if ( is_array($field_value) ){
 					foreach ($field_value as $key => $value) {
@@ -88,14 +86,11 @@ function pmxe_export_acf_field_csv($field_value, $exportOptions, $ID, $recordID,
 				break;
 			case 'google_map':
 
-				$article[$element_name . '_address'] = $field_value['address'];
-				$acfs[] = $element_name . '_address';
-								
-				$article[$element_name . '_lat'] = $field_value['lat'];
-				$acfs[] = $element_name . '_lat';
+				$acfs[] = array($element_name . '_address', $element_name . '_lat', $element_name . '_lng');
 
-				$article[$element_name . '_lng'] = $field_value['lng'];
-				$acfs[] = $element_name . '_lng';							
+				$article[$element_name . '_address'] = $field_value['address'];												
+				$article[$element_name . '_lat'] = $field_value['lat'];				
+				$article[$element_name . '_lng'] = $field_value['lng'];														
 									
 				$put_to_csv = false;
 
@@ -232,12 +227,14 @@ function pmxe_export_acf_field_csv($field_value, $exportOptions, $ID, $recordID,
 
 				if( have_rows($field_name, $recordID) ){
 
-					$repeater_element_name = empty($ID) ? $parent_field_name : $element_name;
+					// $repeater_element_name = empty($ID) ? $parent_field_name : $element_name;
 
-				    if ( ! empty($ID)) 
-				    	$acfs[$repeater_element_name] = array();
+				 //    if ( ! empty($ID)) 
+				 //    	$acfs[$repeater_element_name] = array();
 
 					$rowValues = array();
+
+					$repeater_sub_field_names = array();
  										
 				    while( have_rows($field_name, $recordID) ): the_row(); 					
 
@@ -291,9 +288,11 @@ function pmxe_export_acf_field_csv($field_value, $exportOptions, $ID, $recordID,
 
 				    foreach ($rowValues as $key => $values) {
 				    	$article[$element_name . '_' . $key] =  ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars(implode($exportOptions['delimiter'], $values)))) : implode($exportOptions['delimiter'], $values);				    	
-				    	if ( ! in_array($element_name . '_' . $key, $acfs[$repeater_element_name])) $acfs[$repeater_element_name][] = $element_name . '_' . $key;
+				    	if ( ! in_array($element_name . '_' . $key, $repeater_sub_field_names)) $repeater_sub_field_names[] = $element_name . '_' . $key;
 				    }					    
-				 
+					
+					if ( ! empty($repeater_sub_field_names)) $acfs[] = $repeater_sub_field_names;
+
 				}							
 
 				$put_to_csv = false;
@@ -353,7 +352,7 @@ function pmxe_export_acf_field_csv($field_value, $exportOptions, $ID, $recordID,
 
 	if ($put_to_csv){
 
-		switch ($field_options['type']) {
+		switch ($field_options['type']) {			
 
 			case 'repeater':
 
@@ -402,7 +401,22 @@ function pmxe_export_acf_field_csv($field_value, $exportOptions, $ID, $recordID,
 						}		
 					}
 				}
+				else
+				{
+					if ( ! empty($field_options['sub_fields']))
+					{
+						$repeater_sub_field_names = array();
+						
+						foreach ($field_options['sub_fields'] as $n => $sub_field)
+						{							
+							$sub_name = $element_name . '_' . $sub_field['name'];						
 
+							if ( ! in_array($sub_name, $acfs) and ! in_array($sub_name, $repeater_sub_field_names)) $repeater_sub_field_names[] = $sub_name;									
+						}
+						if ( ! empty($repeater_sub_field_names)) $acfs[] = $repeater_sub_field_names;
+					}								
+				}
+				
 			break;
 
 			case 'google_map':

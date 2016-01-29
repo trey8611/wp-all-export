@@ -90,12 +90,11 @@ class PMXE_Chunk {
 
     if (empty($this->options['element']) or $this->options['get_cloud'])
     {      
-      // if (function_exists('stream_filter_register') and $this->options['filter']){
-      //   stream_filter_register('preprocessxml', 'preprocessXml_filter');
-      //   $path = 'php://filter/read=preprocessxml/resource=' . $this->file;   
-      // }
-      // else 
-      $path = $this->file;
+      if (function_exists('stream_filter_register') and $this->options['filter']){
+        stream_filter_register('preprocessxml', 'wpae_preprocessXml_filter');
+        $path = 'php://filter/read=preprocessxml/resource=' . $this->file;   
+      }
+      else $path = $this->file;
 
       $reader = new XMLReader();
       $reader->open($path);
@@ -103,10 +102,11 @@ class PMXE_Chunk {
       while ( @$reader->read()) {
          switch ($reader->nodeType) {
            case (XMLREADER::ELEMENT):              
-              if (array_key_exists(str_replace(":", "_", $reader->localName), $this->cloud))
-                $this->cloud[str_replace(":", "_", $reader->localName)]++;
+              $localName = str_replace("_colon_", ":", $reader->localName);     
+              if (array_key_exists(str_replace(":", "_", $localName), $this->cloud))
+                $this->cloud[str_replace(":", "_", $localName)]++;
               else
-                $this->cloud[str_replace(":", "_", $reader->localName)] = 1;                       
+                $this->cloud[str_replace(":", "_", $localName)] = 1;                          
               break;
             default:
 
@@ -137,12 +137,11 @@ class PMXE_Chunk {
       }
     }                           
 
-    // if (function_exists('stream_filter_register') and $this->options['filter']){
-    //   stream_filter_register('preprocessxml', 'preprocessXml_filter');
-    //   $path = 'php://filter/read=preprocessxml/resource=' . $this->file;        
-    // }
-    // else 
-    $path = $this->file;
+    if (function_exists('stream_filter_register') and $this->options['filter']){
+      stream_filter_register('preprocessxml', 'wpae_preprocessXml_filter');
+      $path = 'php://filter/read=preprocessxml/resource=' . $this->file;        
+    }
+    else $path = $this->file;
 
     $this->reader = new XMLReader();        
     @$this->reader->open($path);
@@ -185,10 +184,12 @@ class PMXE_Chunk {
       while ( @$this->reader->read() ) {        
           switch ($this->reader->nodeType) {
            case (XMLREADER::ELEMENT):            
-              if ( strtolower(str_replace(":", "_", $this->reader->localName)) == strtolower($element) ) {                
+              $localName = str_replace("_colon_", ":", $this->reader->localName);     
+
+              if ( strtolower(str_replace(":", "_", $localName)) == strtolower($element) ) {
 
                   if ($this->loop < $this->options['pointer']){
-                    $this->loop++;                  
+                    $this->loop++;                              
                     continue;
                   }                
                   
@@ -212,15 +213,17 @@ class PMXE_Chunk {
 
   function removeColonsFromRSS($feed) {
                   
+        $feed = str_replace("_colon_", ":", $feed);
+        
         // pull out colons from start tags
         // (<\w+):(\w+>)
-        $pattern = '/(<\w+):(\w+[ |>]{1})/i';
-        $replacement = '<$2';
+        $pattern = '/(<\w+):([\w+|\.|-]+[ |>]{1})/i';
+        $replacement = '$1_$2';
         $feed = preg_replace($pattern, $replacement, $feed);
         // pull out colons from end tags
         // (<\/\w+):(\w+>)
-        $pattern = '/(<\/\w+):(\w+>)/i';
-        $replacement = '</$2';
+        $pattern = '/(<\/\w+):([\w+|\.|-]+>)/i';
+        $replacement = '$1_$2';
         $feed = preg_replace($pattern, $replacement, $feed);
         // pull out colons from attributes
         $pattern = '/(\s+\w+):(\w+[=]{1})/i';
@@ -228,12 +231,44 @@ class PMXE_Chunk {
         $feed = preg_replace($pattern, $replacement, $feed);
         // pull colons from single element 
         // (<\w+):(\w+\/>)
-        $pattern = '/(<\w+):(\w+\/>)/i';
-        $replacement = '<$2';
-        $feed = preg_replace($pattern, $replacement, $feed);
-      
+        $pattern = '/(<\w+):([\w+|\.|-]+\/>)/i';
+        $replacement = '$1_$2';
+        $feed = preg_replace($pattern, $replacement, $feed);              
+
+        $is_preprocess_enabled = apply_filters('is_xml_preprocess_enabled', true);
+        if ($is_preprocess_enabled)
+        {
+          // replace temporary word _ampersand_ back to & symbol
+          $feed = str_replace("_ampersand_", "&", $feed);
+        }
+
         return $feed;
 
   }
+
+}
+
+class wpae_preprocessXml_filter extends php_user_filter {    
+
+    function filter($in, $out, &$consumed, $closing)
+    {
+      while ($bucket = stream_bucket_make_writeable($in)) {        
+        $is_preprocess_enabled = apply_filters('is_xml_preprocess_enabled', true);
+        if ($is_preprocess_enabled)
+        {
+          // the & symbol is not valid in XML, so replace it with temporary word _ampersand_
+          $bucket->data = str_replace("&", "_ampersand_", $bucket->data);
+        }        
+        $bucket->data = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $this->replace_colons($bucket->data));               
+        $consumed += $bucket->datalen;        
+        stream_bucket_append($out, $bucket);
+      }      
+      return PSFS_PASS_ON;
+    }
+
+    function replace_colons($data)
+    {
+      return str_replace(":", "_colon_", $data);
+    }
 
 }

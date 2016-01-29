@@ -131,8 +131,8 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 								<td style="min-width: 325px;">
 									<strong><?php echo $item['friendly_name']; ?></strong> <br>									
 									<div class="row-actions">										
-										<span class="edit"><a class="edit" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'template'), $this->baseUrl)) ?>"><?php _e('Edit Template', 'wp_all_export_plugin') ?></a></span> |
-										<span class="edit"><a class="edit" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'options'), $this->baseUrl)) ?>"><?php _e('Edit Options', 'wp_all_export_plugin') ?></a></span> |										
+										<span class="edit"><a class="edit" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'template'), $this->baseUrl)) ?>"><?php _e('Edit Export', 'wp_all_export_plugin') ?></a></span> |
+										<span class="edit"><a class="edit" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'options'), $this->baseUrl)) ?>"><?php _e('Export Settings', 'wp_all_export_plugin') ?></a></span> |										
 										
 										<?php if ( ! $is_secure_import and $item['attch_id']): ?>
 										<span class="update"><a class="update" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'get_file', '_wpnonce' => wp_create_nonce( '_wpnonce-download_feed' )), $this->baseUrl)) ?>"><?php echo strtoupper($item['options']['export_to']); ?></a></span> |
