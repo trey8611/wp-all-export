@@ -122,8 +122,9 @@ function pmxe_wp_ajax_export_filtering(){
 							<select name="product_matching_mode">
 								<option value="strict" <?php echo ( $product_matching_mode == 'strict' ) ? 'selected="selected"' : ''; ?>><?php _e("Strict", "wp_all_export_plugin"); ?></option>
 								<option value="permissive" <?php echo ( $product_matching_mode == 'permissive' ) ? 'selected="selected"' : ''; ?>><?php _e("Permissive", "wp_all_export_plugin"); ?></option>
+								<option value="parent" <?php echo ( $product_matching_mode == 'parent' ) ? 'selected="selected"' : ''; ?>><?php _e("Parent", "wp_all_export_plugin"); ?></option>
 							</select>
-							<a href="#help" class="wpallexport-help" style="position: relative; top: 0px;" title="<?php _e('Strict matching requires all variations to pass in order for the product to be exported. Permissive matching allows the product to be exported if any of the variations pass.', 'wp_all_export_plugin'); ?>">?</a>							
+							<a href="#help" class="wpallexport-help" style="position: relative; top: 0px;" title="<?php _e('Strict matching requires all variations to pass in order for the product to be exported. Permissive matching allows the product to be exported if any of the variations pass. Parent matching applies filters to parent products only.', 'wp_all_export_plugin'); ?>">?</a>							
 						</div>
 
 						<?php endif; ?>

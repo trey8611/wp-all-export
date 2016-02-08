@@ -113,10 +113,24 @@
 		security: wp_all_export_security							
     };    
 
-    function wp_all_export_process(){		
+    function wp_all_export_process(){	
+
+    	var $URL = ajaxurl;		
+	    if (typeof export_id != "undefined")
+	    {
+	    	if ($URL.indexOf("?") == -1)
+	    	{
+	    		$URL += '?id=' + export_id;
+	    	}
+	    	else
+	    	{
+	    		$URL += '&id=' + export_id;
+	    	}
+	    }
+	    	
 		$.ajax({
 			type: 'POST',
-			url: ajaxurl + ((typeof export_id != "undefined") ? '?id=' + export_id : ''),
+			url: $URL,
 			data: request,
 			success: function(response) {	
 				

@@ -167,7 +167,7 @@ function pmxe_export_csv($exportQuery, $exportOptions, $preview = false, $is_cro
 								}
 								if (! empty($img_urls))
 									$article[$element_name . '_images'] = implode($implode_delimiter, $img_urls);
-																
+														
 								if (!empty($img_titles)) $article[$element_name. '_titles'] = implode($implode_delimiter, $img_titles);
 								if (!empty($img_captions)) $article[$element_name . '_captions'] = implode($implode_delimiter, $img_captions);
 								if (!empty($img_alts)) $article[$element_name . '_alts'] = implode($implode_delimiter, $img_alts);
@@ -367,12 +367,13 @@ function pmxe_export_csv($exportQuery, $exportOptions, $preview = false, $is_cro
 										foreach ($txes_list as $t) {
 											$attr_new[] = $t->name;
 										}										
-										$article[$element_name] = apply_filters('pmxe_woo_attribute', pmxe_filter(implode($implode_delimiter, $attr_new), $fieldSnipped), get_the_ID());										
+										$article[$element_name] = apply_filters('pmxe_woo_attribute', pmxe_filter(implode($implode_delimiter, $attr_new), $fieldSnipped), get_the_ID(), $exportOptions['cc_value'][$ID]);										
 									}									
 									if ( ! in_array($element_name, $attributes)) $attributes[] = $element_name;
 								}
-								else{
-									$attribute_pa = get_post_meta($record->ID, 'attribute_' . $exportOptions['cc_value'][$ID], true);						
+								else
+								{
+									$attribute_pa = apply_filters('pmxe_woo_attribute', get_post_meta($record->ID, 'attribute_' . $exportOptions['cc_value'][$ID], true), get_the_ID(), $exportOptions['cc_value'][$ID]);
 									$article['attribute_' . $element_name] = $attribute_pa;																			
 									if ( ! in_array('attribute_' . $element_name, $attributes)) $attributes[] = 'attribute_' . $element_name;
 								}								

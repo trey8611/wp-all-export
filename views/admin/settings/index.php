@@ -88,7 +88,13 @@
 	<h3><?php _e('Zapier Integration', 'wp_all_export_plugin') ?></h3>
 	
 	<table class="form-table">
-		<tbody>			
+		<tbody>		
+			<tr>
+				<th scope="row"><label><?php _e('Getting Started', 'wp_all_export_plugin'); ?></label></th>
+				<td>					
+					<p class="description"><?php printf(__('Zapier acts as a middle man between WP All Export and hundreds of other popular apps. To get started go to Zapier.com, create an account, and make a new Zap. Read more: <a target="_blank" href="https://zapier.com/zapbook/wp-all-export-pro/">https://zapier.com/zapbook/wp-all-export-pro/</a>', 'wp_all_export_plugin'), "https://zapier.com/zapbook/wp-all-export-pro/"); ?></p>
+				</td>
+			</tr>	
 			<tr>
 				<th scope="row"><label><?php _e('API Key', 'wp_all_export_plugin'); ?></label></th>
 				<td>
@@ -96,13 +102,7 @@
 					<input type="submit" class="button-secondary" name="pmxe_generate_zapier_api_key" value="<?php _e('Generate New API Key', 'wp_all_export_plugin'); ?>"/>
 					<p class="description"><?php _e('Changing the key will require you to update your existing Zaps on Zapier.', 'wp_all_export_plugin'); ?></p>
 				</td>
-			</tr>	
-			<tr>
-				<th scope="row"><label><?php _e('Zapier beta invitation URL', 'wp_all_export_plugin'); ?></label></th>
-				<td>					
-					<p class="description"><?php printf(__('You can get the invitation URL in the <a href="%s" target="_blank">customer portal</a>.', 'wp_all_export_plugin'), "http://www.wpallimport.com/portal"); ?></p>
-				</td>
-			</tr>											
+			</tr>														
 		</tbody>
 	</table>	
 

@@ -51,7 +51,11 @@ function pmxe_export_xml($exportQuery, $exportOptions, $preview = false, $is_cro
 
 	while ( $exportQuery->have_posts() ) :				
 
-		$exportQuery->the_post(); $record = get_post( get_the_ID() );		
+		$exportQuery->the_post(); $record = get_post( get_the_ID() );	
+
+		$is_export_record = apply_filters('wp_all_export_xml_rows', true, $record, $exportOptions);		
+
+		if ( ! $is_export_record ) continue;
 
 		$xmlWriter->startElement($exportOptions['record_xml_tag']);			
 
@@ -70,7 +74,7 @@ function pmxe_export_xml($exportQuery, $exportOptions, $preview = false, $is_cro
 							'post_id' => $record->ID,
 							'import_id' => $exportOptions['import_id'],
 							'unique_key' => $record->ID,
-							'product_key' => $record->ID					
+							'product_key' => $record->ID						
 						))->save();
 					}
 					unset($postRecord);
@@ -339,13 +343,13 @@ function pmxe_export_xml($exportQuery, $exportOptions, $preview = false, $is_cro
 													$attr_new[] = $t->name;												
 												}		
 												$xmlWriter->beginElement($element_name_ns, $is_variable_product ? $element_name : 'attribute_' . $element_name, null);
-													$xmlWriter->writeCData(apply_filters('pmxe_woo_attribute', pmxe_filter(implode('|', $attr_new), $fieldSnipped), get_the_ID()));
+													$xmlWriter->writeCData(apply_filters('pmxe_woo_attribute', pmxe_filter(implode('|', $attr_new), $fieldSnipped), get_the_ID(), $exportOptions['cc_value'][$ID]));
 												$xmlWriter->endElement();		
 											endif;									
 										}
 									}
 									else{
-										$attribute_pa = get_post_meta($record->ID, 'attribute_' . $exportOptions['cc_value'][$ID], true);
+										$attribute_pa = apply_filters('pmxe_woo_attribute', get_post_meta($record->ID, 'attribute_' . $exportOptions['cc_value'][$ID], true), get_the_ID(), $exportOptions['cc_value'][$ID]);
 										if ( ! empty($attribute_pa)){
 											$xmlWriter->beginElement($element_name_ns, 'attribute_' . $element_name, null);
 												$xmlWriter->writeCData(apply_filters('woo_field', $attribute_pa));

@@ -258,8 +258,8 @@ class wpae_preprocessXml_filter extends php_user_filter {
         {
           // the & symbol is not valid in XML, so replace it with temporary word _ampersand_
           $bucket->data = str_replace("&", "_ampersand_", $bucket->data);
-        }        
-        $bucket->data = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $this->replace_colons($bucket->data));               
+          $bucket->data = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $this->replace_colons($bucket->data));               
+        }                
         $consumed += $bucket->datalen;        
         stream_bucket_append($out, $bucket);
       }      

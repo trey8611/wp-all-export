@@ -419,12 +419,8 @@ if ( ! class_exists('XmlExportEngine') ){
 
 			}
 
-			if ( ! XmlExportWooCommerceOrder::$is_active )
-			{
-				// Render Available ACF
-				$this->acf_export->render($i);
-				
-			}			
+			// Render Available ACF
+			$this->acf_export->render($i);			
 
 			return ob_get_clean();
 

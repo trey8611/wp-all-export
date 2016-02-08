@@ -11,6 +11,9 @@ function wp_all_export_prepare_template_csv($exportOptions, &$templateOptions)
 		$taxs_list = array();
 		$acf_list  = array();
 		$implode_delimiter = ($exportOptions['delimiter'] == ',') ? '|' : ',';	
+
+		if ( ! empty($exportOptions['is_user_export']) ) $templateOptions['pmui']['import_users'] = 1;
+
 		foreach ($exportOptions['ids'] as $ID => $value) {
 			if (empty($exportOptions['cc_type'][$ID])) continue;
 			$element_name = strtolower((!empty($exportOptions['cc_name'][$ID])) ? preg_replace('/[^a-z0-9_]/i', '', $exportOptions['cc_name'][$ID]) : 'untitled_' . $ID);
@@ -23,12 +26,15 @@ function wp_all_export_prepare_template_csv($exportOptions, &$templateOptions)
 				case 'title':	
 				case 'content':
 				case 'author':				
-				case 'parent':
-				case 'excerpt':
+				case 'parent':				
 				case 'slug':
 					$templateOptions[$exportOptions['cc_type'][$ID]] = '{'. $element_name .'[1]}';			
 					$templateOptions['is_update_' . $exportOptions['cc_type'][$ID]] = 1;							
 					break;	
+				case 'excerpt':
+					$templateOptions['post_excerpt'] = '{'. $element_name .'[1]}';			
+					$templateOptions['is_update_' . $exportOptions['cc_type'][$ID]] = 1;							
+					break;
 				case 'status':
 					$templateOptions['status_xpath'] = '{'. $element_name .'[1]}';
 					$templateOptions['is_update_status'] = 1;

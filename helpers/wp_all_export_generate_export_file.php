@@ -13,15 +13,18 @@ if ( ! function_exists('wp_all_export_generate_export_file') )
 
 		$export->getById( $export_id );
 		
-		if ( ! $export->isEmpty() and $export->options['creata_a_new_export_file'] )
+		if ( ! $export->isEmpty())
 		{
-			$export_file_name =  sanitize_file_name($export->options['friendly_name']) . ' - ' . ($export->iteration + 1) . '.' . $export->options['export_to'];
-		}
-		else
-		{
-			$export_file_name = sanitize_file_name($export->options['friendly_name']) . '.' . $export->options['export_to'];				
-		}			
+			if ($export->options['creata_a_new_export_file'] )
+			{
+				$export_file_name =  sanitize_file_name($export->options['friendly_name']) . ' - ' . ($export->iteration + 1) . '.' . $export->options['export_to'];
+			}
+			else
+			{
+				$export_file_name = sanitize_file_name($export->options['friendly_name']) . '.' . $export->options['export_to'];				
+			}					
+		}		
 
-		return $target . DIRECTORY_SEPARATOR . $export_file_name;		
+		return apply_filters('wp_all_export_export_file_name', $target . DIRECTORY_SEPARATOR . $export_file_name, $export_id );		
 	}
 }

@@ -118,6 +118,22 @@
 		}
 	});	
 
+	var get_valid_ajaxurl = function(){
+		var $URL = ajaxurl;
+	    if (typeof export_id != "undefined")
+	    {
+	    	if ($URL.indexOf("?") == -1)
+	    	{
+	    		$URL += '?id=' + export_id;
+	    	}
+	    	else
+	    	{
+	    		$URL += '&id=' + export_id;
+	    	}
+	    }
+	    return $URL;
+	}
+
 	// Export filtering	
 	
 	var init_filtering_fields = function(){
@@ -1016,7 +1032,7 @@
 
 			$.ajax({
 				type: 'POST',
-				url: ajaxurl + ((typeof export_id != "undefined") ? '?id=' + export_id : ''),
+				url: get_valid_ajaxurl(),
 				data: request,
 				success: function(response) {						
 
@@ -1262,7 +1278,7 @@
 	    
 		$.ajax({
 			type: 'POST',
-			url: ajaxurl + ((typeof export_id != "undefined") ? '?id=' + export_id : ''),
+			url: get_valid_ajaxurl(),
 			data: request,
 			success: function(response) {						
 				$('input[name=zapier_api_key]').val(response.api_key);

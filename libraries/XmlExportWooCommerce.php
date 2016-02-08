@@ -57,7 +57,7 @@ if ( ! class_exists('XmlExportWooCommerce') ){
 				'_visibility', '_stock_status', '_downloadable', '_virtual', '_regular_price', '_sale_price', '_purchase_note', '_featured', '_weight', '_length',
 				'_width', '_height', '_sku', '_sale_price_dates_from', '_sale_price_dates_to', '_price', '_sold_individually', '_manage_stock', '_stock', '_upsell_ids', '_crosssell_ids',
 				'_downloadable_files', '_download_limit', '_download_expiry', '_download_type', '_product_url', '_button_text', '_backorders', '_tax_status', '_tax_class', '_product_image_gallery', '_default_attributes',
-				'total_sales', '_product_attributes', '_product_version'
+				'total_sales', '_product_attributes', '_product_version', '_variation_description'
 			);		
 
 			$this->_product_data = array('_sku', '_price', '_regular_price','_sale_price', '_stock_status', '_stock', '_visibility', '_product_url', 'total_sales', 'attributes');
@@ -396,8 +396,8 @@ if ( ! class_exists('XmlExportWooCommerce') ){
 										$attr_new = array();
 										foreach ($txes_list as $t) {
 											$attr_new[] = $t->name;
-										}										
-										$data[$element_name] = apply_filters('pmxe_woo_attribute', pmxe_filter(implode($implode_delimiter, $attr_new), $fieldSnipped), $record->ID);										
+										}											
+										$data[$element_name] = apply_filters('pmxe_woo_attribute', pmxe_filter(implode($implode_delimiter, $attr_new), $fieldSnipped), $record->ID, $taxonomy_slug);										
 									}			
 									else
 									{
@@ -406,7 +406,7 @@ if ( ! class_exists('XmlExportWooCommerce') ){
 								}
 								else
 								{														
-									$data[$element_name] = get_post_meta($record->ID, 'attribute_' . $taxonomy_slug, true);																										
+									$data[$element_name] = apply_filters('pmxe_woo_attribute', get_post_meta($record->ID, 'attribute_' . $taxonomy_slug, true), $record->ID, $taxonomy_slug);
 								}	
 
 							}
@@ -475,7 +475,7 @@ if ( ! class_exists('XmlExportWooCommerce') ){
 									
 									default:
 										if ( empty($data[$element_name]) )
-										{
+										{											
 											$data[$element_name] = apply_filters('pmxe_woo_field', pmxe_filter(maybe_serialize($cur_meta_value), $fieldSnipped), $options['cc_value'][$elId], $record->ID);																			
 										}
 										else
@@ -573,7 +573,7 @@ if ( ! class_exists('XmlExportWooCommerce') ){
 			$data_to_export = $this->prepare_export_data( $record, $options, $elId );
 
 			foreach ($data_to_export as $key => $data) 
-			{				
+			{			
 				$element_name_ns = '';	
 				$element_name = str_replace("-", "_", preg_replace('/[^a-z0-9:_]/i', '', $key));
 				if (strpos($element_name, ":") !== false)
@@ -585,7 +585,7 @@ if ( ! class_exists('XmlExportWooCommerce') ){
 				
 				$xmlWriter->beginElement($element_name_ns, $element_name, null);
 					$xmlWriter->writeCData($data);
-				$xmlWriter->endElement();				
+				$xmlWriter->endElement();					
 			}
 
 		}		

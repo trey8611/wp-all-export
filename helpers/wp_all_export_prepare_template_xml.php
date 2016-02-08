@@ -10,6 +10,9 @@ function wp_all_export_prepare_template_xml($exportOptions, &$templateOptions)
 		$attr_list = array();
 		$taxs_list = array();
 		$acf_list  = array();
+
+		if ( ! empty($exportOptions['is_user_export']) ) $templateOptions['pmui']['import_users'] = 1;
+		
 		foreach ($exportOptions['ids'] as $ID => $value) {
 			if (empty($exportOptions['cc_type'][$ID])) continue;
 			$element_name = (!empty($exportOptions['cc_name'][$ID])) ? str_replace(':', '_', preg_replace('/[^a-z0-9_:-]/i', '', $exportOptions['cc_name'][$ID])) : 'untitled_' . $ID;
@@ -22,12 +25,15 @@ function wp_all_export_prepare_template_xml($exportOptions, &$templateOptions)
 				case 'title':	
 				case 'content':
 				case 'author':				
-				case 'parent':
-				case 'excerpt':
+				case 'parent':				
 				case 'slug':
 					$templateOptions[$exportOptions['cc_type'][$ID]] = '{'. $element_name .'[1]}';										
 					$templateOptions['is_update_' . $exportOptions['cc_type'][$ID]] = 1;
 					break;	
+				case 'excerpt':
+					$templateOptions['post_excerpt'] = '{'. $element_name .'[1]}';										
+					$templateOptions['is_update_' . $exportOptions['cc_type'][$ID]] = 1;
+					break;
 				case 'status':
 					$templateOptions['status_xpath'] = '{'. $element_name .'[1]}';
 					$templateOptions['is_update_status'] = 1;
@@ -63,7 +69,7 @@ function wp_all_export_prepare_template_xml($exportOptions, &$templateOptions)
 								'url'  => 'http://www.wpallimport.com/woocommerce-product-import/'
 							);
 						}
-						
+
 						if ( ! in_array($exportOptions['cc_label'][$ID], $cf_list)) $cf_list[] = $exportOptions['cc_label'][$ID];
 
 						switch ($exportOptions['cc_label'][$ID]) {												
@@ -416,7 +422,7 @@ function wp_all_export_prepare_template_xml($exportOptions, &$templateOptions)
 									$templateOptions['tax_logic'][$taxonomy] = 'hierarchical';
 									$templateOptions['tax_hierarchical_logic_entire'][$taxonomy] = 1;
 									$templateOptions['multiple_term_assing'][$taxonomy] = 1;
-									$templateOptions['tax_hierarchical_delim'][$taxonomy] = '&gt;';
+									$templateOptions['tax_hierarchical_delim'][$taxonomy] = '>';
 									$templateOptions['is_tax_hierarchical_group_delim'][$taxonomy] = 1;
 									$templateOptions['tax_hierarchical_group_delim'][$taxonomy] = '|';
 									$templateOptions['tax_hierarchical_xpath'][$taxonomy] = array('{'. $element_name .'[1]}');								
