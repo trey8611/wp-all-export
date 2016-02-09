@@ -27,4 +27,9 @@ class PMXE_XMLWriter extends XMLWriter
 		}
 	}
 
+	public function writeData( $value )
+	{
+		if (empty($value) or is_numeric($value)) $this->text($value); else $this->writeCData($value);
+	}
+	
 } 

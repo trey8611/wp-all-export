@@ -55,17 +55,17 @@ function pmxe_export_acf_field_xml($field_value, $exportOptions, $ID, $recordID,
 
 					$xmlWriter->beginElement($element_name_ns, $element_name, null);
 						$xmlWriter->startElement('address');
-							$xmlWriter->writeCData($localion_parts[0]);
+							$xmlWriter->writeData($localion_parts[0]);
 						$xmlWriter->endElement();
 
 						if (!empty($localion_parts[1])){
 							$coordinates = explode(",", $localion_parts[1]);
 							if (!empty($coordinates)){
 								$xmlWriter->startElement('lat');
-									$xmlWriter->writeCData($coordinates[0]);
+									$xmlWriter->writeData($coordinates[0]);
 								$xmlWriter->endElement();
 								$xmlWriter->startElement('lng');
-									$xmlWriter->writeCData($coordinates[1]);
+									$xmlWriter->writeData($coordinates[1]);
 								$xmlWriter->endElement();
 							}
 						}
@@ -82,7 +82,7 @@ function pmxe_export_acf_field_xml($field_value, $exportOptions, $ID, $recordID,
 					if ( is_array($field_value) ){
 						foreach ($field_value as $key => $value) {
 							$xmlWriter->beginElement($element_name_ns, $key, null);
-								$xmlWriter->writeCData($value);
+								$xmlWriter->writeData($value);
 							$xmlWriter->endElement();
 						}
 					}													
@@ -95,13 +95,13 @@ function pmxe_export_acf_field_xml($field_value, $exportOptions, $ID, $recordID,
 
 				$xmlWriter->beginElement($element_name_ns, $element_name, null);
 					$xmlWriter->startElement('address');
-						$xmlWriter->writeCData($field_value['address']);
+						$xmlWriter->writeData($field_value['address']);
 					$xmlWriter->endElement();
 					$xmlWriter->startElement('lat');
-						$xmlWriter->writeCData($field_value['lat']);
+						$xmlWriter->writeData($field_value['lat']);
 					$xmlWriter->endElement();
 					$xmlWriter->startElement('lng');
-						$xmlWriter->writeCData($field_value['lng']);
+						$xmlWriter->writeData($field_value['lng']);
 					$xmlWriter->endElement();
 				$xmlWriter->endElement();
 
@@ -211,7 +211,7 @@ function pmxe_export_acf_field_xml($field_value, $exportOptions, $ID, $recordID,
 							if ($entry and !is_wp_error($entry))
 							{
 								$xmlWriter->startElement('term');
-									$xmlWriter->writeCData($entry->name);
+									$xmlWriter->writeData($entry->name);
 								$xmlWriter->endElement();
 							}
 						}						
@@ -221,7 +221,7 @@ function pmxe_export_acf_field_xml($field_value, $exportOptions, $ID, $recordID,
 						if ($entry)
 						{
 							$xmlWriter->startElement('term');
-								$xmlWriter->writeCData($entry->name);
+								$xmlWriter->writeData($entry->name);
 							$xmlWriter->endElement();
 						}
 					}
@@ -344,7 +344,7 @@ function pmxe_export_acf_field_xml($field_value, $exportOptions, $ID, $recordID,
 		if ($put_to_xml){
 		
 			$xmlWriter->beginElement($element_name_ns, $element_name, null);
-				$xmlWriter->writeCData(apply_filters('pmxe_acf_field', pmxe_filter( maybe_serialize($field_value), $fieldSnipped), $field_name, $recordID));
+				$xmlWriter->writeData(apply_filters('pmxe_acf_field', pmxe_filter( maybe_serialize($field_value), $fieldSnipped), $field_name, $recordID));
 			$xmlWriter->endElement();
 
 		}
