@@ -57,7 +57,7 @@ abstract class PMXE_Controller {
 	 */
 	protected function render($viewPath = null) {
 		
-		if ( ! get_current_user_id() or ! current_user_can('manage_options')) {
+		if ( ! get_current_user_id() or ! current_user_can(PMXE_Plugin::$capabilities)) {
 		    // This nonce is not valid.
 		    die( 'Security check' ); 
 

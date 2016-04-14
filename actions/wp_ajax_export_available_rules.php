@@ -6,7 +6,7 @@ function pmxe_wp_ajax_export_available_rules(){
 		exit( json_encode(array('html' => __('Security check', 'wp_all_export_plugin'))) );
 	}
 
-	if ( ! current_user_can('manage_options') ){
+	if ( ! current_user_can( PMXE_Plugin::$capabilities ) ){
 		exit( json_encode(array('html' => __('Security check', 'wp_all_export_plugin'))) );
 	}
 
@@ -24,15 +24,15 @@ function pmxe_wp_ajax_export_available_rules(){
 			?>										
 
 				<!-- Taxonomies -->
-				<option value="in">IN</option>
-				<option value="not_in">NOT IN</option>
+				<option value="in"><?php echo __('In', 'wp_all_export_plugin') . ' ' . ucwords(str_replace(array("tx_", "_"), array("", " "), $post['selected'])); ?></option>
+				<option value="not_in"><?php echo __('Not In', 'wp_all_export_plugin') . ' ' . ucwords(str_replace(array("tx_", "_"), array("", " "), $post['selected'])); ?></option>
 
 				<!-- Custom Fields -->
 				<!--option value="between">BETWEEN</option-->
 			
 			<?php
 		}
-		elseif($post['selected'] === 'post_date')
+		elseif( in_array($post['selected'], array('post_date', 'user_registered', 'comment_date')) )
 		{
 			?>
 			<option value="equals"><?php _e('equals', 'wp_all_export_plugin'); ?></option>
@@ -48,18 +48,38 @@ function pmxe_wp_ajax_export_available_rules(){
 			<option value="is_not_empty"><?php _e('is not empty', 'wp_all_export_plugin'); ?></option>
 			<?php
 		}
+		elseif( in_array($post['selected'], array('wp_capabilities')))
+		{
+			?>
+			<option value="contains"><?php _e('contains', 'wp_all_export_plugin'); ?></option>
+			<option value="not_contains"><?php _e("doesn't contain", 'wp_all_export_plugin'); ?></option>
+			<?php
+		}
+		elseif ( in_array($post['selected'], array('user_login', 'user_nicename', 'user_role', 'user_email', 'display_name', 'first_name', 'last_name', 'nickname', 'description', 
+			'post_status', 'post_title', 'post_content', 'comment_author_email', 'comment_author_url', 'comment_author_IP', 'comment_agent', 
+			'comment_type', 'comment_content') ) ) 
+		{
+			?>
+			<option value="equals"><?php _e('equals', 'wp_all_export_plugin'); ?></option>
+			<option value="not_equals"><?php _e("doesn't equal", 'wp_all_export_plugin'); ?></option>
+			<option value="contains"><?php _e('contains', 'wp_all_export_plugin'); ?></option>
+			<option value="not_contains"><?php _e("doesn't contain", 'wp_all_export_plugin'); ?></option>
+			<option value="is_empty"><?php _e('is empty', 'wp_all_export_plugin'); ?></option>
+			<option value="is_not_empty"><?php _e('is not empty', 'wp_all_export_plugin'); ?></option>
+			<?php
+		}
 		else
 		{
 			?>
 			<option value="equals"><?php _e('equals', 'wp_all_export_plugin'); ?></option>
-			<option value="not_equals"><?php _e('not equals', 'wp_all_export_plugin'); ?></option>
+			<option value="not_equals"><?php _e("doesn't equal", 'wp_all_export_plugin'); ?></option>
 			<option value="greater"><?php _e('greater than', 'wp_all_export_plugin');?></option>
-			<option value="equals_or_greater"><?php _e('equals or greater than', 'wp_all_export_plugin'); ?></option>
+			<option value="equals_or_greater"><?php _e('equal to or greater than', 'wp_all_export_plugin'); ?></option>
 			<option value="less"><?php _e('less than', 'wp_all_export_plugin'); ?></option>
-			<option value="equals_or_less"><?php _e('equals or less than', 'wp_all_export_plugin'); ?></option>
+			<option value="equals_or_less"><?php _e('equal to or less than', 'wp_all_export_plugin'); ?></option>
 
 			<option value="contains"><?php _e('contains', 'wp_all_export_plugin'); ?></option>
-			<option value="not_contains"><?php _e('not contains', 'wp_all_export_plugin'); ?></option>
+			<option value="not_contains"><?php _e("doesn't contain", 'wp_all_export_plugin'); ?></option>
 			<option value="is_empty"><?php _e('is empty', 'wp_all_export_plugin'); ?></option>
 			<option value="is_not_empty"><?php _e('is not empty', 'wp_all_export_plugin'); ?></option>
 			<?php

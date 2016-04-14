@@ -22,31 +22,71 @@
 				<h2><?php _e('Export <span id="status">in Progress...</span>', 'wp_all_export_plugin') ?></h2>
 				<h3 id="process_notice"><?php _e('Exporting may take some time. Please do not close your browser or refresh the page until the process is complete.', 'wp_all_export_plugin'); ?></h3>		
 			</div>		
-			<div id="processbar" class="rad14">
-				<div class="rad14"></div>			
-			</div>			
-			<div id="export_progress">
-				<span id="left_progress"><?php _e('Time Elapsed', 'wp_all_export_plugin');?> <span id="then">00:00:00</span></span>
-				<span id="center_progress"><span id="percents_count">0</span>%</span>
-				<span id="right_progress"><?php _e('Exported','wp_all_export_plugin');?> <span id="created_count"><?php echo $update_previous->exported; ?></span></span>				
-			</div>			
+			<div class="wpallexport_process_wrapper_<?php echo $update_previous->id; ?> wpallexport_process_parent_wrapper">
+				<div class="wpallexport_processbar rad14">
+					<div class="rad14"></div>			
+				</div>			
+				<div class="export_progress">
+					<span class="left_progress"><?php _e('Time Elapsed', 'wp_all_export_plugin');?> <span id="then">00:00:00</span></span>
+					<span class="center_progress"><span class="percents_count">0</span>%</span>
+					<span class="right_progress"><?php _e('Exported','wp_all_export_plugin');?> <span class="created_count"><?php echo $update_previous->exported; ?></span></span>				
+				</div>			
+			</div>
+			<?php 
+			if ( XmlExportWooCommerceOrder::$is_active && $update_previous->options['export_type'] == 'specific' ): 
+				
+				$exportList = new PMXE_Export_List();	
+				foreach ($exportList->getBy('parent_id', $update_previous->id)->convertRecords() as $child_export) 
+				{
+					$is_render_child_progress = true;
+					switch ($child_export->export_post_type) 
+					{
+						case 'product':
+							if ( ! $update_previous->options['order_include_poducts'] ) $is_render_child_progress = false;
+							break;
+						case 'shop_coupon':
+							if ( ! $update_previous->options['order_include_coupons'] ) $is_render_child_progress = false;
+							break;						
+						case 'shop_customer':
+							if ( ! $update_previous->options['order_include_customers'] ) $is_render_child_progress = false;
+							break;
+					}
+					
+					if ( ! $is_render_child_progress) continue;
+
+					?>
+					<div class="clear"></div>
+					<div class="wpallexport_process_wrapper_<?php echo $child_export->id; ?> wpallexport_process_child_wrapper">
+						<div class="wpallexport_processbar rad14">
+							<div class="rad14"></div>			
+						</div>
+						<div class="export_progress">
+							<span class="left_progress">
+								<span class="center_progress">
+									<span class="percents_count">0</span>%</span> <?php printf(__("Export %ss", "wp_all_export_plugin"), ucwords(str_replace("_", " ", str_replace("shop", "", $child_export->export_post_type))));?></span>
+							<span class="right_progress"><?php _e('Exported','wp_all_export_plugin');?> <span class="created_count">0</span></span>				
+						</div>
+					</div>
+					<?php
+				}
+
+			endif;
+			?>
 		</div>
 
-		<div id="export_finished">
-			<!--h1><?php _e('Export Complete!', 'wp_all_export_plugin'); ?></h1-->
+		<div id="export_finished">			
 			<h3><?php _e('WP All Export successfully exported your data!','wp_all_export_plugin'); ?></h3>		
 			<p><?php _e('Download Data', 'wp_all_export_plugin'); ?></p>
 			<div class="input wp_all_export_download">
 				<div class="input">
-					<button class="button button-primary button-hero wpallexport-large-button download_data" rel="<?php echo add_query_arg(array('action' => 'download', 'id' => $update_previous->id, '_wpnonce' => wp_create_nonce( '_wpnonce-download_feed' )), $this->baseUrl); ?>"><?php echo strtoupper($update_previous->options['export_to']); ?></button>
+					<button class="button button-primary button-hero wpallexport-large-button download_data" rel="<?php echo add_query_arg(array('action' => 'download', 'id' => $update_previous->id, '_wpnonce' => wp_create_nonce( '_wpnonce-download_feed' )), $this->baseUrl); ?>"><?php echo strtoupper(wp_all_export_get_export_format($update_previous->options)); ?></button>
 				</div>
 				<?php if ( ! empty($update_previous->options['split_large_exports']) ): ?>
 				<div class="input" style="margin-left: 10px;">
-					<button class="button button-primary button-hero wpallexport-large-button download_data" rel="<?php echo add_query_arg(array('page' => 'pmxe-admin-manage', 'id' => $update_previous->id, 'action' => 'split_bundle', '_wpnonce' => wp_create_nonce( '_wpnonce-download_split_bundle' )), $this->baseUrl); ?>"><?php printf(__('Split %ss', 'wp_all_export_plugin'), strtoupper($update_previous->options['export_to'])); ?></button>
-					<!--span><?php _e('Settings & Data for WP All Import', 'wp_all_export_plugin'); ?></span-->
+					<button class="button button-primary button-hero wpallexport-large-button download_data" rel="<?php echo add_query_arg(array('page' => 'pmxe-admin-manage', 'id' => $update_previous->id, 'action' => 'split_bundle', '_wpnonce' => wp_create_nonce( '_wpnonce-download_split_bundle' )), $this->baseUrl); ?>"><?php printf(__('Split %ss', 'wp_all_export_plugin'), strtoupper(wp_all_export_get_export_format($update_previous->options))); ?></button>					
 				</div>
 				<?php endif; ?>
-				<?php if ( empty($update_previous->options['cpt']) or ! in_array('shop_order', $update_previous->options['cpt'])): ?>
+				<?php if ( PMXE_Export_Record::is_bundle_supported($update_previous->options) ): ?>
 				<div class="input" style="margin-left: 10px;">
 					<button class="button button-primary button-hero wpallexport-large-button download_data" rel="<?php echo add_query_arg(array('page' => 'pmxe-admin-manage', 'id' => $update_previous->id, 'action' => 'bundle', '_wpnonce' => wp_create_nonce( '_wpnonce-download_bundle' )), $this->baseUrl); ?>"><?php _e('Bundle', 'wp_all_export_plugin'); ?></button>
 					<span><?php _e('Settings & Data for WP All Import', 'wp_all_export_plugin'); ?></span>
@@ -95,16 +135,17 @@
 		setInterval(update, 1000);
 
 		var $this = $(this);
-												
+		
 		interval = setInterval(function () {																					
 
-			var percents = $('#percents_count').html();
-			$('#processbar div').css({'width': ((parseInt(percents) > 100 || percents == undefined) ? 100 : percents) + '%'});		
-			
+			$('div[class^=wpallexport_process_wrapper]').each(function(){
+				var percents = $(this).find('.percents_count').html();
+				$(this).find('.wpallexport_processbar div').css({'width': ((parseInt(percents) > 100 || percents == undefined) ? 100 : percents) + '%'});		
+			});					
 
 		}, 1000);
 		
-		$('#processbar').css({'visibility':'visible'});	
+		$('.wpallexport_processbar').css({'visibility':'visible'});	
 
 	});	
 
@@ -113,47 +154,70 @@
 		security: wp_all_export_security							
     };    
 
-    function wp_all_export_process(){	
+    function wp_all_export_process( queue_export ){		
 
     	var $URL = ajaxurl;		
-	    if (typeof export_id != "undefined")
-	    {
-	    	if ($URL.indexOf("?") == -1)
-	    	{
-	    		$URL += '?id=' + export_id;
-	    	}
-	    	else
-	    	{
-	    		$URL += '&id=' + export_id;
-	    	}
-	    }
-	    	
+
+    	if (queue_export !== false)
+    	{
+    		$URL += '?id=' + queue_export;
+    	}
+    	else
+    	{
+    		if (typeof export_id != "undefined")
+		    {
+		    	if ($URL.indexOf("?") == -1)
+		    	{
+		    		$URL += '?id=' + export_id;
+		    	}
+		    	else
+		    	{
+		    		$URL += '&id=' + export_id;
+		    	}
+		    }
+    	}	    
+	    
 		$.ajax({
 			type: 'POST',
 			url: $URL,
 			data: request,
 			success: function(response) {	
 				
-				$('#created_count').html(response.exported);						
-				$('#percents_count').html(response.percentage);
-			    $('#processbar div').css({'width': response.percentage + '%'});
+				if (response === null)
+				{
+					$('#status').html('Error');	
+					window.onbeforeunload = false;	
+					$('#process_notice').after(request.responseText);
+					return;
+				}
+
+				var $process_wrapper = $('.wpallexport_process_wrapper_' + response.export_id);
+
+				$process_wrapper.find('.created_count').html(response.exported);						
+				$process_wrapper.find('.percents_count').html(response.percentage);
+			    $process_wrapper.find('.wpallexport_processbar div').css({'width': response.percentage + '%'});
 
 				if (response.done)
 				{
-					$('#status').html('Complete');	
-					window.onbeforeunload = false;	
+					if (response.queue_export)
+					{
+						wp_all_export_process( response.queue_export );
+					}
+					else
+					{
+						$('#status').html('Complete');	
+						window.onbeforeunload = false;	
 
-					setTimeout(function() {
-													
-						$('#export_finished').fadeIn();																			
-						
-					}, 1000);	
-
-					//window.location.href = "<?php echo add_query_arg('action', 'download', $this->baseUrl); ?>";
+						setTimeout(function() {
+														
+							$('#export_finished').fadeIn();																			
+							
+						}, 1000);	
+					}										
 				}
 				else
 				{					
-					wp_all_export_process();
+					wp_all_export_process(response.export_id);
 				}				
 			},
 			error:function(request, status, error){
@@ -165,7 +229,7 @@
 		});
 	};
 
-	wp_all_export_process();
+	wp_all_export_process(<?php echo $update_previous->id; ?>);
 
 	window.onbeforeunload = function () {
 		return 'WARNING:\nExport process in under way, leaving the page will interrupt\nthe operation and most likely to cause leftovers in posts.';

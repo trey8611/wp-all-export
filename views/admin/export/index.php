@@ -47,7 +47,7 @@
 								<?php
 									$custom_types = get_post_types(array('_builtin' => true), 'objects') + get_post_types(array('_builtin' => false, 'show_ui' => true), 'objects') + get_post_types(array('_builtin' => false, 'show_ui' => false), 'objects'); 
 									foreach ($custom_types as $key => $ct) {
-										if (in_array($key, array('attachment', 'revision', 'nav_menu_item', 'import_users'))) unset($custom_types[$key]);										
+										if (in_array($key, array('attachment', 'revision', 'nav_menu_item', 'import_users', 'shop_webhook', 'acf-field', 'acf-field-group'))) unset($custom_types[$key]);										
 									}									
 									$custom_types = apply_filters( 'wpallexport_custom_types', $custom_types );
 								?>								
@@ -57,18 +57,20 @@
 					            	<?php if (count($custom_types)): ?>
 										<?php foreach ($custom_types as $key => $ct):?>
 											<?php 
-												$image_src = 'dashicon-cpt';
-												if (  in_array($key, array('post', 'page', 'product', 'import_users') ) )
-													$image_src = 'dashicon-' . $key;										
+												$image_src = 'dashicon-cpt';																								
+												$cpt_label = $ct->labels->name;												
+
+												if (  in_array($key, array('post', 'page', 'product', 'import_users', 'shop_order', 'shop_coupon', 'shop_customer') ) )
+													$image_src = 'dashicon-' . $key;	 
+																				
 											?>
-											<option value="<?php echo $key;?>" data-imagesrc="dashicon <?php echo $image_src; ?>" <?php if ($key == $post['cpt']) echo 'selected="selected"'; ?>><?php echo $ct->labels->name; ?></option>
+											<option value="<?php echo $key;?>" data-imagesrc="dashicon <?php echo $image_src; ?>" <?php if ($key == $post['cpt']) echo 'selected="selected"'; ?>><?php echo $cpt_label; ?></option>
 										<?php endforeach ?>
 									<?php endif ?>	
 									<option value="users" data-imagesrc="dashicon dashicon-import_users" <?php if ('users' == $post['cpt']) echo 'selected="selected"'; ?>><?php _e("Users", "wp_all_export_plugin"); ?></option>
 									<option value="comments" data-imagesrc="dashicon dashicon-comments" <?php if ('comments' == $post['cpt']) echo 'selected="selected"'; ?>><?php _e("Comments", "wp_all_export_plugin"); ?></option>
-								</select>
-								
-								<input type="hidden" name="cpt" value="<?php echo $post['cpt']; ?>"/>									
+								</select>								
+								<input type="hidden" name="cpt" value="<?php echo $post['cpt']; ?>"/>								
 								
 							</div>
 
@@ -111,26 +113,28 @@
 						<div class="wp_all_export_preloader"></div>							
 
 						<input type="hidden" class="hierarhy-output" name="filter_rules_hierarhy" value="<?php echo esc_html($post['filter_rules_hierarhy']);?>"/>
+						<input type="hidden" class="wpallexport-preload-post-data" value="<?php echo $preload;?>">
+					</div>	
 
+					<div class="wpallexport-filtering-wrapper rad4">
+						<div class="ajax-console" id="filtering_result">
+							
+						</div>
 					</div>									
 
 					<div class="wpallexport-upload-resource-step-two rad4 wpallexport-collapsed closed">
-							
+								
 					</div>
 
 					<p class="wpallexport-submit-buttons" <?php if ('advanced' == $post['export_type']) echo 'style="display:block;"';?>>
-						<input type="hidden" name="custom_type" value="">
+						<input type="hidden" name="custom_type" value="" />
 						<input type="hidden" name="is_submitted" value="1" />
 						<input type="hidden" name="auto_generate" value="0" />
-						
-						<?php wp_nonce_field('choose-cpt', '_wpnonce_choose-cpt'); ?>					
-					
-						<a href="javascript:void(0);" class="back rad3 auto-generate-template" style="float:none; background: #e4e6e6; padding: 0 50px;"><?php _e('Skip to Step 3', 'wp_all_export_plugin'); ?></a>
 
-						<input type="submit" class="button button-primary button-hero wpallexport-large-button" value="<?php _e('Continue to Step 2', 'wp_all_export_plugin') ?>" id="advanced_upload"/>
+						<?php wp_nonce_field('choose-cpt', '_wpnonce_choose-cpt'); ?>											
 
-						<span class="auto-generate-template"><?php _e('Auto Generate Export Template', 'wp_all_export_plugin'); ?></span>
-						
+						<span class="wp_all_export_continue_step_two"></span>						
+
 					</p>
 					
 					<table><tr><td class="wpallexport-note"></td></tr></table>

@@ -40,6 +40,7 @@ CREATE TABLE {$table_prefix}templates (
 ) $charset_collate;
 CREATE TABLE {$table_prefix}exports (
 	id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	parent_id BIGINT(20) NOT NULL DEFAULT 0,
 	attch_id BIGINT(20) UNSIGNED NOT NULL,
 	options LONGTEXT,
 	scheduled VARCHAR(64) NOT NULL DEFAULT '',
@@ -54,6 +55,7 @@ CREATE TABLE {$table_prefix}exports (
   	executing BOOL NOT NULL DEFAULT 0,
   	triggered BOOL NOT NULL DEFAULT 0,
   	iteration BIGINT(20) NOT NULL DEFAULT 0,
+  	export_post_type VARCHAR(64) NOT NULL DEFAULT '',
 	PRIMARY KEY  (id)
 ) $charset_collate;
 SCHEMA;

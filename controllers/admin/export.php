@@ -1,8 +1,8 @@
 <?php 
 /**
- * Import configuration wizard
+ * Export configuration wizard
  * 
- * @author Pavel Kulbakin <p.kulbakin@gmail.com>
+ * @author Max Tsiplyakov <makstsiplyakov@gmail.com>
  */
 
 class PMXE_Admin_Export extends PMXE_Controller_Admin {
@@ -20,7 +20,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 				wp_redirect(add_query_arg('page', 'pmxe-admin-manage', admin_url('admin.php'))); die();
 			}
 			$this->isWizard = false;		
-		
+			$export->fix_template_options();
 		} else {						
 			$action = PMXE_Plugin::getInstance()->getAdminCurrentScreen()->action; 
 			$this->_step_ready($action);			
@@ -55,6 +55,11 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 
 		$update_previous->getById(PMXE_Plugin::$session->update_previous);
 
+		if ( ! $update_previous->isEmpty() )
+		{
+			$update_previous->fix_template_options();
+		}
+
 		if ('options' == $action) return true;
 
 		if ( ! PMXE_Plugin::$session->has_session()){
@@ -70,11 +75,9 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 	 */
 	public function index() {	
 
-		PMXE_Plugin::$session->clean_session();	
+		$action = $this->input->get('action');
 
-		$wp_uploads = wp_upload_dir();		
-				
-		$this->data['post'] = $post = $this->input->post(array(
+		$DefaultOptions = array(
 			'cpt' => '',		
 			'export_to' => 'xml',
 			'export_type' => 'specific',
@@ -83,7 +86,24 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 			'product_matching_mode' => 'strict',
 			'wp_query_selector' => 'wp_query',
 			'auto_generate' => 0
-		));				
+		);
+
+		if ( ! in_array($action, array('index')))
+		{
+			PMXE_Plugin::$session->clean_session();	
+			$this->data['preload'] = false;
+		}		 
+		else
+		{
+			$DefaultOptions = (PMXE_Plugin::$session->has_session() ? PMXE_Plugin::$session->get_clear_session_data() : array()) + $DefaultOptions;			
+			$this->data['preload'] = true;
+		}
+
+		$wp_uploads = wp_upload_dir();		
+				
+		$this->data['post'] = $post = $this->input->post($DefaultOptions);						
+
+		if ( is_array($this->data['post']['cpt']) ) $this->data['post']['cpt'] = $this->data['post']['cpt'][0];		
 
 		// Delete history
 		$history_files = PMXE_Helper::safe_glob(PMXE_ROOT_DIR . '/history/*', PMXE_Helper::GLOB_RECURSE | PMXE_Helper::GLOB_PATH);
@@ -93,66 +113,48 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 			}
 		}
 
-		if ($this->input->post('is_submitted')){  									
+		if ( ! class_exists('ZipArchive') )
+		{
+			$this->errors->add('form-validation', __('ZipArchive class is missing on your server.<br/>Please contact your web hosting provider and ask them to install and activate ZipArchive.', 'wp_all_export_plugin'));
+		}
+		if ( ! class_exists('XMLReader') or ! class_exists('XMLWriter'))
+		{
+			$this->errors->add('form-validation', __('Required PHP components are missing.<br/><br/>WP All Export requires XMLReader, and XMLWriter PHP modules to be installed.<br/>These are standard features of PHP, and are necessary for WP All Export to write the files you are trying to export.<br/>Please contact your web hosting provider and ask them to install and activate the DOMDocument, XMLReader, and XMLWriter PHP modules.', 'wp_all_export_plugin'));
+		}
+		
+		if ($this->input->post('is_submitted'))
+		{  			
 
 			PMXE_Plugin::$session->set('export_type', $post['export_type']);
 			PMXE_Plugin::$session->set('filter_rules_hierarhy', $post['filter_rules_hierarhy']);
 			PMXE_Plugin::$session->set('product_matching_mode', $post['product_matching_mode']);
-			PMXE_Plugin::$session->set('wp_query_selector', $post['wp_query_selector']);			
-
-			$engine = new XmlExportEngine($post, $this->errors);	
-			$engine->init_additional_data();													
+			PMXE_Plugin::$session->set('wp_query_selector', $post['wp_query_selector']);						
 
 			if ( ! empty($post['auto_generate']) )
 			{
-				$auto_generate = array(
-					'ids' 		 => array(),
-					'cc_label' 	 => array(),
-					'cc_php' 	 => array(),
-					'cc_code' 	 => array(),
-					'cc_sql' 	 => array(),
-					'cc_type' 	 => array(),
-					'cc_options' => array(),
-					'cc_value' 	 => array(),
-					'cc_name' 	 => array()
-				);
-
-				$available_data     = $engine->init_available_data();				
-				$available_sections = apply_filters("wp_all_export_available_sections", $engine->get('available_sections'));
-				
-				foreach ($available_sections as $slug => $section) 
-				{
-					foreach ($available_data[$section['content']] as $field) 
-					{
-						if (is_array($field) and isset($field['auto']))
-						{
-							$auto_generate['ids'][] 	   = 1;
-							$auto_generate['cc_label'][]   = $field['label'];
-							$auto_generate['cc_php'][] 	   = 0;
-							$auto_generate['cc_code'][]    = '';
-							$auto_generate['cc_sql'][]     = '';
-							$auto_generate['cc_type'][]    = $field['type'];
-							$auto_generate['cc_options'][] = '';
-							$auto_generate['cc_value'][]   = $field['label'];
-							$auto_generate['cc_name'][]    = $field['name'];
-						}
-					}
-				}	
+				$auto_generate = XmlCsvExport::auto_genetate_export_fields($post, $this->errors);
+					
 				foreach ($auto_generate as $key => $value) 
 				{
 					PMXE_Plugin::$session->set($key, $value);	
 				}	
+
 				PMXE_Plugin::$session->save_data(); 		
-			}
+			}	
+			else
+			{
+				$engine = new XmlExportEngine($post, $this->errors);	
+				$engine->init_additional_data();
+			}		
 			
 		} 	
 		
 		if ($this->input->post('is_submitted') and ! $this->errors->get_error_codes()) {			
 				
-			check_admin_referer('choose-cpt', '_wpnonce_choose-cpt');					 																		
+			check_admin_referer('choose-cpt', '_wpnonce_choose-cpt');							
 
 			PMXE_Plugin::$session->save_data(); 				
-								
+			
 			if ( ! empty($post['auto_generate']) )
 			{					
 				wp_redirect(add_query_arg('action', 'options', $this->baseUrl)); die();	
@@ -160,7 +162,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 			else
 			{
 				wp_redirect(add_query_arg('action', 'template', $this->baseUrl)); die();												
-			}											
+			}							
 			
 		}
 		
@@ -168,7 +170,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 	}		
 
 	/**
-	 * Step #2: Template
+	 * Step #2: Export Template
 	 */ 
 	public function template(){
 
@@ -193,8 +195,8 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 
 		PMXE_Plugin::$session->save_data(); 
 
-		$this->data['post'] =& $post;								
-		
+		$this->data['post'] =& $post;		
+
 		PMXE_Plugin::$session->set('is_loaded_template', '');						
 		
 		if (($load_template = $this->input->post('load_template'))) { // init form with template selected
@@ -209,6 +211,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 				unset($template_options['wp_query_selector']);
 				$this->data['post'] = array_merge($post, $template_options);
 				PMXE_Plugin::$session->set('is_loaded_template', $load_template);
+				//PMXE_Plugin::$session->set('options', $template_options);
 			}
 
 		} elseif ($this->input->post('is_submitted')) {
@@ -223,7 +226,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 				$this->errors->add('form-validation', __('CSV delimiter must be specified.', 'wp_all_export_plugin'));
 			}
 
-			if ( ! $this->errors->get_error_codes()) {	
+			if ( ! $this->errors->get_error_codes()) {										
 
 				if ( ! empty($post['name']) and !empty($post['save_template_as']) ) { // save template in database
 					$template->getByName($post['name'])->set(array(
@@ -231,7 +234,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 						'options' => $post
 					))->save();
 					PMXE_Plugin::$session->set('saved_template', $template->id);
-				}									
+				}		
 
 				if ($this->isWizard) {					
 					foreach ($this->data['post'] as $key => $value) {
@@ -252,17 +255,22 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 			
 		}		
 
-		$engine = new XmlExportEngine($post, $this->errors);
+		$this->data['engine'] = new XmlExportEngine($post, $this->errors);
 		
-		$engine->init_additional_data();		
+		$this->data['engine']->init_additional_data();		
 
-		$this->data = array_merge($this->data, $engine->init_available_data());			
+		$this->data = array_merge($this->data, $this->data['engine']->init_available_data());			
 
-		$this->data['available_data_view'] = $engine->render();
+		$this->data['available_data_view'] = $this->data['engine']->render();
+
+		$this->data['available_fields_view'] = $this->data['engine']->render_new_field();
 				
 		$this->render();		
 	}
 
+	/**
+	 * Step #3: Export Options
+	 */ 
 	public function options()
 	{
 
@@ -279,13 +287,12 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 			foreach ($post as $key => $value) {
 				PMXE_Plugin::$session->set($key, $value);
 			}						
-			PMXE_Plugin::$session->save_data(); 
-
-			$this->data['engine'] = new XmlExportEngine($post, $this->errors);	
-
-			$this->data['engine']->init_available_data();	
-
+			PMXE_Plugin::$session->save_data(); 			
 		}
+
+		$this->data['engine'] = new XmlExportEngine($post, $this->errors);	
+
+		$this->data['engine']->init_available_data();	
 
 		$this->data['post'] =& $post;								
 		
@@ -326,8 +333,8 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 					$friendly_name = 'WP_Query Export - ' . date("Y F d H:i");
 				}			
 				$post['template_name'] = $friendly_name;
-			}				
-
+			}			
+			
 			if ($this->isWizard) {					
 				if ( ! $this->errors->get_error_codes()) {		
 					foreach ($this->data['post'] as $key => $value) {
@@ -346,20 +353,19 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 					}
 					wp_redirect(add_query_arg(array('page' => 'pmxe-admin-manage', 'pmxe_nt' => urlencode(__('Options updated', 'wp_all_export_plugin'))) + array_intersect_key($_GET, array_flip($this->baseUrlParamNames)), admin_url('admin.php'))); die();
 				}
-			}		
-			
+			}												
 		}
 
 		$this->render();
 	}
 
 	/**
-	 * Step #3: Export
+	 * Step #4: Export Processing
 	 */ 
 	public function process()
 	{										
 
-		@set_time_limit(0);		
+		@set_time_limit(0);				
 
 		$export = $this->data['update_previous'];		
 
@@ -370,13 +376,19 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 				$post_types  = PMXE_Plugin::$session->get('cpt');
 				if ( ! empty($post_types) )
 				{	
-					if ( ! in_array('users', $post_types)){				
-						$post_type_details = get_post_type_object( array_shift($post_types) );					
-						$friendly_name = $post_type_details->labels->name . ' Export - ' . date("Y F d H:i");
+					if ( in_array('users', $post_types)){				
+						$friendly_name = 'Users Export - ' . date("Y F d H:i");
+					}
+					elseif ( in_array('shop_customer', $post_types)){				
+						$friendly_name = 'Customers Export - ' . date("Y F d H:i");
+					}
+					elseif ( in_array('comments', $post_types)){				
+						$friendly_name = 'Comments Export - ' . date("Y F d H:i");
 					}
 					else
 					{
-						$friendly_name = 'Users Export - ' . date("Y F d H:i");
+						$post_type_details = get_post_type_object( array_shift($post_types) );					
+						$friendly_name = $post_type_details->labels->name . ' Export - ' . date("Y F d H:i");					
 					}
 				}
 				else
@@ -392,92 +404,23 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 
 			$export->set(
 				array(
-					'triggered' => 0,		
+					'triggered'  => 0,		
 					'processing' => 0,
-					'exported'  => 0,
-					'executing' => 1,
-					'canceled' => 0,
-					'options'   => PMXE_Plugin::$session->get_clear_session_data(),
+					'exported'   => 0,
+					'executing'  => 1,
+					'canceled'   => 0,
+					'options'       => PMXE_Plugin::$session->get_clear_session_data(),
 					'friendly_name' => PMXE_Plugin::$session->friendly_name,
-					'scheduled' => (PMXE_Plugin::$session->is_scheduled) ? PMXE_Plugin::$session->scheduled_period : '',
+					'scheduled'     => (PMXE_Plugin::$session->is_scheduled) ? PMXE_Plugin::$session->scheduled_period : '',
 					'registered_on' => date('Y-m-d H:i:s'),
 					'last_activity' => date('Y-m-d H:i:s')
 				)
-			)->save();						
+			)->save();									
 
-			$options = $export->options;
-
-			if ( $options['is_generate_import'] and wp_all_export_is_compatible() ){				
-				
-				$import = new PMXI_Import_Record();
-
-				if ( ! empty($options['import_id']) ) $import->getById($options['import_id']);
-
-				if ($import->isEmpty()){
-
-					$import->set(array(		
-						'parent_import_id' => 99999,
-						'xpath' => '/',			
-						'type' => 'upload',																
-						'options' => array('empty'),
-						'root_element' => 'root',
-						'path' => 'path',
-						//'name' => '',
-						'imported' => 0,
-						'created' => 0,
-						'updated' => 0,
-						'skipped' => 0,
-						'deleted' => 0,
-						'iteration' => 1					
-					))->save();					
-
-					PMXE_Plugin::$session->set('import_id', $import->id);
-
-					$options['import_id'] = $import->id;
-
-					$export->set(array(
-						'options' => $options
-					))->save();
-				}
-				else{
-
-					if ( $import->parent_import_id != 99999 ){
-
-						$newImport = new PMXI_Import_Record();
-
-						$newImport->set(array(		
-							'parent_import_id' => 99999,
-							'xpath' => '/',			
-							'type' => 'upload',																
-							'options' => array('empty'),
-							'root_element' => 'root',
-							'path' => 'path',
-							//'name' => '',
-							'imported' => 0,
-							'created' => 0,
-							'updated' => 0,
-							'skipped' => 0,
-							'deleted' => 0,
-							'iteration' => 1					
-						))->save();					
-
-						PMXE_Plugin::$session->set('import_id', $newImport->id);
-
-						$options['import_id'] = $newImport->id;
-
-						$export->set(array(
-							'options' => $options
-						))->save();
-
-					}
-
-				}
-
-			}
-
+			// create an import for this export
+			PMXE_Wpallimport::create_an_import( $export );						
 			PMXE_Plugin::$session->set('update_previous', $export->id);
-
-			PMXE_Plugin::$session->save_data();
+			PMXE_Plugin::$session->save_data();			
 
 			do_action('pmxe_before_export', $export->id);
 
@@ -485,6 +428,5 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 
 		$this->render();
 
-	}	
-	
+	}		
 }

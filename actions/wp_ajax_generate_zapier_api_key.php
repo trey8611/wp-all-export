@@ -6,7 +6,7 @@ function pmxe_wp_ajax_generate_zapier_api_key(){
 		exit( json_encode(array('html' => __('Security check', 'wp_all_export_plugin'))) );
 	}
 
-	if ( ! current_user_can('manage_options') ){
+	if ( ! current_user_can( PMXE_Plugin::$capabilities ) ){
 		exit( json_encode(array('html' => __('Security check', 'wp_all_export_plugin'))) );
 	}
 

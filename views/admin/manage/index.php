@@ -110,7 +110,7 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 
 			$class = '';
 			?>
-			<?php foreach ($list as $item): ?>
+			<?php foreach ($list as $item):?>
 				<?php $class = ('alternate' == $class) ? '' : 'alternate'; ?>
 				<tr class="<?php echo $class; ?>" valign="middle">					
 					<th scope="row" class="check-column">
@@ -135,21 +135,21 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 										<span class="edit"><a class="edit" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'options'), $this->baseUrl)) ?>"><?php _e('Export Settings', 'wp_all_export_plugin') ?></a></span> |										
 										
 										<?php if ( ! $is_secure_import and $item['attch_id']): ?>
-										<span class="update"><a class="update" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'get_file', '_wpnonce' => wp_create_nonce( '_wpnonce-download_feed' )), $this->baseUrl)) ?>"><?php echo strtoupper($item['options']['export_to']); ?></a></span> |
-											<?php if (! empty($item['options']['tpl_data']) and (empty($item['options']['cpt']) or !in_array('shop_order', $item['options']['cpt']))):?>
+										<span class="update"><a class="update" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'get_file', '_wpnonce' => wp_create_nonce( '_wpnonce-download_feed' )), $this->baseUrl)) ?>"><?php echo strtoupper(wp_all_export_get_export_format($item['options'])); ?></a></span> |
+											<?php if (! empty($item['options']['bundlepath']) and PMXE_Export_Record::is_bundle_supported($item['options'])):?>
 												<span class="update"><a class="update" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'bundle', '_wpnonce' => wp_create_nonce( '_wpnonce-download_bundle' )), $this->baseUrl)) ?>"><?php _e('Bundle', 'wp_all_export_plugin'); ?></a></span> |
 											<?php endif; ?>
 										<?php endif; ?>
-										
+
 										<?php if ($is_secure_import and ! empty($item['options']['filepath'])): ?>
-										<span class="update"><a class="update" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'get_file', '_wpnonce' => wp_create_nonce( '_wpnonce-download_feed' )), $this->baseUrl)) ?>"><?php echo strtoupper($item['options']['export_to']); ?></a></span> |
-											<?php if (! empty($item['options']['tpl_data']) and (empty($item['options']['cpt']) or !in_array('shop_order', $item['options']['cpt']))):?>
+										<span class="update"><a class="update" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'get_file', '_wpnonce' => wp_create_nonce( '_wpnonce-download_feed' )), $this->baseUrl)) ?>"><?php echo strtoupper(wp_all_export_get_export_format($item['options'])); ?></a></span> |
+											<?php if (! empty($item['options']['bundlepath']) and PMXE_Export_Record::is_bundle_supported($item['options'])):?>
 												<span class="update"><a class="update" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'bundle', '_wpnonce' => wp_create_nonce( '_wpnonce-download_bundle' )), $this->baseUrl)) ?>"><?php _e('Bundle', 'wp_all_export_plugin'); ?></a></span> |
 											<?php endif; ?>
 										<?php endif; ?>
 										
 										<?php if ( ! empty($item['options']['split_large_exports']) and ! empty($item['options']['split_files_list']) ): ?>
-											<span class="update"><a class="update" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'split_bundle', '_wpnonce' => wp_create_nonce( '_wpnonce-download_split_bundle' )), $this->baseUrl)) ?>"><?php printf(__('Split %ss', 'wp_all_export_plugin'), strtoupper($item['options']['export_to'])); ?></a></span> |
+											<span class="update"><a class="update" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'split_bundle', '_wpnonce' => wp_create_nonce( '_wpnonce-download_split_bundle' )), $this->baseUrl)) ?>"><?php printf(__('Split %ss', 'wp_all_export_plugin'), strtoupper(wp_all_export_get_export_format($item['options']))); ?></a></span> |
 										<?php endif; ?>
 
 										<span class="delete"><a class="delete" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'delete'), $this->baseUrl)) ?>"><?php _e('Delete', 'wp_all_export_plugin') ?></a></span>										
@@ -163,8 +163,9 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 									<a href="<?php echo add_query_arg(array('id' => $item['id'], 'action' => 'scheduling'), $this->baseUrl)?>"><?php _e('Cron Scheduling', 'wp_all_export_plugin'); ?></a> <br>		
 									<?php									
 										$is_re_import_allowed = true;
-										if ( ! empty($item['options']['ids']) ){
-											$required_fields = array('id' => 'id');
+										if ( ! empty($item['options']['ids']) )
+										{											
+											$required_fields = array('id' => 'id');									
 											// re-import products
 											if ((in_array('product', $item['options']['cpt']) or $item['options']['export_type'] == 'advanced') and class_exists('WooCommerce') and (empty($item['options']['wp_query_selector']) or $item['options']['wp_query_selector'] == 'wp_query')) {	
 												$required_fields['woo']  = '_sku';
@@ -178,13 +179,15 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 												$required_fields['post_type'] = 'post_type';
 											}
 											$defined_fields = array();
-											foreach ($item['options']['ids'] as $ID => $value) {												
-												foreach ($required_fields as $type => $field) {
-													if ($item['options']['cc_type'][$ID] == $type && $item['options']['cc_label'][$ID] == $field){
+											foreach ($item['options']['ids'] as $ID => $value) 
+											{
+												foreach ($required_fields as $type => $field) 
+												{													
+													if (strtolower($item['options']['cc_type'][$ID]) == $type && strtolower($item['options']['cc_label'][$ID]) == strtolower($field)){
 														$defined_fields[] = $field;
 													}
 												}												
-											}
+											}											
 
 											foreach ($required_fields as $type => $field) {
 												if ( ! in_array($field, $defined_fields) ){
@@ -200,19 +203,19 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 											// 		$item['options']['import_id'] = 0;
 											// 	}												
 											// }											
-										}										
+										}		
+
 									?>
 									<?php if ( wp_all_export_is_compatible() and !empty($item['options']['import_id']) and $is_re_import_allowed): ?>
-										<a href="<?php echo add_query_arg(array('page' => 'pmxi-admin-import', 'id' => $item['options']['import_id'], 'deligate' => 'wpallexport'), remove_query_arg('page', $this->baseUrl)); ?>"><?php _e("Import with WP All Import", "wp_all_export_plugin"); ?></a>
+										<a href="<?php echo add_query_arg(array('page' => 'pmxi-admin-import', 'id' => $item['options']['import_id'], 'deligate' => 'wpallexport'), remove_query_arg('page', $this->baseUrl)); ?>"><?php _e("Import with WP All Import", "wp_all_export_plugin"); ?></a><br/>
 									<?php endif;?>			
 									<?php
-										if ( empty($item['options']['cpt']) or ! in_array('shop_order', $item['options']['cpt'])) {
+										if ( !in_array($item['options']['wp_query_selector'], array('wp_comment_query')) and (empty($item['options']['cpt']) or ! in_array('shop_order', $item['options']['cpt']) and ! in_array('comments', $item['options']['cpt']))) {
 											//$template = new PMXI_Template_Record();
 											if ( ! empty($item['options']['tpl_data'])) { 
 												//$template->getByName($item['options']['template_name']);
 												//if ( ! $template->isEmpty() ){
-													?>
-													<br/>
+													?>													
 													<a href="<?php echo add_query_arg(array('id' => $item['id'], 'action' => 'templates'), $this->baseUrl)?>"><?php _e('Download Import Templates', 'wp_all_export_plugin'); ?></a>
 													<?php
 												//}
