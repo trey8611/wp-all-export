@@ -87,16 +87,16 @@ final Class XmlCsvExport
 			endforeach;			
 		}
 		else  // exporting custom post types
-		{
+		{			
 			while ( XmlExportEngine::$exportQuery->have_posts() ) :		
 				XmlExportEngine::$exportQuery->the_post();
 				$record = get_post( get_the_ID() );
-				$articles[] = XmlExportCpt::prepare_data( $record, false, $acfs, $woo, $woo_order, $taxes, $attributes, $implode_delimiter, $preview );
+				$articles[] = XmlExportCpt::prepare_data( $record, false, $acfs, $woo, $woo_order, $implode_delimiter, $preview );
 				$articles   = apply_filters('wp_all_export_csv_rows', $articles, XmlExportEngine::$exportOptions, XmlExportEngine::$exportID);	
 				if ($preview) break;
 				do_action('pmxe_exported_post', $record->ID, XmlExportEngine::$exportRecord );
 			endwhile;			
-			wp_reset_postdata();			
+			wp_reset_postdata();									
 		}
 		// [ \Exporting requested data ]
 
@@ -108,8 +108,8 @@ final Class XmlCsvExport
 				if ( empty(XmlExportEngine::$exportOptions['cc_name'][$ID]) or empty(XmlExportEngine::$exportOptions['cc_type'][$ID]) or ! is_numeric($ID) ) continue;					
 
 				self::prepare_csv_headers( $headers, $ID, $taxes, $attributes, $acfs );												
-			}
-			
+			}						
+
 		endif;
 
 		if ($is_cron)
@@ -260,7 +260,7 @@ final Class XmlCsvExport
 
 				$xmlWriter->startElement(self::$node_xml_tag);
 
-					XmlExportCpt::prepare_data( $record, $xmlWriter, $acfs, $woo, $woo_order, $taxes, $attributes, $implode_delimiter, $preview );
+					XmlExportCpt::prepare_data( $record, $xmlWriter, $acfs, $woo, $woo_order, $implode_delimiter, $preview );
 
 				$xmlWriter->endElement(); // end post
 
@@ -422,8 +422,7 @@ final Class XmlCsvExport
 
 	// [ CSV Export Helpers ]
 	public static function prepare_csv_headers( & $headers, $ID, & $taxes, & $attributes, & $acfs )
-	{							
-			
+	{									
 		$element_name = ( ! empty(XmlExportEngine::$exportOptions['cc_name'][$ID]) ) ? XmlExportEngine::$exportOptions['cc_name'][$ID] : 'untitled_' . $ID;
 
 		if ( strpos(XmlExportEngine::$exportOptions['cc_label'][$ID], "item_data__") !== false )
@@ -433,32 +432,7 @@ final Class XmlCsvExport
 		}	
 		
 		switch (XmlExportEngine::$exportOptions['cc_type'][$ID]) 
-		{		
-			case 'cats':	
-
-				if ( ! empty($taxes) )
-				{				
-					$tx = array_shift($taxes);
-
-					if ( ! in_array($tx, $headers)) $headers[] = $tx;
-
-					if ( XmlExportEngine::$exportOptions['cc_label'][$ID] == 'product_type' and ! in_array('parent_id', $headers)) $headers[] = 'parent_id';
-
-				}		
-
-				break;
-
-			case 'attr':
-
-				if ( ! empty($attributes) )
-				{
-					$attr = array_shift($attributes);
-
-					if ( ! in_array($attr, $headers)) $headers[] = $attr;
-				}	
-
-				break;
-			
+		{					
 			case 'woo':
 				
 				XmlExportEngine::$woo_export->get_element_header( $headers, XmlExportEngine::$exportOptions, $ID );		
@@ -475,10 +449,10 @@ final Class XmlCsvExport
 				
 				if ( ! empty($acfs) )
 				{
-					$single_acf_field = array_shift($acfs);			
+					$single_acf_field = array_shift($acfs);								
 
 					if ( is_array($single_acf_field))
-					{
+					{					
 						foreach ($single_acf_field as $acf_header) {
 							if ( ! in_array($acf_header, $headers)) $headers[] = $acf_header;
 						}
@@ -492,6 +466,8 @@ final Class XmlCsvExport
 				break;
 			
 			default:
+
+				if ($element_name == 'ID') $element_name = 'id';
 
 				if ( ! in_array($element_name, $headers)) 
 				{
@@ -515,6 +491,8 @@ final Class XmlCsvExport
 					}
 					while ( ! $is_added );						
 				}
+
+				if ( XmlExportEngine::$exportOptions['cc_label'][$ID] == 'product_type' and ! in_array('parent_id', $headers)) $headers[] = 'parent_id';
 			
 				break;
 		}		
@@ -545,9 +523,37 @@ final Class XmlCsvExport
 
 		$in  = fopen($file, 'r');			
 
-		$old_headers = fgetcsv($in);		
+		$clear_old_headers = fgetcsv($in);		
 
-		fclose($in);
+		fclose($in);		
+
+		$old_headers = array();
+
+		foreach ($clear_old_headers as $i => $header) 
+		{
+			if ( ! in_array($header, $old_headers)) 
+			{
+				$old_headers[] = $header;
+			}
+			else
+			{
+				$is_added = false;
+				$i = 0;
+				do
+				{
+					$new_element_name = $header . '_' . md5($i);
+
+					if ( ! in_array($new_element_name, $old_headers) )
+					{
+						$old_headers[] = $new_element_name;
+						$is_added = true;
+					}
+
+					$i++;
+				}
+				while ( ! $is_added );						
+			}
+		}
 
 		$is_update_headers = false;
 		foreach ($headers as $header) 
@@ -557,15 +563,16 @@ final Class XmlCsvExport
 				$is_update_headers = true;
 				break;
 			}			
-		}
+		}		
 		
 		if ($is_update_headers)
-		{
-			$headers = $old_headers + $headers;		
+		{									
+
+			$headers = $old_headers + $headers;					
 
 			$tmp_file = str_replace(basename($file), 'iteration_' . basename($file), $file);
 
-			copy($file, $tmp_file);		
+			copy($file, $tmp_file);					
 
 			$in  = fopen($tmp_file, 'r');							
 			
@@ -578,12 +585,14 @@ final Class XmlCsvExport
 			else
 			{
 				fputcsv($out, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers));
-			}			
+			}						
+
+			$exclude_old_headers = fgetcsv($in);		
 
 			while ( ! feof($in) ) {
 			    $data = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter']);	
 				if ( empty($data) ) continue;
-			    $data_assoc = array_combine($old_headers, array_values($data));	    			    
+			    $data_assoc = array_combine($old_headers, array_values($data));	    			    			    
 			    $line = array();
 				foreach ($headers as $header) {
 					$line[$header] = ( isset($data_assoc[$header]) ) ? $data_assoc[$header] : '';	

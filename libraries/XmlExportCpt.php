@@ -21,7 +21,7 @@ final class XmlExportCpt
 
 	private function __construct(){}
 
-	public static function prepare_data( $entry, $xmlWriter = false, &$acfs, &$woo, &$woo_order, &$taxes, &$attributes, $implode_delimiter, $preview, $is_item_data = false, $subID = false )
+	public static function prepare_data( $entry, $xmlWriter = false, &$acfs, &$woo, &$woo_order, $implode_delimiter, $preview, $is_item_data = false, $subID = false )
 	{
 		$article = array();	
 
@@ -86,7 +86,8 @@ final class XmlExportCpt
 			
 			switch ($fieldType)
 			{
-				case 'id':										
+				case 'id':									
+					if ($element_name == 'ID') $element_name = 'id';
 					wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_post_id', pmxe_filter($entry->ID, $fieldSnipped), $entry->ID) );
 					break;
 				case 'permalink':
@@ -336,7 +337,7 @@ final class XmlExportCpt
 							
 						}								
 
-						if ( ! in_array($element_name, $attributes)) $attributes[] = $element_name;						
+						// if ( ! in_array($element_name, $attributes)) $attributes[] = $element_name;						
 					}							
 					break;
 				
@@ -344,7 +345,7 @@ final class XmlExportCpt
 
 					if ( ! empty($fieldValue) )
 					{	
-						$article[$element_name] = null;										
+						// $article[$element_name] = null;										
 						$txes_list = get_the_terms($entry->ID, $fieldValue);
 						if ( ! is_wp_error($txes_list) and ! empty($txes_list) ) 
 						{															
@@ -382,7 +383,7 @@ final class XmlExportCpt
 							
 						}
 						
-						if ( ! in_array($element_name, $taxes)) $taxes[] = $element_name;
+						// if ( ! in_array($element_name, $taxes)) $taxes[] = $element_name;
 
 						if ($fieldLabel == 'product_type'){ 
 							
@@ -453,6 +454,7 @@ final class XmlExportCpt
 		switch ($element_type) 
 		{
 			case 'id':
+				if ($element_name == 'ID') $element_name = 'id';
 				$templateOptions['unique_key'] = '{'. $element_name .'[1]}';										
 				$templateOptions['tmp_unique_key'] = '{'. $element_name .'[1]}';	
 				$templateOptions['single_product_id'] = '{'. $element_name .'[1]}';

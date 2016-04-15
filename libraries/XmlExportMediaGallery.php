@@ -114,7 +114,7 @@ final class XmlExportMediaGallery
 						{
 							foreach ($gallery as $aid) 
 							{
-								if ( ! in_array($aid, self::$images_ids) and ( empty(self::$featured_image) or self::$featured_image->ID != $aid ) )
+								if ( ! empty($aid) and ! in_array($aid, self::$images_ids) and ( empty(self::$featured_image) or self::$featured_image->ID != $aid ) )
 								{
 									$_image = get_post($aid);
 									if ($_image)

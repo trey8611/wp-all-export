@@ -379,25 +379,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 								$element_name = ( ! empty($options['cc_name'][$element_key]) ) ? $options['cc_name'][$element_key] : 'untitled_' . $element_key;							
 
 								switch ($options['cc_type'][$element_key]) 
-								{									
-									case 'cats':					
-										if ( ! empty($this->taxes) )
-										{											
-											$tx = array_shift($this->taxes);
-
-											if ( ! in_array($tx, $element_headers)) $element_headers[] = $tx;
-
-											if ( $element_label == 'product_type' ) $element_headers[] = 'parent_id';
-										}												
-										break;
-									case 'attr':
-										if ( ! empty($this->attributes) )
-										{
-											$attr = array_shift($this->attributes);							
-
-											if ( ! in_array($attr, $element_headers)) $element_headers[] = $attr;																						
-										}						
-										break;
+								{																		
 									
 									case 'woo':
 										
@@ -424,8 +406,31 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 										break;
 									
 									default:
+
+										if ( ! in_array($element_name, $element_headers)) 
+										{
+											$element_headers[] = $element_name;
+										}
+										else
+										{
+											$is_added = false;
+											$i = 0;
+											do
+											{
+												$new_element_name = $element_name . '_' . md5($i);
+
+												if ( ! in_array($new_element_name, $element_headers) )
+												{
+													$element_headers[] = $new_element_name;
+													$is_added = true;
+												}
+
+												$i++;
+											}
+											while ( ! $is_added );						
+										}
 										
-										$element_headers[] = $element_name;
+										// $element_headers[] = $element_name;
 
 										break;
 								}

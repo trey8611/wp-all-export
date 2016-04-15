@@ -579,7 +579,7 @@ if ( ! class_exists('XmlExportEngine') ){
 										</li>
 										<?php
 										foreach ($sub_section['meta'] as $field) {		
-											$field_options = ( in_array($slug, array('images', 'attachments')) ) ? '{"is_export_featured":true,"is_export_attached":true,"image_separator":"|"}' : '';
+											$field_options = ( in_array($sub_slug, array('images', 'attachments')) ) ? esc_attr('{"is_export_featured":true,"is_export_attached":true,"image_separator":"|"}') : '';
 											?>
 											<li class="pmxe_<?php echo $slug; ?>_<?php echo $sub_slug;?>">
 												<div class="custom_column" rel="<?php echo ($i + 1);?>">

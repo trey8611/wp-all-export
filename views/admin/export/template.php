@@ -189,10 +189,10 @@
 						<div class="wpallexport-collapsed-header" style="padding-left: 25px;">
 							<h3><?php _e('Export File Options','wp_all_export_plugin');?></h3>	
 						</div>
-						<div class="wpallexport-collapsed-content" style="padding: 0 0 10px; overflow: hidden; height: auto;">
+						<div class="wpallexport-collapsed-content" style="padding: 0; overflow: hidden; height: auto;">
 							<div class="wpallexport-collapsed-content-inner">								
 								<div class="wpallexport-choose-data-type">
-									<h3 style="margin-top: 0px; margin-bottom: 60px;"><?php _e('Choose your export file type.', 'wp_all_export_plugin'); ?></h3>
+									<h3 style="margin-top: 10px; margin-bottom: 40px;"><?php _e('Choose your export file type', 'wp_all_export_plugin'); ?></h3>
 									<a href="javascript:void(0);" class="wpallexport-import-to-format rad4 wpallexport-csv-type <?php if ($post['export_to'] != 'xml') echo 'selected'; ?>">										
 										<span class="wpallexport-import-to-title"><?php _e('Spreadsheet', 'wp_all_export_plugin'); ?></span>
 										<span class="wpallexport-import-to-arrow"></span>

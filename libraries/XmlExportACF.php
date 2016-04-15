@@ -270,9 +270,11 @@ if ( ! class_exists('XmlExportACF') )
 						{
 							if ( ! $return_value )
 							{
-								$acfs[] = $element_name . '_address';
-								$acfs[] = $element_name . '_lat';
-								$acfs[] = $element_name . '_lng';							
+								$acfs[$element_name] = array(
+									$element_name . '_address',
+									$element_name . '_lat',
+									$element_name . '_lng'
+								);
 
 								if ( ! empty($localion_parts) )
 								{
@@ -329,7 +331,7 @@ if ( ! class_exists('XmlExportACF') )
 						{
 							if ( ! $return_value )
 							{
-								$acfs[] = array($element_name . '_item_name', $element_name . '_item_description', $element_name . '_price');
+								$acfs[$element_name] = array($element_name . '_item_name', $element_name . '_item_description', $element_name . '_price');
 
 								if ( is_array($field_value) )
 								{
@@ -365,7 +367,7 @@ if ( ! class_exists('XmlExportACF') )
 						{
 							if ( ! $return_value )
 							{
-								$acfs[] = array($element_name . '_address', $element_name . '_lat', $element_name . '_lng');
+								$acfs[$element_name] = array($element_name . '_address', $element_name . '_lat', $element_name . '_lng');
 
 								$article[$element_name . '_address'] = $field_value['address'];												
 								$article[$element_name . '_lat'] = $field_value['lat'];				
@@ -553,7 +555,7 @@ if ( ! class_exists('XmlExportACF') )
 
 						if ($is_xml_export) $xmlWriter->beginElement($element_name_ns, $element_name, null);	
 
-						if( have_rows($field_name, $pid) ): 
+						if( have_rows($field_name, $pid) ): 							
 
 							$rowValues = array();
 
@@ -697,7 +699,7 @@ if ( ! class_exists('XmlExportACF') )
 					    				}
 								    }						    							    			
 							    }
-							    if ( ! empty($repeater_sub_field_names)) $acfs[] = $repeater_sub_field_names;
+							    if ( ! empty($repeater_sub_field_names)) $acfs[$element_name] = $repeater_sub_field_names;
 
 							    if ( ! empty($additional_articles) )
 								{ 									
@@ -809,7 +811,7 @@ if ( ! class_exists('XmlExportACF') )
 
 						if ($is_xml_export) $xmlWriter->endElement();
 
-						if ( ! empty($fc_sub_field_names)) $acfs[] = $fc_sub_field_names;
+						if ( ! empty($fc_sub_field_names)) $acfs[$element_name] = $fc_sub_field_names;
 
 						$put_to_csv = false;
 						
@@ -821,7 +823,7 @@ if ( ! class_exists('XmlExportACF') )
 				}
 			}
 
-			if ($return_value) return $field_value;
+			if ($return_value) return $field_value;					
 
 			if ($put_to_csv)
 			{					
@@ -837,7 +839,7 @@ if ( ! class_exists('XmlExportACF') )
 		    	{		    				    			
 					// $article[$element_name] = ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($val))) : $val;
 					wp_all_export_write_article( $article, $element_name, ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($val))) : $val);
-					$acfs[] = $element_name;	
+					if ( ! isset($acfs[$element_name])) $acfs[$element_name] = $element_name;						
 		    	}									
 			}
 		}

@@ -31,7 +31,7 @@ if ( ! class_exists('XmlExportFiltering') )
 			<div class="wpallexport-collapsed wpallexport-section closed">
 				<div class="wpallexport-content-section wpallexport-filtering-section" <?php if ($is_on_template_screen):?>style="margin-bottom: 10px;"<?php endif; ?>>
 					<div class="wpallexport-collapsed-header" style="padding-left: 25px;">
-						<h3><?php _e('Filters','wp_all_export_plugin');?></h3>	
+						<h3><?php _e('Filtering Options','wp_all_export_plugin');?></h3>	
 					</div>
 					<div class="wpallexport-collapsed-content" style="padding: 0;">
 						<div class="wpallexport-collapsed-content-inner">									
