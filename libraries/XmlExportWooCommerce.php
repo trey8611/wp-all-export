@@ -254,13 +254,13 @@ if ( ! class_exists('XmlExportWooCommerce') )
 				if ( ! empty($available_data['existing_taxonomies']) )	{
 					$existing_taxonomies = $available_data['existing_taxonomies'];
 					$available_data['existing_taxonomies'] = array();
-					foreach ($existing_taxonomies as $tx) {
-						$tx = get_taxonomy($tx['label']);
-						if ($tx_name == 'product_shipping_class')
+					foreach ($existing_taxonomies as $taxonomy) {
+						$tx = get_taxonomy($taxonomy['label']);
+						if ($taxonomy['label'] == 'product_shipping_class')
 						{
 							$available_data['product_fields'][] = array(
 								'name'  => 'Shipping Class',
-								'label' => $tx['label'],
+								'label' => $taxonomy['label'],
 								'type'  => 'cats',
 								'auto'  => true
 							);
@@ -268,8 +268,8 @@ if ( ! class_exists('XmlExportWooCommerce') )
 						else
 						{							
 							$available_data['existing_taxonomies'][] = 	array(
-								'name'  => ($tx['label'] == 'product_type') ? 'Product Type' : $tx->label,
-								'label' => $tx['name'],
+								'name'  => ($taxonomy['label'] == 'product_type') ? 'Product Type' : $tx->label,
+								'label' => $taxonomy['label'],
 								'type'  => 'cats',
 								'auto'  => true
 							);						
@@ -428,14 +428,14 @@ if ( ! class_exists('XmlExportWooCommerce') )
 
 			$existing_taxonomies = wp_all_export_get_existing_taxonomies_by_cpt('product');
 
-			foreach ($existing_taxonomies as $tx_name) 
+			foreach ($existing_taxonomies as $taxonomy) 
 			{
-				$tx = get_taxonomy($tx_name);
-				if ($tx_name == 'product_shipping_class')
+				$tx = get_taxonomy($taxonomy['label']);
+				if ($taxonomy['label'] == 'product_shipping_class')
 				{
 					$product_data[] = array(
 						'name'  => 'Shipping Class',
-						'label' => $tx_name,
+						'label' => $taxonomy['name'],
 						'type'  => 'cats',
 						'auto'  => true
 					);
@@ -443,8 +443,8 @@ if ( ! class_exists('XmlExportWooCommerce') )
 				else
 				{							
 					$taxes_data[] = 	array(
-						'name'  => ($tx_name == 'product_type') ? 'Product Type' : $tx->label,
-						'label' => $tx_name,
+						'name'  => ($taxonomy['label'] == 'product_type') ? 'Product Type' : $tx->label,
+						'label' => $taxonomy['label'],
 						'type'  => 'cats',
 						'auto'  => true
 					);						

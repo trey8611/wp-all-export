@@ -39,12 +39,7 @@ if ( ! class_exists('XmlExportFiltering') )
 				
 				$this->queryJoin = array();
 
-				$this->queryWhere = " $wpdb->posts.post_type = 'product' AND (($wpdb->posts.post_status <> 'trash' AND $wpdb->posts.post_status <> 'auto-draft'))";								
-
-				if ( ! empty(XmlExportEngine::$exportOptions['export_only_new_stuff']) )
-				{
-					$this->queryWhere .= " AND ($wpdb->posts.ID NOT IN (SELECT post_id FROM " . $postList->getTable() . " WHERE export_id = '". $export_id ."'))";	
-				}
+				$this->queryWhere = " $wpdb->posts.post_type = 'product' AND (($wpdb->posts.post_status <> 'trash' AND $wpdb->posts.post_status <> 'auto-draft'))";												
 				
 				$where = $this->queryWhere;							
 				$join  = implode( ' ', array_unique( $this->queryJoin ) );		
