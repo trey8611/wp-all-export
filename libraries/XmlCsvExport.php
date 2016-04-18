@@ -531,7 +531,7 @@ final Class XmlCsvExport
 
 		foreach ($clear_old_headers as $i => $header) 
 		{
-			$header = str_replace(chr(0xEF).chr(0xBB).chr(0xBF), "", $header);
+			$header = str_replace("'", "", str_replace('"', "", str_replace(chr(0xEF).chr(0xBB).chr(0xBF), "", $header)));
 			
 			if ( ! in_array($header, $old_headers)) 
 			{
@@ -576,18 +576,18 @@ final Class XmlCsvExport
 
 			copy($file, $tmp_file);					
 
-			$in  = fopen($tmp_file, 'r');							
-			
-			$out = fopen($file, 'w');	
+			$in  = fopen($tmp_file, 'r');															
 
-			if (XmlExportEngine::$exportOptions['include_bom']) 
-			{
-				fputcsv($out, chr(0xEF).chr(0xBB).chr(0xBF).array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers));
+			$out = fopen($file, 'w');
+
+			if ( XmlExportEngine::$exportOptions['include_bom'] ) 
+			{												
+				fputcsv($out, chr(0xEF).chr(0xBB).chr(0xBF) . array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers));
 			}
 			else
-			{
+			{								
 				fputcsv($out, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers));
-			}						
+			}								
 
 			$exclude_old_headers = fgetcsv($in);		
 

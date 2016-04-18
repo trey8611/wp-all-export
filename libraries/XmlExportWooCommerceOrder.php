@@ -213,7 +213,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					case 'order':
 					case 'customer':					
 						
-						$data[$options['cc_name'][$elId]] = ( strpos($options['cc_value'][$elId], "_") === 0 ) ? get_post_meta($record->ID, $options['cc_value'][$elId], true) : $record->$options['cc_value'][$elId];						
+						$data[$options['cc_name'][$elId]] = ( strpos($options['cc_value'][$elId], "_") === 0 ) ? get_post_meta($record->ID, $options['cc_value'][$elId], true) : $record->{$options['cc_value'][$elId]};
 
 						if ($options['cc_value'][$elId] == "post_title")
 						{							
