@@ -19,6 +19,49 @@ if ( ! class_exists('XmlExportFiltering') )
 			add_filter('wp_all_export_single_filter_rule', array(&$this, 'parse_rule_value'), 10, 1);
 		}
 
+		public function parseQuery()
+		{
+			// do not apply filters for child exports
+			if ( ! empty(XmlExportEngine::$exportRecord->parent_id) )
+			{
+				$this->queryWhere = XmlExportEngine::$exportRecord->options['whereclause'];
+				$this->queryJoin  = XmlExportEngine::$exportRecord->options['joinclause'];
+				return;
+			}
+
+			global $wpdb;
+
+			// disable exports for orphaned variations entirely
+			if ( ! XmlExportEngine::$is_comment_export and ! XmlExportEngine::$is_user_export and ! empty(XmlExportEngine::$post_types) and @in_array("product", XmlExportEngine::$post_types) and class_exists('WooCommerce'))
+			{					
+				$tmp_queryWhere = $this->queryWhere;
+				$tmp_queryJoin  = $this->queryJoin;							
+				
+				$this->queryJoin = array();
+
+				$this->queryWhere = " $wpdb->posts.post_type = 'product' AND (($wpdb->posts.post_status <> 'trash' AND $wpdb->posts.post_status <> 'auto-draft'))";								
+
+				if ( ! empty(XmlExportEngine::$exportOptions['export_only_new_stuff']) )
+				{
+					$this->queryWhere .= " AND ($wpdb->posts.ID NOT IN (SELECT post_id FROM " . $postList->getTable() . " WHERE export_id = '". $export_id ."'))";	
+				}
+				
+				$where = $this->queryWhere;							
+				$join  = implode( ' ', array_unique( $this->queryJoin ) );		
+
+				$this->queryWhere = $tmp_queryWhere;
+				$this->queryJoin  = $tmp_queryJoin;
+
+				$this->queryWhere .= " AND $wpdb->posts.post_type = 'product' OR ($wpdb->posts.post_type = 'product_variation' AND $wpdb->posts.post_parent IN (
+					SELECT DISTINCT $wpdb->posts.ID
+					FROM $wpdb->posts $join
+					WHERE $where
+				)) GROUP BY $wpdb->posts.ID";
+
+			}
+
+		}
+
 		public static function render_filtering_block( $engine, $isWizard, $post, $is_on_template_screen = false )
 		{
 			?>

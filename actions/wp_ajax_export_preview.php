@@ -71,8 +71,12 @@ function pmxe_wp_ajax_export_preview(){
 		{			
 			remove_all_actions('parse_query');
 			remove_all_actions('pre_get_posts');
-						
+			
+			add_filter('posts_join', 'wp_all_export_posts_join', 10, 1);
+			add_filter('posts_where', 'wp_all_export_posts_where', 10, 1);
 			$exportQuery = new WP_Query( array( 'post_type' => $exportOptions['cpt'], 'post_status' => 'any', 'orderby' => 'title', 'order' => 'ASC', 'posts_per_page' => 10 ));
+			remove_filter('posts_where', 'wp_all_export_posts_where');
+			remove_filter('posts_join', 'wp_all_export_posts_join');					
 		}
 	}	
 

@@ -330,7 +330,7 @@ if ( ! class_exists('XmlExportEngine') ){
 					'product_matching_mode' => $this->post['product_matching_mode']
 				);
 
-				// $this->filters = new XmlExportFiltering($filter_args);
+				$this->filters = new XmlExportFiltering($filter_args);
 				
 				$this->init();						
 			} 
@@ -369,7 +369,13 @@ if ( ! class_exists('XmlExportEngine') ){
 					$this->errors->add('form-validation', __('WP Query field is required', 'wp_all_export_plugin'));
 				}
 				else 
-				{					
+				{			
+					$this->filters->parseQuery();
+									
+					PMXE_Plugin::$session->set('whereclause', $this->filters->get('queryWhere'));
+					PMXE_Plugin::$session->set('joinclause', $this->filters->get('queryJoin'));
+					PMXE_Plugin::$session->save_data();		
+
 					if ( self::$is_user_export )
 					{												
 						$this->errors->add('form-validation', __('Upgrade to the professional edition of WP All Export to export users.', 'wp_all_export_plugin'));	
@@ -383,6 +389,8 @@ if ( ! class_exists('XmlExportEngine') ){
 						remove_all_actions('parse_query');
 						remove_all_actions('pre_get_posts');															
 
+						add_filter('posts_where', 'wp_all_export_posts_where', 10, 1);
+						add_filter('posts_join', 'wp_all_export_posts_join', 10, 1);
 						self::$exportQuery = eval('return new WP_Query(array(' . $this->post['wp_query'] . ', \'offset\' => 0, \'posts_per_page\' => 10));');
 						
 						if ( empty(self::$exportQuery) ) {
@@ -395,15 +403,21 @@ if ( ! class_exists('XmlExportEngine') ){
 						else {						
 							PMXE_Plugin::$session->set('wp_query', $this->post['wp_query']);
 							PMXE_Plugin::$session->set('found_posts', self::$exportQuery->found_posts);										
-						}						
+						}				
+						remove_filter('posts_join', 'wp_all_export_posts_join');			
+						remove_filter('posts_where', 'wp_all_export_posts_where');		
 					}
 
 				}
 			}
 			else 
 			{										
-				PMXE_Plugin::$session->set('cpt', self::$post_types);				
-				PMXE_Plugin::$session->save_data();				
+				$this->filters->parseQuery();
+				
+				PMXE_Plugin::$session->set('cpt', self::$post_types);
+				PMXE_Plugin::$session->set('whereclause', $this->filters->get('queryWhere'));
+				PMXE_Plugin::$session->set('joinclause', $this->filters->get('queryJoin'));				
+				PMXE_Plugin::$session->save_data();			
 				
 				if ( self::$is_user_export )
 				{										
@@ -416,8 +430,10 @@ if ( ! class_exists('XmlExportEngine') ){
 				else
 				{			
 					remove_all_actions('parse_query');
-					remove_all_actions('pre_get_posts');																		
-					
+					remove_all_actions('pre_get_posts');						
+
+					add_filter('posts_where', 'wp_all_export_posts_where', 10, 1);
+					add_filter('posts_join', 'wp_all_export_posts_join', 10, 1);					
 					self::$exportQuery = new WP_Query( array( 'post_type' => self::$post_types, 'post_status' => 'any', 'orderby' => 'ID', 'order' => 'ASC', 'posts_per_page' => 10 ));												
 
 					if (empty(self::$exportQuery->found_posts)){
@@ -426,7 +442,9 @@ if ( ! class_exists('XmlExportEngine') ){
 					}
 					else{												
 						PMXE_Plugin::$session->set('found_posts', self::$exportQuery->found_posts);										
-					}					
+					}		
+					remove_filter('posts_join', 'wp_all_export_posts_join');			
+					remove_filter('posts_where', 'wp_all_export_posts_where');			
 				}							
 			}
 
@@ -787,7 +805,7 @@ if ( ! class_exists('XmlExportEngine') ){
 									$field_label = is_array($field) ? $field['label'] : $field;
 									$field_type = is_array($field) ? $field['type'] : $slug;
 									$field_name = is_array($field) ? $field['name'] : $field;
-									$field_options = is_array($field) ? $field['options'] : '';								
+									$field_options = empty($field['options']) ? '' : $field['options'];
 									?>
 									<option 
 										value="<?php echo $field_type;?>" 

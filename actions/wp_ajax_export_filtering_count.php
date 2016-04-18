@@ -40,6 +40,14 @@ function pmxe_wp_ajax_export_filtering_count(){
 	XmlExportEngine::$is_comment_export = ( 'comments' == $post['cpt'] ) ? true : false;
 	XmlExportEngine::$post_types = array($post['cpt']);
 
+	$filters = new XmlExportFiltering($filter_args);
+
+	$filters->parseQuery();
+				
+	PMXE_Plugin::$session->set('whereclause', $filters->get('queryWhere'));
+	PMXE_Plugin::$session->set('joinclause',  $filters->get('queryJoin'));
+	PMXE_Plugin::$session->save_data();		
+
 	$found_records = 0;
 	$total_records = 0;
 
@@ -67,6 +75,11 @@ function pmxe_wp_ajax_export_filtering_count(){
 		{			
 			remove_all_actions('parse_query');
 			remove_all_actions('pre_get_posts');
+
+			ob_start();
+			// get custom post type records depends on filters
+			add_filter('posts_where', 'wp_all_export_posts_where', 10, 1);
+			add_filter('posts_join', 'wp_all_export_posts_join', 10, 1);							
 			
 			// get total custom post type records
 			$totalQuery = eval('return new WP_Query(array(' . PMXE_Plugin::$session->get('wp_query') . ', \'offset\' => 0, \'posts_per_page\' => 10 ));');						
@@ -74,7 +87,11 @@ function pmxe_wp_ajax_export_filtering_count(){
 				$found_records = $total_records = $totalQuery->found_posts;			
 			}
 
-			wp_reset_postdata();			
+			wp_reset_postdata();	
+
+			remove_filter('posts_join', 'wp_all_export_posts_join');			
+			remove_filter('posts_where', 'wp_all_export_posts_where');
+			ob_get_clean();							
 		}
 	}
 	else
@@ -109,13 +126,22 @@ function pmxe_wp_ajax_export_filtering_count(){
 
 			$cpt = ($is_products_export) ? array('product', 'product_variation') : array($post['cpt']);
 
+			ob_start();
+			// get custom post type records depends on filters			
+			add_filter('posts_where', 'wp_all_export_posts_where', 10, 1);
+			add_filter('posts_join', 'wp_all_export_posts_join', 10, 1);		
+
 			// get total custom post type records
 			$totalQuery = new WP_Query( array( 'post_type' => $cpt, 'post_status' => 'any', 'orderby' => 'ID', 'order' => 'ASC', 'posts_per_page' => 10 ));							
 			if ( ! empty($totalQuery->found_posts)){
 				$found_records = $total_records = $totalQuery->found_posts;			
 			}
 
-			wp_reset_postdata();														
+			wp_reset_postdata();
+
+			remove_filter('posts_join', 'wp_all_export_posts_join');			
+			remove_filter('posts_where', 'wp_all_export_posts_where');			
+			ob_end_clean();														
 		}
 	}		
 	

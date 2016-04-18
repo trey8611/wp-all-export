@@ -695,7 +695,7 @@
 
 		$( "#columns_to_export" ).on( "dropover", function( event, ui ) {
 			outsideContainer = 0;
-			ui.draggable.find('.custom_column').css('background', 'none');			
+			ui.draggable.find('.custom_column').css('background', 'white');			
 		} );
 
 		// this one control if the draggable is dropped

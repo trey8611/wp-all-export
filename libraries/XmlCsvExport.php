@@ -531,6 +531,8 @@ final Class XmlCsvExport
 
 		foreach ($clear_old_headers as $i => $header) 
 		{
+			$header = str_replace(chr(0xEF).chr(0xBB).chr(0xBF), "", $header);
+			
 			if ( ! in_array($header, $old_headers)) 
 			{
 				$old_headers[] = $header;
