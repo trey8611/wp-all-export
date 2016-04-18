@@ -254,13 +254,13 @@ if ( ! class_exists('XmlExportWooCommerce') )
 				if ( ! empty($available_data['existing_taxonomies']) )	{
 					$existing_taxonomies = $available_data['existing_taxonomies'];
 					$available_data['existing_taxonomies'] = array();
-					foreach ($existing_taxonomies as $tx_name) {
-						$tx = get_taxonomy($tx_name);
+					foreach ($existing_taxonomies as $tx) {
+						$tx = get_taxonomy($tx['label']);
 						if ($tx_name == 'product_shipping_class')
 						{
 							$available_data['product_fields'][] = array(
 								'name'  => 'Shipping Class',
-								'label' => $tx_name,
+								'label' => $tx['label'],
 								'type'  => 'cats',
 								'auto'  => true
 							);
@@ -268,8 +268,8 @@ if ( ! class_exists('XmlExportWooCommerce') )
 						else
 						{							
 							$available_data['existing_taxonomies'][] = 	array(
-								'name'  => ($tx_name == 'product_type') ? 'Product Type' : $tx->label,
-								'label' => $tx_name,
+								'name'  => ($tx['label'] == 'product_type') ? 'Product Type' : $tx->label,
+								'label' => $tx['name'],
 								'type'  => 'cats',
 								'auto'  => true
 							);						

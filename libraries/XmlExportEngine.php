@@ -487,7 +487,11 @@ if ( ! class_exists('XmlExportEngine') ){
 				foreach ($wp_taxonomies as $key => $obj) {	if (in_array($obj->name, array('nav_menu'))) continue;
 
 					if (strpos($obj->name, "pa_") !== 0 and strlen($obj->name) > 3)
-						$this->_existing_taxonomies[] = $obj->name;															
+						$this->_existing_taxonomies[] = array(
+							'name' => $obj->label,
+							'label' => $obj->name,
+							'type' => 'cats'
+						);															
 				}
 			}							
 
