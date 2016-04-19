@@ -32,8 +32,11 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 			)			
 		);		
 
+		private $order_core_fields = array();
+
 		public function __construct()
 		{			
+			$this->order_core_fields = array('_prices_include_tax', '_customer_ip_address', '_customer_user_agent', '_created_via', '_order_version', '_payment_method', '_cart_discount_tax', '_order_shipping_tax', '_recorded_sales', '_order_stock_reduced', '_recorded_coupon_usage_counts', '_transaction_id');
 
 			if ( ! class_exists('WooCommerce') 
 					or ( XmlExportEngine::$exportOptions['export_type'] == 'specific' and ! in_array('shop_order', XmlExportEngine::$post_types) ) 
@@ -110,6 +113,19 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 
 				endforeach;		
 
+				foreach ( $this->order_core_fields as $core_field ):
+
+					foreach ($existing_meta_keys as $key => $record_meta_key) 
+					{
+						if ( $record_meta_key == $core_field )
+						{
+							unset($existing_meta_keys[$key]);
+							break;
+						}
+					}
+
+				endforeach;
+
 				foreach ($existing_meta_keys as $key => $record_meta_key) 
 				{							
 					self::$order_sections['cf']['meta'][$record_meta_key] = array(
@@ -138,6 +154,17 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 						));
 				}
 			}	
+
+			foreach ( $this->order_core_fields as $core_field ):
+
+				self::$order_sections['other']['meta'][$core_field] = $this->fix_titles(array(
+					'name'    => $core_field,
+					'label'   => $core_field,
+					'options' => '',
+					'type'    => 'cf'
+				));
+
+			endforeach;
 		}
 
 		/**
@@ -541,6 +568,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 			if ( ! self::$is_active ) return;
 
 			foreach (self::$order_sections as $slug => $section) :
+				if ( ! empty($section['meta']) or ! empty($section['additional']) ): 
 				?>										
 				<p class="wpae-available-fields-group"><?php echo $section['title']; ?><span class="wpae-expander">+</span></p>
 				<div class="wpae-custom-field">
@@ -550,6 +578,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					</div>
 					<?php endif; ?>
 					<ul>
+						<?php if ( ! empty($section['meta']) ): ?>
 						<li <?php if ( ! in_array($slug, array('order', 'customer', 'cf', 'other'))) : ?>class="wpallexport_disabled"<?php endif; ?>>
 							<div class="default_column" rel="">								
 								<label class="wpallexport-element-label"><?php echo __("All", "wp_all_export_plugin") . ' ' . $section['title'] . ' ' . __("Data", "wp_all_export_plugin"); ?></label>
@@ -576,7 +605,8 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 							</li>
 							<?php
 							$i++;												
-						}																		
+						}
+						endif;																		
 
 						if ( ! empty($section['additional']) )
 						{
@@ -625,6 +655,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					</ul>
 				</div>									
 				<?php
+				endif;
 			endforeach;
 		}
 
