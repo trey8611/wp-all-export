@@ -97,71 +97,141 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 
 	public function fix_template_options()
 	{
-		$options = $this->options;
-
-		$is_options_changed = false;
-
-		foreach ($options['ids'] as $ID => $value) 
+		// migrate media options since @version 1.0.5		
+		if ( empty($this->options['migration']) )
 		{
-			switch ($options['cc_type'][$ID]) 
+			$options = $this->options;
+
+			$options['migration'] = PMXE_VERSION;
+
+			$is_migrate_media = false;
+
+			foreach ($options['ids'] as $ID => $value) 
 			{
-				case 'media':					
-
-					switch ($options['cc_options'][$ID]) 
-					{
-						case 'urls':
-							$options['cc_label'][$ID] = 'url';
-							$options['cc_value'][$ID] = 'url';
-							$options['cc_type'][$ID] = 'image_url';
-							break;	
-						case 'filenames':
-							$options['cc_label'][$ID] = 'filename';
-							$options['cc_value'][$ID] = 'filename';
-							$options['cc_type'][$ID] = 'image_filename';
-							break;
-						case 'filepaths':
-							$options['cc_label'][$ID] = 'path';
-							$options['cc_value'][$ID] = 'path';
-							$options['cc_type'][$ID] = 'image_path';
-							break;
-						default:
-							$options['cc_label'][$ID] = 'url';
-							$options['cc_value'][$ID] = 'url';
-							$options['cc_type'][$ID] = 'image_url';
-							break;
-					}
-
-					$options['cc_name'][$ID] = 'media_images';					
-					$options['cc_options'][$ID] = '{"is_export_featured":true,"is_export_attached":true,"image_separator":"|"}';											
-
-					$new_fields = array('alt', 'description', 'caption', 'title');
-
-					foreach ($new_fields as $value) 
-					{
-						$options['ids'][] = 1;
-						$options['cc_label'][] = $value;
-						$options['cc_php'][] = empty($options['ids']['cc_php'][$ID]) ? '' : $options['ids']['cc_php'][$ID];
-						$options['cc_code'][] = empty($options['ids']['cc_code'][$ID]) ? '' : $options['ids']['cc_code'][$ID];
-						$options['cc_sql'][] = empty($options['ids']['cc_sql'][$ID]) ? '' : $options['ids']['cc_sql'][$ID];
-						$options['cc_options'][] = '{"is_export_featured":true,"is_export_attached":true,"image_separator":"|"}';
-						$options['cc_type'][] = 'image_' . $value;
-						$options['cc_value'][] = $value;
-						$options['cc_name'][] = 'media_' . $value . 's';
-						$options['cc_settings'][] = '';
-					}	
-
-					$is_options_changed = true;	
-
+				if ( in_array($options['cc_type'][$ID], array('media', 'attachments')))
+				{
+					$is_migrate_media = true;
 					break;
-				case 'attachments':					
-					$options['cc_type'][$ID] = 'attachment_url';
-					$options['cc_options'][$ID] = '';
-					$is_options_changed = true;
-					break;
+				}
 			}
-		}
 
-		if ( $is_options_changed ) $this->set(array('options' => $options))->save();		
+			if ( ! $is_migrate_media ) 
+			{
+				$this->set(array('options' => $options))->save();
+				
+				return $this;
+			}
+
+			$fields = array();
+
+			foreach ($options['ids'] as $ID => $value) 
+			{
+				$field = array(
+					'cc_label' => empty($options['cc_label'][$ID]) ? '' : $options['cc_label'][$ID],
+					'cc_php' => empty($options['cc_php'][$ID]) ? '' : $options['cc_php'][$ID],
+					'cc_code' => empty($options['cc_code'][$ID]) ? '' : $options['cc_code'][$ID],
+					'cc_sql' => empty($options['cc_sql'][$ID]) ? '' : $options['cc_sql'][$ID],
+					'cc_type' => empty($options['cc_type'][$ID]) ? '' : $options['cc_type'][$ID],
+					'cc_options' => empty($options['cc_options'][$ID]) ? '' : $options['cc_options'][$ID],
+					'cc_value' => empty($options['cc_value'][$ID]) ? '' : $options['cc_value'][$ID],
+					'cc_name' => empty($options['cc_name'][$ID]) ? '' : $options['cc_name'][$ID],
+					'cc_settings' => empty($options['cc_settings'][$ID]) ? '' : $options['cc_settings'][$ID]
+				);
+
+				switch ($field['cc_type']) 
+				{
+					case 'media':
+
+						switch ($field['cc_options']) 
+						{
+							case 'urls':
+								$field['cc_label'] = 'url';
+								$field['cc_value'] = 'url';
+								$field['cc_type']  = 'image_url';
+								break;	
+							case 'filenames':
+								$field['cc_label'] = 'filename';
+								$field['cc_value'] = 'filename';
+								$field['cc_type']  = 'image_filename';
+								break;
+							case 'filepaths':
+								$field['cc_label'] = 'path';
+								$field['cc_value'] = 'path';
+								$field['cc_type']  = 'image_path';
+								break;
+							default:
+								$field['cc_label'] = 'url';
+								$field['cc_value'] = 'url';
+								$field['cc_type']  = 'image_url';
+								break;
+						}
+
+						$field['cc_name']    = 'media_images';					
+						$field['cc_options'] = '{"is_export_featured":true,"is_export_attached":true,"image_separator":"|"}';											
+
+						$fields[] = $field;
+
+						$new_fields = array('alt', 'description', 'caption', 'title');
+
+						foreach ($new_fields as $value) 
+						{
+							$new_field = array(
+								'cc_label' => $value,
+								'cc_php' => empty($options['cc_php'][$ID]) ? '' : $options['cc_php'][$ID],
+								'cc_code' => empty($options['cc_code'][$ID]) ? '' : $options['cc_code'][$ID],
+								'cc_sql' => empty($options['cc_sql'][$ID]) ? '' : $options['cc_sql'][$ID],
+								'cc_type' => 'image_' . $value,
+								'cc_options' => '{"is_export_featured":true,"is_export_attached":true,"image_separator":"|"}',
+								'cc_value' => $value,
+								'cc_name' => 'image_' . $value,
+								'cc_settings' => ''
+							);
+
+							$fields[] = $new_field;
+						}
+
+						break;
+
+					case 'attachments':					
+						$field['cc_type']    = 'attachment_url';
+						$field['cc_options'] = '';						
+						$fields[] = $field;
+						break;
+
+					default:
+						$fields[] = $field;
+						break;
+				}				
+			}	
+
+			// reset fields settings
+			$options['ids'] = array();
+			$options['cc_label'] = array();
+			$options['cc_php'] = array();
+			$options['cc_code'] = array();
+			$options['cc_sql'] = array();
+			$options['cc_type'] = array();
+			$options['cc_options'] = array();
+			$options['cc_value'] = array();
+			$options['cc_name'] = array();
+			$options['cc_settings'] = array();
+
+			// apply new field settings
+			foreach ($fields as $ID => $field) {
+				$options['ids'][] = 1;
+				$options['cc_label'][] = $field['cc_label'];
+				$options['cc_php'][] = $field['cc_php'];
+				$options['cc_code'][] = $field['cc_code'];
+				$options['cc_sql'][] = $field['cc_sql'];
+				$options['cc_type'][] = $field['cc_type'];
+				$options['cc_options'][] = $field['cc_options'];
+				$options['cc_value'][] = $field['cc_value'];
+				$options['cc_name'][] = $field['cc_name'];
+				$options['cc_settings'][] = $field['cc_settings'];
+			}			
+
+			$this->set(array('options' => $options))->save();
+		}		
 
 		return $this;
 	}
