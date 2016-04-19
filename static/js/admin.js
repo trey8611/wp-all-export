@@ -471,6 +471,7 @@
 				case 'specific_type':
 					
 					$('.wpallexport-user-export-notice').hide();
+					$('.wpallexport-shop_customer-export-notice').hide();
 		    		$('.wpallexport-comments-export-notice').hide();
 
 					if (postType != '')
@@ -486,9 +487,14 @@
 							showImportType = false; 						
 							$('.wpallexport-choose-file').find('.wpallexport-upload-resource-step-two').slideDown();
 						}
-						else
+						else if (postType == 'shop_customer')
 						{
-							$('.wpallexport-user-export-notice').hide();
+							$('.wpallexport-customer-export-notice').show();
+							showImportType = false; 						
+							$('.wpallexport-choose-file').find('.wpallexport-upload-resource-step-two').slideDown();
+						}
+						else
+						{							
 							showImportType = true; 						
 							$('.wpallexport-choose-file').find('.wpallexport-upload-resource-step-two').slideDown();
 						}						
@@ -500,6 +506,7 @@
 
 					$('.wpallexport-user-export-notice').hide();
 		    		$('.wpallexport-comments-export-notice').hide();
+		    		$('.wpallexport-shop_customer-export-notice').hide();
 
 					if ($('input[name=wp_query_selector]').val() == 'wp_user_query')
 					{
@@ -514,8 +521,7 @@
 						showImportType = false; 
 					}
 					else
-					{
-						$('.wpallexport-user-export-notice').hide();
+					{						
 						$('.wpallexport-choose-file').find('.wpallexport-upload-resource-step-two').slideUp();					
 						showImportType = true; 
 					}										
@@ -548,6 +554,7 @@
 
 				$('.wpallexport-user-export-notice').hide();
 		    	$('.wpallexport-comments-export-notice').hide();
+		    	$('.wpallexport-shop_customer-export-notice').hide();
 
 		    	if (selectedData.selectedData.value != ""){
 		    		
@@ -572,9 +579,13 @@
 						$('.wpallexport-comments-export-notice').show();
 						$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();	
 					}
-					else
+					else if (postType == 'shop_customer')
 					{
-						$('.wpallexport-user-export-notice').hide();
+						$('.wpallexport-shop_customer-export-notice').show();
+						$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();	
+					}
+					else
+					{						
 						$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').show();	
 					}					
 
@@ -632,6 +643,8 @@
 				
 				$('.wpallexport-user-export-notice').hide();
 		    	$('.wpallexport-comments-export-notice').hide();
+		    	$('.wpallexport-shop_customer-export-notice').hide();
+		    	
 		    	$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();
 
 		    	if (selectedData.selectedData.value != ""){
