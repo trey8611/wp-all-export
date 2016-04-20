@@ -296,7 +296,7 @@
 							<?php foreach ($templates->getBy()->convertRecords() as $t): ?>
 								<?php 		
 									// When creating a new export you should be able to select existing saved export templates that were created for the same post type.						
-									if ( $this->isWizard and $t->options['cpt'] != $post['cpt'] ) continue;
+									if ( $t->options['cpt'] != $post['cpt'] ) continue;
 								?>
 								<option value="<?php echo $t->id ?>"><?php echo $t->name ?></option>
 							<?php endforeach ?>
