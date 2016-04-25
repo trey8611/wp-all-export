@@ -448,6 +448,8 @@
 
 			},
 			dataType: "json"
+		}).fail(function(xhr, textStatus, error) {		    
+			$('.wpallexport-header').next('.clear').after("<div class='error inline'><p>" + textStatus + " " + error + "</p></div>");		    
 		});
 
 	}

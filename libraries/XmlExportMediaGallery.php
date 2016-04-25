@@ -29,20 +29,19 @@ final class XmlExportMediaGallery
 
 	private function __construct( $pid )
 	{			
-		self::$pid 		      = $pid;		
-		self::$attachments    = array();
-		self::$images         = array();
-		self::$images_ids     = array();	
-		self::$featured_image = false;	
+		self::$pid 		      = $pid;				
 	}	
 
 	public static function init( $type = 'attachments', $options = false )
 	{
+		self::$attachments    = array();
+		self::$images         = array();
+		self::$images_ids     = array();	
+		self::$featured_image = false;	
+
 		switch ($type) 
 		{
-			case 'attachments':
-				
-				if ( ! empty(self::$attachments) ) return;
+			case 'attachments':					
 
 				$attachments = get_posts( array(
 					'post_type' => 'attachment',
@@ -238,39 +237,69 @@ final class XmlExportMediaGallery
 				$field_options = json_decode($options['cc_options'][$ID], true);
 				$templateOptions['is_update_images'] = 1;
 				$templateOptions['update_images_logic'] = 'add_new';
-				$templateOptions['download_featured_image'] = '{'. $element_name .'[1]}';
 				$templateOptions['download_featured_delim'] = (empty($field_options['image_separator'])) ? "|" : $field_options['image_separator'];
+				if ( empty($templateOptions['download_featured_image'])) {
+					$templateOptions['download_featured_image'] = '{'. $element_name .'[1]}';
+				}
+				else {
+					$templateOptions['download_featured_image'] .= $templateOptions['download_featured_delim'] . '{'. $element_name .'[1]}';
+				}
 				break;
 			case 'image_title':
 				$field_options = json_decode($options['cc_options'][$ID], true);
-				$templateOptions['set_image_meta_title'] = 1;
-				$templateOptions['image_meta_title'] = '{'. $element_name .'[1]}';
+				$templateOptions['set_image_meta_title'] = 1;				
 				$templateOptions['image_meta_title_delim'] = (empty($field_options['image_separator'])) ? "|" : $field_options['image_separator'];
+				if ( empty($templateOptions['image_meta_title'])) {
+					$templateOptions['image_meta_title'] = '{'. $element_name .'[1]}';
+				}
+				else {
+					$templateOptions['image_meta_title'] .= $templateOptions['image_meta_title_delim'] . '{'. $element_name .'[1]}';
+				}
 				break;
 			case 'image_caption':
 				$field_options = json_decode($options['cc_options'][$ID], true);
-				$templateOptions['set_image_meta_caption'] = 1;
-				$templateOptions['image_meta_caption'] = '{'. $element_name .'[1]}';
+				$templateOptions['set_image_meta_caption'] = 1;				
 				$templateOptions['image_meta_caption_delim'] = (empty($field_options['image_separator'])) ? "|" : $field_options['image_separator'];
+				if ( empty($templateOptions['image_meta_caption'])) {
+					$templateOptions['image_meta_caption'] = '{'. $element_name .'[1]}';
+				}
+				else {
+					$templateOptions['image_meta_caption'] .= $templateOptions['image_meta_caption_delim'] . '{'. $element_name .'[1]}';
+				}
 				break;
 			case 'image_description':
 				$field_options = json_decode($options['cc_options'][$ID], true);
-				$templateOptions['set_image_meta_description'] = 1;
-				$templateOptions['image_meta_description'] = '{'. $element_name .'[1]}';
+				$templateOptions['set_image_meta_description'] = 1;				
 				$templateOptions['image_meta_description_delim'] = (empty($field_options['image_separator'])) ? "|" : $field_options['image_separator'];
+				if ( empty($templateOptions['image_meta_description'])) {
+					$templateOptions['image_meta_description'] = '{'. $element_name .'[1]}';
+				}
+				else {
+					$templateOptions['image_meta_description'] .= $templateOptions['image_meta_description_delim'] . '{'. $element_name .'[1]}';
+				}
 				break;
 			case 'image_alt':
 				$field_options = json_decode($options['cc_options'][$ID], true);
-				$templateOptions['set_image_meta_alt'] = 1;
-				$templateOptions['image_meta_alt'] = '{'. $element_name .'[1]}';
+				$templateOptions['set_image_meta_alt'] = 1;			
 				$templateOptions['image_meta_alt_delim'] = (empty($field_options['image_separator'])) ? "|" : $field_options['image_separator'];
+				if ( empty($templateOptions['image_meta_alt'])) {
+					$templateOptions['image_meta_alt'] = '{'. $element_name .'[1]}';
+				}
+				else {
+					$templateOptions['image_meta_alt'] .= $templateOptions['image_meta_alt_delim'] . '{'. $element_name .'[1]}';
+				}
 				break;
 
 			case 'attachments':					
-			case 'attachment_url':
-				$templateOptions['attachments'] = '{'. $element_name .'[1]}';
+			case 'attachment_url':				
 				$templateOptions['atch_delim'] = '|';
 				$templateOptions['is_update_attachments'] = 1;
+				if ( empty($templateOptions['attachments'])) {
+					$templateOptions['attachments'] = '{'. $element_name .'[1]}';
+				}
+				else {
+					$templateOptions['attachments'] .= $templateOptions['atch_delim'] . '{'. $element_name .'[1]}';
+				}
 				break;
 		}
 
