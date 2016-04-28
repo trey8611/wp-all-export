@@ -81,8 +81,14 @@ final class XmlExportMediaGallery
 					}					
 				}
 
+				if ( ! empty(self::$featured_image) and ( empty($options) or ! empty($options['is_export_featured']) ) and ! in_array(self::$featured_image->ID, self::$images_ids)) 
+				{
+					self::$images_ids[] = self::$featured_image->ID;
+					self::$images[]     = self::$featured_image;
+				}
+
 				// prepare attached images data
-				if ( empty(self::$images) and ( empty($options) or ! empty($options['is_export_attached']) ) )
+				if ( empty($options) or ! empty($options['is_export_attached']) )
 				{
 					$images = get_posts( array(
 						'post_type' => 'attachment',
@@ -125,13 +131,7 @@ final class XmlExportMediaGallery
 							}
 						}
 					}					
-				}
-
-				if ( ! empty(self::$featured_image) and ( empty($options) or ! empty($options['is_export_featured']) ) and ! in_array(self::$featured_image->ID, self::$images_ids)) 
-				{
-					self::$images_ids[] = self::$featured_image->ID;
-					self::$images[]     = self::$featured_image;
-				}
+				}				
 
 				break;
 
