@@ -66,7 +66,7 @@ final class XmlExportMediaGallery
 			case 'images':
 
 				// prepare featured image data
-				if ( empty(self::$featured_image) and ( empty($options) or ! empty($options['is_export_featured']) ) )
+				if ( empty(self::$featured_image) )
 				{
 					$_featured_image_id = get_post_meta(self::$pid, '_thumbnail_id', true); 
 

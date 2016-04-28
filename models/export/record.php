@@ -166,12 +166,13 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 								break;
 						}
 
-						$field['cc_name']    = 'media_images';					
+						$field_name = $field['cc_name'];
+						$field['cc_name']    .= '_images';				
 						$field['cc_options'] = '{"is_export_featured":true,"is_export_attached":true,"image_separator":"|"}';											
 
 						$fields[] = $field;
 
-						$new_fields = array('alt', 'description', 'caption', 'title');
+						$new_fields = array('title', 'caption', 'description', 'alt');
 
 						foreach ($new_fields as $value) 
 						{
@@ -183,7 +184,7 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 								'cc_type' => 'image_' . $value,
 								'cc_options' => '{"is_export_featured":true,"is_export_attached":true,"image_separator":"|"}',
 								'cc_value' => $value,
-								'cc_name' => 'image_' . $value,
+								'cc_name' => $field_name . '_' . $value,
 								'cc_settings' => ''
 							);
 
