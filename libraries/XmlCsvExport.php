@@ -298,7 +298,7 @@ final Class XmlCsvExport
 					foreach ($additional_data as $key => $value) 
 					{
 						$xmlWriter->startElement(preg_replace('/[^a-z0-9_-]/i', '', $key));
-							$xmlWriter->writeData($value);
+							$xmlWriter->writeData($value, preg_replace('/[^a-z0-9_-]/i', '', $key));
 						$xmlWriter->endElement();		
 					}
 				}
@@ -316,7 +316,7 @@ final Class XmlCsvExport
 					foreach ($additional_data as $key => $value) 
 					{
 						$xmlWriter->startElement(preg_replace('/[^a-z0-9_-]/i', '', $key));
-							$xmlWriter->writeData($value);
+							$xmlWriter->writeData($value, preg_replace('/[^a-z0-9_-]/i', '', $key));
 						$xmlWriter->endElement();		
 					}
 				}
@@ -333,7 +333,7 @@ final Class XmlCsvExport
 			foreach ($add_before_node as $key => $value) 
 			{
 				$xmlWriter->startElement(preg_replace('/[^a-z0-9_-]/i', '', $key));
-					$xmlWriter->writeData($value);
+					$xmlWriter->writeData($value, preg_replace('/[^a-z0-9_-]/i', '', $key));
 				$xmlWriter->endElement();		
 			}
 		}
@@ -348,7 +348,7 @@ final Class XmlCsvExport
 			foreach ($add_after_node as $key => $value) 
 			{
 				$xmlWriter->startElement(preg_replace('/[^a-z0-9_-]/i', '', $key));
-					$xmlWriter->writeData($value);
+					$xmlWriter->writeData($value, preg_replace('/[^a-z0-9_-]/i', '', $key));
 				$xmlWriter->endElement();		
 			}
 		}

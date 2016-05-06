@@ -248,17 +248,17 @@ if ( ! class_exists('XmlExportACF') )
 
 								$xmlWriter->beginElement($element_name_ns, $element_name, null);
 									$xmlWriter->startElement('address');
-										$xmlWriter->writeData($localion_parts[0]);
+										$xmlWriter->writeData($localion_parts[0], 'address');
 									$xmlWriter->endElement();
 
 									if (!empty($localion_parts[1])){
 										$coordinates = explode(",", $localion_parts[1]);
 										if (!empty($coordinates)){
 											$xmlWriter->startElement('lat');
-												$xmlWriter->writeData($coordinates[0]);
+												$xmlWriter->writeData($coordinates[0], 'lat');
 											$xmlWriter->endElement();
 											$xmlWriter->startElement('lng');
-												$xmlWriter->writeData($coordinates[1]);
+												$xmlWriter->writeData($coordinates[1], 'lng');
 											$xmlWriter->endElement();
 										}
 									}
@@ -321,7 +321,7 @@ if ( ! class_exists('XmlExportACF') )
 								if ( is_array($field_value) ){
 									foreach ($field_value as $key => $value) {
 										$xmlWriter->beginElement($element_name_ns, $key, null);
-											$xmlWriter->writeData($value);
+											$xmlWriter->writeData($value, $key);
 										$xmlWriter->endElement();
 									}
 								}													
@@ -353,13 +353,13 @@ if ( ! class_exists('XmlExportACF') )
 						{							
 							$xmlWriter->beginElement($element_name_ns, $element_name, null);
 								$xmlWriter->startElement('address');
-									$xmlWriter->writeData($field_value['address']);
+									$xmlWriter->writeData($field_value['address'], 'address');
 								$xmlWriter->endElement();
 								$xmlWriter->startElement('lat');
-									$xmlWriter->writeData($field_value['lat']);
+									$xmlWriter->writeData($field_value['lat'], 'lat');
 								$xmlWriter->endElement();
 								$xmlWriter->startElement('lng');
-									$xmlWriter->writeData($field_value['lng']);
+									$xmlWriter->writeData($field_value['lng'], 'lng');
 								$xmlWriter->endElement();
 							$xmlWriter->endElement();
 						}
@@ -490,7 +490,7 @@ if ( ! class_exists('XmlExportACF') )
 										if ($entry and !is_wp_error($entry))
 										{
 											$xmlWriter->startElement('term');
-												$xmlWriter->writeData($entry->name);
+												$xmlWriter->writeData($entry->name, 'term');
 											$xmlWriter->endElement();
 										}
 									}						
@@ -500,7 +500,7 @@ if ( ! class_exists('XmlExportACF') )
 									if ($entry)
 									{
 										$xmlWriter->startElement('term');
-											$xmlWriter->writeData($entry->name);
+											$xmlWriter->writeData($entry->name, 'term');
 										$xmlWriter->endElement();
 									}
 								}
@@ -832,7 +832,7 @@ if ( ! class_exists('XmlExportACF') )
 				if ($is_xml_export)
 		    	{
 		    		$xmlWriter->beginElement($element_name_ns, $element_name, null);
-		    			$xmlWriter->writeData($val);
+		    			$xmlWriter->writeData($val, $element_name);
 					$xmlWriter->endElement();	    		
 		    	}
 		    	else

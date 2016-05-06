@@ -394,7 +394,7 @@ final class XmlExportCpt
 							if ($xmlWriter and XmlExportEngine::$exportOptions['export_to'] == 'xml')
 							{
 								$xmlWriter->beginElement($element_name_ns, 'parent_id', null);
-									$xmlWriter->writeData($article['parent_id']);
+									$xmlWriter->writeData($article['parent_id'], 'parent_id');
 								$xmlWriter->endElement();
 							}
 						}							
@@ -434,7 +434,7 @@ final class XmlExportCpt
 				$element_name_in_file = XmlCsvExport::_get_valid_header_name( $element_name );
 				
 				$xmlWriter->beginElement($element_name_ns, $element_name_in_file, null);
-					$xmlWriter->writeData($article[$element_name]);
+					$xmlWriter->writeData($article[$element_name], $element_name_in_file);
 				$xmlWriter->endElement();				
 			}
 		}

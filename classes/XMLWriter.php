@@ -27,9 +27,11 @@ class PMXE_XMLWriter extends XMLWriter
 		}
 	}
 
-	public function writeData( $value )
+	public function writeData( $value, $element_name )
 	{
-		if (empty($value) or is_numeric($value)) $this->text($value); else $this->writeCData($value);
+		$is_wrap_into_cdata = ! ( empty($value) or is_numeric($value) );
+		$wrap_value_into_cdata = apply_filters('wp_all_export_is_wrap_value_into_cdata', $is_wrap_into_cdata, $value, $element_name);
+		if ( $wrap_value_into_cdata === false ) $this->text($value); else $this->writeCData($value);
 	}
 	
 } 

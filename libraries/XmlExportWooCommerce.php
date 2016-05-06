@@ -780,7 +780,7 @@ if ( ! class_exists('XmlExportWooCommerce') )
 				}
 				
 				$xmlWriter->beginElement($element_name_ns, $element_name, null);
-					$xmlWriter->writeData($data);
+					$xmlWriter->writeData($data, $element_name);
 				$xmlWriter->endElement();					
 			}
 

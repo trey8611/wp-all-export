@@ -553,7 +553,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					$element_name = (empty($element_name_parts[1])) ? 'untitled_' . $ID : $element_name_parts[1];							
 				}
 				$xmlWriter->beginElement($element_name_ns, $element_name, null);
-					$xmlWriter->writeData($data);
+					$xmlWriter->writeData($data, $element_name);
 				$xmlWriter->endElement();				
 			}				
 		}
