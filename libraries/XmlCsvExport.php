@@ -523,7 +523,7 @@ final Class XmlCsvExport
 
 		$in  = fopen($file, 'r');			
 
-		$clear_old_headers = fgetcsv($in);		
+		$clear_old_headers = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter']);		
 
 		fclose($in);		
 
@@ -582,11 +582,11 @@ final Class XmlCsvExport
 
 			if ( XmlExportEngine::$exportOptions['include_bom'] ) 
 			{												
-				fputcsv($out, chr(0xEF).chr(0xBB).chr(0xBF) . array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers));
+				fputcsv($out, chr(0xEF).chr(0xBB).chr(0xBF) . array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers), XmlExportEngine::$exportOptions['delimiter']);
 			}
 			else
 			{								
-				fputcsv($out, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers));
+				fputcsv($out, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers), XmlExportEngine::$exportOptions['delimiter']);
 			}								
 
 			$exclude_old_headers = fgetcsv($in);		
