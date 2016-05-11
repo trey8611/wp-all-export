@@ -909,7 +909,7 @@ if ( ! class_exists('XmlExportACF') )
 											<input type="hidden" name="cc_options[]" value="<?php echo esc_html(serialize(array_merge($field, array('group_id' => ((!empty($group['ID'])) ? $group['ID'] : $group['id']) ))));?>"/>
 											<input type="hidden" name="cc_type[]" value="acf"/>										
 											<input type="hidden" name="cc_value[]" value="<?php echo $field['name']; ?>"/>
-											<input type="hidden" name="cc_name[]" value="<?php echo str_replace(" ", "_", $field['label']);?>"/>
+											<input type="hidden" name="cc_name[]" value="<?php echo $field['label']; ?>"/>
 											<input type="hidden" name="cc_settings[]" value=""/>
 										</div>
 									</li>

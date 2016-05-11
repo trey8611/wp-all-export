@@ -423,6 +423,26 @@ final class XmlExportCpt
 						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_sql_field', $val, $element_name, $entry->ID) );
 					}
 					break;
+
+				case 'wpml_trid':
+
+					$post_type = get_post_type($entry->ID);
+
+					$post_type = apply_filters( 'wpml_element_type', $post_type );
+
+					$post_language_details = apply_filters('wpml_element_language_details',
+						null, 
+						array(
+							'element_id'   => $entry->ID,
+							'element_type' => $post_type
+						)
+					);
+
+					$trid = empty($post_language_details->trid) ? '' : $post_language_details->trid;
+
+					wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_trid_field', $trid, $element_name, $entry->ID) );
+
+					break;
 				
 				default:
 					# code...

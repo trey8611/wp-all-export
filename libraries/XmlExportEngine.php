@@ -319,6 +319,16 @@ if ( ! class_exists('XmlExportEngine') ){
 			if ( ! self::$is_user_export && ! self::$is_comment_export)
 			{
 				add_filter("wp_all_export_filters", array( &$this, "filter_export_filters"), 10, 1);
+
+				// When WPML is active and at least one post in the export has a trid
+				if (class_exists('SitePress')) 
+				{
+					self::$default_fields[] = array(
+						'label' => 'wpml_trid', 
+						'name'  => 'WPML Translation ID',
+						'type'  => 'wpml_trid'
+					);
+				}
 			}
 
 			self::$exportOptions = $post;						
