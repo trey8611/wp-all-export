@@ -67,14 +67,16 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 
 		file_put_contents($bundle_dir . $template, json_encode($templates));							
 
-		if ($this->options['creata_a_new_export_file'] && ! empty($this->options['cpt']) and class_exists('WooCommerce') and in_array('shop_order', $this->options['cpt']) and empty($this->parent_id) )
-		{
-			$bundle_path = $export_dir . $friendly_name . '-' . ($this->iteration + 1) . '.zip';			
-		}
-		else
-		{
-			$bundle_path = $export_dir . $friendly_name . '.zip';			
-		}		
+		// if ($this->options['creata_a_new_export_file'] && ! empty($this->options['cpt']) and class_exists('WooCommerce') and in_array('shop_order', $this->options['cpt']) and empty($this->parent_id) )
+		// {
+		// 	$bundle_path = $export_dir . $friendly_name . '-' . ($this->iteration + 1) . '.zip';			
+		// }
+		// else
+		// {
+		// 	$bundle_path = $export_dir . $friendly_name . '.zip';			
+		// }	
+
+		$bundle_path = $export_dir . $friendly_name . '.zip';				
 
 		if ( @file_exists($bundle_path))
 		{

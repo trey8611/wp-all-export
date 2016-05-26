@@ -2250,6 +2250,12 @@
 	padding: 10px; 
 	/*font-style:italic;*/
 }
+#post-preview .wpallexport-preview-title{
+	border-bottom: 1px solid #ccc;
+	margin-bottom: 0;
+	padding-bottom: 10px;
+	text-align: center;
+}
 #post-preview .wpallexport-preview-content{
 	padding: 15px;
 	overflow: auto;

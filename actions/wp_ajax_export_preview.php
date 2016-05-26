@@ -85,6 +85,8 @@ function pmxe_wp_ajax_export_preview(){
 	?>
 
 	<div id="post-preview" class="wpallexport-preview">
+
+		<p class="wpallexport-preview-title"><?php echo sprintf("Preview first 10 %s", wp_all_export_get_cpt_name($exportOptions['cpt'], 10)); ?></p>
 		
 		<div class="wpallexport-preview-content">
 			

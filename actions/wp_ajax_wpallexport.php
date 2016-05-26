@@ -195,7 +195,7 @@ function pmxe_wp_ajax_wpallexport(){
 					{
 						$attach_id = wp_insert_attachment( $attachment_data, PMXE_Plugin::$session->file );			
 					}					
-					elseif($export->options['creata_a_new_export_file'] and ( ! XmlExportWooCommerceOrder::$is_active || $export->options['export_type'] != 'specific') )
+					elseif($export->options['creata_a_new_export_file'] )
 					{
 						$attach_id = wp_insert_attachment( $attachment_data, PMXE_Plugin::$session->file );			
 					}

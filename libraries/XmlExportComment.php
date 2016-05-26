@@ -172,12 +172,11 @@ if ( ! class_exists('XmlExportComment') )
 					
 			if ( version_compare($wp_version, '4.2.0', '>=') ) 
 			{
-				$commentsQuery = new WP_Comment_Query( array( 'orderby' => 'comment_ID', 'order' => 'ASC', 'number' => 10, 'count' => true));
-				$comments = $commentsQuery->get_comments();
+				$comments = XmlExportEngine::$exportQuery->get_comments();
 			}
 			else
 			{
-				$comments = get_comments( array( 'orderby' => 'comment_ID', 'order' => 'ASC', 'number' => 10, 'count' => true));			
+				$comments = XmlExportEngine::$exportQuery;
 			}
 
 			if ( ! empty( $comments ) ) {

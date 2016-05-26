@@ -779,9 +779,13 @@ if ( ! class_exists('XmlExportWooCommerce') )
 					$element_name = (empty($element_name_parts[1])) ? 'untitled_' . $ID : $element_name_parts[1];							
 				}
 				
+				$xmlWriter = apply_filters('wp_all_export_add_before_element', $xmlWriter, $element_name, XmlExportEngine::$exportID, $record->ID);
+
 				$xmlWriter->beginElement($element_name_ns, $element_name, null);
 					$xmlWriter->writeData($data, $element_name);
-				$xmlWriter->endElement();					
+				$xmlWriter->endElement();			
+
+				$xmlWriter = apply_filters('wp_all_export_add_after_element', $xmlWriter, $element_name, XmlExportEngine::$exportID, $record->ID);		
 			}
 
 		}		
@@ -880,8 +884,16 @@ if ( ! class_exists('XmlExportWooCommerce') )
 
 					break;
 				case '_downloadable_files':
-					$templateOptions['single_product_files'] = '{'. $element_name .'_paths[1]}';
-					$templateOptions['single_product_files_names'] = '{'. $element_name .'_names[1]}';
+					if ($is_xml_template)
+					{
+						$templateOptions['single_product_files'] = '{'. $element_name .'Paths[1]}';
+						$templateOptions['single_product_files_names'] = '{'. $element_name .'Names[1]}';												
+					}
+					else
+					{
+						$templateOptions['single_product_files'] = '{'. $element_name .'paths[1]}';
+						$templateOptions['single_product_files_names'] = '{'. $element_name .'names[1]}';	
+					}
 					break;
 				case '_download_limit':
 					$templateOptions['single_product_download_limit'] = '{'. $element_name .'[1]}';

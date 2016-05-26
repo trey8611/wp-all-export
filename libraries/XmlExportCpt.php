@@ -444,6 +444,26 @@ final class XmlExportCpt
 
 					break;
 				
+				case 'wpml_lang':
+
+					$post_type = get_post_type($entry->ID);
+
+					$post_type = apply_filters( 'wpml_element_type', $post_type );
+
+					$post_language_details = apply_filters('wpml_element_language_details',
+						null, 
+						array(
+							'element_id'   => $entry->ID,
+							'element_type' => $post_type
+						)
+					);
+
+					$language_code = empty($post_language_details->language_code) ? '' : $post_language_details->language_code;
+
+					wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_trid_field', $language_code, $element_name, $entry->ID) );
+
+					break;
+					
 				default:
 					# code...
 					break;
@@ -453,9 +473,13 @@ final class XmlExportCpt
 			{								
 				$element_name_in_file = XmlCsvExport::_get_valid_header_name( $element_name );
 				
+				$xmlWriter = apply_filters('wp_all_export_add_before_element', $xmlWriter, $element_name_in_file, XmlExportEngine::$exportID, $entry->ID);
+
 				$xmlWriter->beginElement($element_name_ns, $element_name_in_file, null);
 					$xmlWriter->writeData($article[$element_name], $element_name_in_file);
-				$xmlWriter->endElement();				
+				$xmlWriter->endElement();	
+
+				$xmlWriter = apply_filters('wp_all_export_add_after_element', $xmlWriter, $element_name_in_file, XmlExportEngine::$exportID, $entry->ID);
 			}
 		}
 		return $article;

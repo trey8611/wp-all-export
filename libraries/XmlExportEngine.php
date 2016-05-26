@@ -328,6 +328,12 @@ if ( ! class_exists('XmlExportEngine') ){
 						'name'  => 'WPML Translation ID',
 						'type'  => 'wpml_trid'
 					);
+
+					self::$default_fields[] = array(
+						'label' => 'wpml_lang', 
+						'name'  => 'WPML Language Code',
+						'type'  => 'wpml_lang'
+					);
 				}
 			}
 
@@ -572,21 +578,27 @@ if ( ! class_exists('XmlExportEngine') ){
 						<?php					
 						foreach ($this->available_data[$section['content']] as $field) 
 						{
+							$field_type = is_array($field) ? $field['type'] : $slug;
+							$field_name = is_array($field) ? $field['name'] : $field;
+
+							if ( $field_type == 'cf' && $field_name == '_thumbnail_id' ) continue;
+
 							$is_auto_field = ( ! empty($field['auto']) or self::$is_auto_generate_enabled and 'specific' == $this->post['export_type'] and ! in_array(self::$post_types[0], array('product')));
+							
 							?>
 							<li class="pmxe_<?php echo $slug; ?> <?php if ( $is_auto_field ) echo 'wp_all_export_auto_generate';?>">
 								<div class="custom_column" rel="<?php echo ($i + 1);?>">															
 									<label class="wpallexport-xml-element"><?php echo (is_array($field)) ? $field['name'] : $field; ?></label>
 									<input type="hidden" name="ids[]" value="1"/>
 									<input type="hidden" name="cc_label[]" value="<?php echo (is_array($field)) ? $field['label'] : $field; ?>"/>										
-									<input type="hidden" name="cc_php[]" value=""/>										
+									<input type="hidden" name="cc_php[]" value="0"/>										
 									<input type="hidden" name="cc_code[]" value=""/>
-									<input type="hidden" name="cc_sql[]" value=""/>
-									<input type="hidden" name="cc_options[]" value=""/>										
+									<input type="hidden" name="cc_sql[]" value="0"/>
+									<input type="hidden" name="cc_options[]" value="0"/>										
 									<input type="hidden" name="cc_type[]"  value="<?php echo (is_array($field)) ? $field['type'] : $slug; ?>"/>										
 									<input type="hidden" name="cc_value[]" value="<?php echo (is_array($field)) ? $field['label'] : $field; ?>"/>
 									<input type="hidden" name="cc_name[]"  value="<?php echo (is_array($field)) ? $field['name'] : $field;?>"/>									
-									<input type="hidden" name="cc_settings[]"  value=""/>
+									<input type="hidden" name="cc_settings[]"  value="0"/>
 								</div>								
 							</li>
 							<?php
@@ -611,16 +623,16 @@ if ( ! class_exists('XmlExportEngine') ){
 										</li>
 										<?php
 										foreach ($sub_section['meta'] as $field) {		
-											$field_options = ( in_array($sub_slug, array('images', 'attachments')) ) ? esc_attr('{"is_export_featured":true,"is_export_attached":true,"image_separator":"|"}') : '';
+											$field_options = ( in_array($sub_slug, array('images', 'attachments')) ) ? esc_attr('{"is_export_featured":true,"is_export_attached":true,"image_separator":"|"}') : '0';
 											?>
 											<li class="pmxe_<?php echo $slug; ?>_<?php echo $sub_slug;?>">
 												<div class="custom_column" rel="<?php echo ($i + 1);?>">
 													<label class="wpallexport-xml-element"><?php echo (is_array($field)) ? $field['name'] : $field; ?></label>
 													<input type="hidden" name="ids[]" value="1"/>
 													<input type="hidden" name="cc_label[]" value="<?php echo (is_array($field)) ? $field['label'] : $field; ?>"/>										
-													<input type="hidden" name="cc_php[]" value=""/>										
-													<input type="hidden" name="cc_code[]" value=""/>
-													<input type="hidden" name="cc_sql[]" value=""/>
+													<input type="hidden" name="cc_php[]" value="0"/>										
+													<input type="hidden" name="cc_code[]" value="0"/>
+													<input type="hidden" name="cc_sql[]" value="0"/>
 													<input type="hidden" name="cc_options[]" value="<?php echo $field_options; ?>"/>										
 													<input type="hidden" name="cc_type[]" value="<?php echo (is_array($field)) ? $field['type'] : $sub_slug; ?>"/>
 													<input type="hidden" name="cc_value[]" value="<?php echo (is_array($field)) ? $field['label'] : $field; ?>"/>
@@ -779,7 +791,41 @@ if ( ! class_exists('XmlExportEngine') ){
 
 					<?php
 											
-					endif;							
+					endif;		
+
+					if ( ! empty($section['additional']) )
+					{
+						foreach ($section['additional'] as $sub_slug => $sub_section) 
+						{
+							if ( $sub_slug == 'attributes' ) {
+								?>
+								<optgroup label="<?php echo $sub_section['title']; ?>">
+									<?php 
+									foreach ($sub_section['meta'] as $field) :
+										
+										switch ($field['type']) {
+											case 'attr':
+												?>
+												<option value="<?php echo 'tx_' . $field['label']; ?>"><?php echo $field['name']; ?></option>
+												<?php
+												break;
+											case 'cf':
+												?>
+												<option value="<?php echo 'cf_' . $field['label']; ?>"><?php echo $field['name']; ?></option>
+												<?php
+												break;
+											default:
+												# code...
+												break;
+										}										
+
+									endforeach; 
+									?>
+								</optgroup>
+								<?php
+							}
+						}
+					}					
 				}
 			}
 

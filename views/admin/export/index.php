@@ -54,21 +54,36 @@
 
 								<select id="file_selector">
 									<option value=""><?php _e('Choose a post type...', 'wp_all_export_plugin'); ?></option>									
-					            	<?php if (count($custom_types)): ?>
+					            	<?php if (count($custom_types)): $unknown_cpt = array();?>
 										<?php foreach ($custom_types as $key => $ct):?>
 											<?php 
 												$image_src = 'dashicon-cpt';																								
 												$cpt_label = $ct->labels->name;												
 
 												if (  in_array($key, array('post', 'page', 'product', 'import_users', 'shop_order', 'shop_coupon', 'shop_customer') ) )
+												{
 													$image_src = 'dashicon-' . $key;	 
-																				
+												}
+												else
+												{
+													$unknown_cpt[$key] = $ct;
+													continue;
+												}																				
 											?>
 											<option value="<?php echo $key;?>" data-imagesrc="dashicon <?php echo $image_src; ?>" <?php if ($key == $post['cpt']) echo 'selected="selected"'; ?>><?php echo $cpt_label; ?></option>
 										<?php endforeach ?>
 									<?php endif ?>	
 									<option value="users" data-imagesrc="dashicon dashicon-import_users" <?php if ('users' == $post['cpt']) echo 'selected="selected"'; ?>><?php _e("Users", "wp_all_export_plugin"); ?></option>
 									<option value="comments" data-imagesrc="dashicon dashicon-comments" <?php if ('comments' == $post['cpt']) echo 'selected="selected"'; ?>><?php _e("Comments", "wp_all_export_plugin"); ?></option>
+									<?php if ( ! empty($unknown_cpt)):  ?>
+										<?php foreach ($unknown_cpt as $key => $ct):?>
+											<?php
+											$image_src = 'dashicon-cpt';																								
+											$cpt_label = $ct->labels->name;												
+											?>
+											<option value="<?php echo $key;?>" data-imagesrc="dashicon <?php echo $image_src; ?>" <?php if ($key == $post['cpt']) echo 'selected="selected"'; ?>><?php echo $cpt_label; ?></option>
+										<?php endforeach ?>
+									<?php endif;?>
 								</select>								
 								<input type="hidden" name="cpt" value="<?php echo $post['cpt']; ?>"/>								
 								

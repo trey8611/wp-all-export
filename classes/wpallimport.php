@@ -160,11 +160,63 @@ final class PMXE_Wpallimport
 				'export_id' => $export->id
 			);					
 
-			if ( in_array('product', $exportOptions['cpt']) and class_exists('PMWI_Plugin'))
-			{
-				$default = PMWI_Plugin::get_default_import_options();
+			if ( in_array('product', $exportOptions['cpt']) )
+			{				
+				$default = array(
+					'is_multiple_product_type' => 'yes',
+					'multiple_product_type' => 'simple',
+					'is_product_virtual' => 'no',				
+					'is_product_downloadable' => 'no',
+					'is_product_enabled' => 'yes',
+					'is_variation_enabled' => 'yes',
+					'is_product_featured' => 'no',
+					'is_product_visibility' => 'visible',
+					'is_multiple_product_tax_status' => 'yes',
+					'multiple_product_tax_status' => 'none',
+					'is_multiple_product_tax_class' => 'yes',
+					'is_product_manage_stock' => 'no',
+					'product_stock_status' => 'auto',
+					'product_allow_backorders' => 'no',
+					'product_sold_individually' => 'no',
+					'is_multiple_product_shipping_class' => 'yes',
+					'is_multiple_grouping_product' => 'yes',
+					'is_product_enable_reviews' => 'no',
+					'single_sale_price_dates_from' => 'now',
+					'single_sale_price_dates_to' => 'now',
+					'product_files_delim' => ',',	
+					'product_files_names_delim' => ',',				
+					'matching_parent' => 'auto',
+					'parent_indicator' => 'custom field',
+					'missing_records_stock_status' => 0,
+					'is_variable_sale_price_shedule' => 0,
+					'is_variable_product_virtual' => 'no',
+					'is_variable_product_manage_stock' => 'no',
+					'is_multiple_variable_product_shipping_class' => 'yes',
+					'is_multiple_variable_product_tax_class' => 'yes',
+					'multiple_variable_product_tax_class' => 'parent',
+					'variable_stock_status' => 'instock',
+					'variable_allow_backorders' => 'no',
+					'is_variable_product_downloadable' => 'no',
+					'variable_product_files_delim' => ',',
+					'variable_product_files_names_delim' => ',',
+					'is_variable_product_enabled' => 'yes',
+					'first_is_parent' => 'yes',
+					'default_attributes_type' => 'first',
+					'disable_sku_matching' => 1,
+					'disable_prepare_price' => 1,
+					'convert_decimal_separator' => 1,
+					'grouping_indicator' => 'xpath',				
+					'is_update_product_type' => 1,
+					'make_simple_product' => 1,
+					'single_product_regular_price_adjust_type' => '%',
+					'single_product_sale_price_adjust_type' => '%',
+					'is_update_attributes' => 1,
+					'update_attributes_logic' => 'full_update',						
+					'is_variation_product_manage_stock' => 'no',
+					'variation_stock_status' => 'auto'
+				);
 
-				self::$templateOptions = array_replace_recursive(self::$templateOptions, $default);
+				self::$templateOptions = array_replace_recursive(self::$templateOptions, $default);				
 
 				self::$templateOptions['_virtual'] = 1;
 				self::$templateOptions['_downloadable'] = 1;
@@ -172,17 +224,16 @@ final class PMXE_Wpallimport
 				self::$templateOptions['disable_auto_sku_generation'] = 1;							
 			}	
 
-			if ( in_array('shop_order', $exportOptions['cpt']) and class_exists('PMWI_Plugin'))
+			if ( in_array('shop_order', $exportOptions['cpt']) )
 			{
 				self::$templateOptions['update_all_data'] = 'no';
 				self::$templateOptions['is_update_status'] = 0;
 				self::$templateOptions['is_update_dates'] = 0;
 				self::$templateOptions['is_update_excerpt'] = 0;
 
-				$default = PMWI_Plugin::get_default_import_options();
-
-				self::$templateOptions['pmwi_order'] = $default['pmwi_order'];		
-				
+				// $default = PMWI_Plugin::get_default_import_options();
+				// self::$templateOptions['pmwi_order'] = $default['pmwi_order'];		
+				self::$templateOptions['pmwi_order'] = array();
 				self::$templateOptions['pmwi_order']['is_update_billing_details'] = 0;
 				self::$templateOptions['pmwi_order']['is_update_shipping_details'] = 0;
 				self::$templateOptions['pmwi_order']['is_update_payment'] = 0;
@@ -193,7 +244,28 @@ final class PMXE_Wpallimport
 				self::$templateOptions['pmwi_order']['is_update_shipping'] = 0;
 				self::$templateOptions['pmwi_order']['is_update_taxes'] = 0;
 				self::$templateOptions['pmwi_order']['is_update_refunds'] = 0;
-				self::$templateOptions['pmwi_order']['is_update_total'] = 0;
+				self::$templateOptions['pmwi_order']['is_update_total'] = 0;		
+				self::$templateOptions['pmwi_order']['status'] = 'wc-pending';
+				self::$templateOptions['pmwi_order']['billing_source'] = 'existing';
+				self::$templateOptions['pmwi_order']['billing_source_match_by'] = 'username';
+				self::$templateOptions['pmwi_order']['shipping_source'] = 'copy';
+				self::$templateOptions['pmwi_order']['products_repeater_mode'] = 'csv';
+				self::$templateOptions['pmwi_order']['products_repeater_mode_separator'] = '|';
+				self::$templateOptions['pmwi_order']['products_source'] = 'existing';
+				self::$templateOptions['pmwi_order']['fees_repeater_mode'] = 'csv';
+				self::$templateOptions['pmwi_order']['fees_repeater_mode_separator'] = '|';
+				self::$templateOptions['pmwi_order']['coupons_repeater_mode'] = 'csv';
+				self::$templateOptions['pmwi_order']['coupons_repeater_mode_separator'] = '|';
+				self::$templateOptions['pmwi_order']['shipping_repeater_mode'] = 'csv';
+				self::$templateOptions['pmwi_order']['shipping_repeater_mode_separator'] = '|';
+				self::$templateOptions['pmwi_order']['taxes_repeater_mode'] = 'csv';
+				self::$templateOptions['pmwi_order']['taxes_repeater_mode_separator'] = '|';
+				self::$templateOptions['pmwi_order']['order_total_logic'] = 'auto';
+				self::$templateOptions['pmwi_order']['order_refund_date'] = 'now';
+				self::$templateOptions['pmwi_order']['order_refund_issued_source'] = 'existing';
+				self::$templateOptions['pmwi_order']['order_refund_issued_match_by'] = 'username';
+				self::$templateOptions['pmwi_order']['notes_repeater_mode'] = 'csv';
+				self::$templateOptions['pmwi_order']['notes_repeater_mode_separator'] = '|';
 			}			
 
 			if ( XmlExportEngine::$is_user_export )
