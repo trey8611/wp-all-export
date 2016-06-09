@@ -50,7 +50,7 @@ For technical support from the developers, please consider purchasing WP All Exp
 
 * **Guaranteed technical support via e-mail.**
 
-[Upgrade to the professional edition of WP All Export.](http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&utm_medium=wordpress-dot-org-slash-wpae&utm_campaign=free+wp+all+export+plugin)
+[Upgrade to the Pro edition of WP All Export.](http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&utm_medium=wordpress-dot-org-slash-wpae&utm_campaign=free+wp+all+export+plugin)
 
 = WordPress CSV Exports =
 
@@ -65,7 +65,7 @@ Sometimes you'll want to export your data so that some other tool, software, or 
 If you want to set up a WordPress XML export all you need to do is select 'XML' when configuring your export template. And just like a CSV export, an XML export will allow you to customize the element names and put them in any order you wish.
 
 == Premium Support ==
-Upgrade to the professional edition of WP All Export for premium support.
+Upgrade to the Pro edition of WP All Export for premium support.
 
 E-mail: support@wpallimport.com
 

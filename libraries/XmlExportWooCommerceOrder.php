@@ -574,7 +574,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 				<div class="wpae-custom-field">
 					<?php if ( ! in_array($slug, array('order', 'customer', 'cf', 'other'))) : ?>
 					<div class="wpallexport-free-edition-notice">									
-						<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=wooco+orders&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the professional edition of WP All Export to export custom order data.','wp_all_export_plugin');?></a>
+						<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=wooco+orders&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to export custom order data.','wp_all_export_plugin');?></a>
 					</div>
 					<?php endif; ?>
 					<ul>

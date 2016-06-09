@@ -15,7 +15,7 @@
 		
 					<p style="font-size: 1.3em !important;"><?php _e('While we do our best to provide technical support to users of the free version, we must prioritize requests from pro users.</br>If you need any help with WP All Export e-mail us at the address above or submit a ticket through the support form.', 'wp_all_export_plugin');?></p>
 		
-					<p style="font-size: 1.3em !important;"><a href="http://www.wpallimport.com/export/?utm_source=wordpress.org&utm_medium=support-page&utm_campaign=free+wp+all+export+plugin" target="_blank"><?php _e('For premium support, please upgrade to the professional edition of WP All Export.', 'wp_all_export_plugin');?></a></p>
+					<p style="font-size: 1.3em !important;"><a href="http://www.wpallimport.com/export/?utm_source=wordpress.org&utm_medium=support-page&utm_campaign=free+wp+all+export+plugin" target="_blank"><?php _e('For premium support, please upgrade to the Pro edition of WP All Export.', 'wp_all_export_plugin');?></a></p>
 		
 				</td>
 				<td class="right">&nbsp;</td>

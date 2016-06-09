@@ -241,7 +241,7 @@
 		    		}
 
 		    		var request = {
-						action: 'export_available_rules',	
+						action: 'wpae_available_rules',	
 						data: {'selected' : params.selected},				
 						security: wp_all_export_security				
 				    }; 
@@ -288,7 +288,7 @@
 		$('.wpallexport-preload-post-data').val(0);
 
 		var request = {
-			action: 'export_filtering',	
+			action: 'wpae_filtering',	
 			data: {'cpt' : postType, 'export_type' : 'specific', 'filter_rules_hierarhy' : filter_rules_hierarhy, 'product_matching_mode' : 'strict'},				
 			security: wp_all_export_security				
 	    };    
@@ -356,7 +356,7 @@
 
 		// prepare data for ajax request to get post count after filtering
 		var request = {
-			action: 'export_filtering_count',	
+			action: 'wpae_filtering_count',	
 			data: {
 				'cpt' : postType, 
 				'filter_rules_hierarhy' : $('input[name=filter_rules_hierarhy]').val(), 
@@ -1147,7 +1147,7 @@
 	        $pointer.css({'position':'fixed', 'top' : '15%', 'left' : $leftOffset + 'px'});	        
 
 			var request = {
-				action: 'export_preview',	
+				action: 'wpae_preview',	
 				data: $('form.wpallexport-step-3').serialize(),
 				tagno: tagno,
 				security: wp_all_export_security				
@@ -1321,6 +1321,11 @@
 	    	trigger_warnings();
 
 	    });	 
+
+		$('.wp_all_export_clear_all_data').live('click', function(){
+			$('ol#columns').find('li:not(.placeholder)').remove();
+			$('ol#columns').find('li.placeholder').fadeIn();
+		});
 
 	    if ($('input[name^=selected_post_type]').length){
 

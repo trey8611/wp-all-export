@@ -394,11 +394,11 @@ if ( ! class_exists('XmlExportEngine') ){
 
 					if ( self::$is_user_export )
 					{												
-						$this->errors->add('form-validation', __('Upgrade to the professional edition of WP All Export to export users.', 'wp_all_export_plugin'));	
+						$this->errors->add('form-validation', __('Upgrade to the Pro edition of WP All Export to export users.', 'wp_all_export_plugin'));	
 					}
 					elseif ( self::$is_comment_export )
 					{																		
-						$this->errors->add('form-validation', __('Upgrade to the professional edition of WP All Export to export comments.', 'wp_all_export_plugin'));									
+						$this->errors->add('form-validation', __('Upgrade to the Pro edition of WP All Export to export comments.', 'wp_all_export_plugin'));									
 					}
 					else
 					{		
@@ -437,11 +437,11 @@ if ( ! class_exists('XmlExportEngine') ){
 				
 				if ( self::$is_user_export )
 				{										
-					$this->errors->add('form-validation', __('Upgrade to the professional edition of WP All Export to export users.', 'pmxe_plugin'));	
+					$this->errors->add('form-validation', __('Upgrade to the Pro edition of WP All Export to export users.', 'pmxe_plugin'));	
 				}
 				elseif( self::$is_comment_export )
 				{															
-					$this->errors->add('form-validation', __('Upgrade to the professional edition of WP All Export to export comments.', 'pmxe_plugin'));														
+					$this->errors->add('form-validation', __('Upgrade to the Pro edition of WP All Export to export comments.', 'pmxe_plugin'));														
 				}
 				else
 				{			

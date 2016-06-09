@@ -3,7 +3,7 @@
 Plugin Name: WP All Export
 Plugin URI: http://www.wpallimport.com/export/
 Description: Export any post type to a CSV or XML file. Edit the exported data, and then re-import it later using WP All Import.
-Version: 1.0.6-beta-1
+Version: 1.0.6-beta-1.4
 Author: Soflyy
 */
 
@@ -50,7 +50,7 @@ else {
 	 */
 	define('PMXE_PREFIX', 'pmxe_');
 
-	define('PMXE_VERSION', '1.0.6-beta-1');
+	define('PMXE_VERSION', '1.0.6-beta-1.4');
 
 	define('PMXE_EDITION', 'free');
 
@@ -481,10 +481,11 @@ else {
 		 * @return mixed
 		 */
 		public function getOption($option = NULL) {
+			$options = apply_filters('wp_all_export_config_options', $this->options);			
 			if (is_null($option)) {
-				return $this->options;
-			} else if (isset($this->options[$option])) {
-				return $this->options[$option];
+				return $options;
+			} else if (isset($options[$option])) {
+				return $options[$option];
 			} else {
 				throw new Exception("Specified option is not defined for the plugin");
 			}

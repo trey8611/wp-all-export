@@ -1,6 +1,6 @@
 <?php
 
-function pmxe_wp_ajax_export_available_rules(){
+function pmxe_wp_ajax_wpae_available_rules(){
 
 	if ( ! check_ajax_referer( 'wp_all_export_secure', 'security', false )){
 		exit( json_encode(array('html' => __('Security check', 'wp_all_export_plugin'))) );

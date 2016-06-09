@@ -2,7 +2,7 @@
 /**
 *	AJAX action for preview export row
 */
-function pmxe_wp_ajax_export_preview(){
+function pmxe_wp_ajax_wpae_preview(){
 
 	if ( ! check_ajax_referer( 'wp_all_export_secure', 'security', false )){
 		exit( json_encode(array('html' => __('Security check', 'wp_all_export_plugin'))) );

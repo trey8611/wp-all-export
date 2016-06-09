@@ -1,6 +1,7 @@
 .wpallexport-plugin .preview_a_row, 
 .wpallexport-plugin .add_column,
-.wpallexport-plugin .wp_all_export_auto_generate_data{
+.wpallexport-plugin .wp_all_export_auto_generate_data,
+.wpallexport-plugin .wp_all_export_clear_all_data{
 	background: #40acad;
 	-moz-border-radius: 4px;
 	-khtml-border-radius: 4px;
@@ -15,7 +16,8 @@
 	border: none;
 	cursor: pointer;
 }
-.wpallexport-plugin .wp_all_export_auto_generate_data{
+.wpallexport-plugin .wp_all_export_auto_generate_data,
+.wpallexport-plugin .wp_all_export_clear_all_data{
 	clear: none;
 	margin-left: 20px;
 	float: left;

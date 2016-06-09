@@ -48,11 +48,11 @@ function pmxe_wp_ajax_wpallexport(){
 	{ 		
 		if (XmlExportEngine::$is_user_export)
 		{
-			exit( json_encode(array('html' => __('Upgrade to the professional edition of WP All Export to export users.', 'wp_all_export_plugin'))) );
+			exit( json_encode(array('html' => __('Upgrade to the Pro edition of WP All Export to export users.', 'wp_all_export_plugin'))) );
 		}
 		elseif(XmlExportEngine::$is_comment_export)
 		{			
-			exit( json_encode(array('html' => __('Upgrade to the professional edition of WP All Export to export comments.', 'wp_all_export_plugin'))) );
+			exit( json_encode(array('html' => __('Upgrade to the Pro edition of WP All Export to export comments.', 'wp_all_export_plugin'))) );
 		}
 		else
 		{			
@@ -74,11 +74,11 @@ function pmxe_wp_ajax_wpallexport(){
 
 		if (in_array('users', $exportOptions['cpt']) or in_array('shop_customer', $exportOptions['cpt']))
 		{	
-			exit( json_encode(array('html' => __('Upgrade to the professional edition of WP All Export to export users.', 'wp_all_export_plugin'))) );			
+			exit( json_encode(array('html' => __('Upgrade to the Pro edition of WP All Export to export users.', 'wp_all_export_plugin'))) );			
 		}
 		elseif(in_array('comments', $exportOptions['cpt']))
 		{			
-			exit( json_encode(array('html' => __('Upgrade to the professional edition of WP All Export to export comments.', 'wp_all_export_plugin'))) );
+			exit( json_encode(array('html' => __('Upgrade to the Pro edition of WP All Export to export comments.', 'wp_all_export_plugin'))) );
 		}
 		else
 		{			

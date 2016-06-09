@@ -173,7 +173,8 @@
 							<!-- Add New Field Button -->
 							<div class="input" style="float:left; margin: 0 20px 15px;">
 								<input type="button" value="<?php _e('Add Field', 'wp_all_export_plugin');?>" class="add_column" style="float:left;">								
-								<input type="button" value="<?php _e('Add All Fields', 'wp_all_export_plugin'); ?>" class="wp_all_export_auto_generate_data">								
+								<input type="button" value="<?php _e('Add All', 'wp_all_export_plugin'); ?>" class="wp_all_export_auto_generate_data">								
+								<input type="button" value="<?php _e('Clear All', 'wp_all_export_plugin'); ?>" class="wp_all_export_clear_all_data">								
 							</div>
 
 							<!-- Preview a Row Button -->
@@ -229,7 +230,7 @@
 													<div class="wpallexport-clear"></div>
 													<div class="input switcher-target-export_to_xls" style="vertical-align:middle;  height: 35px; position: relative; top: -13px;">														
 														<span class="wpallexport-free-edition-notice">									
-															<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=wooco+orders&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the professional edition of WP All Export to export to Excel. <br>If you already own it, remove the free edition and install the professional edition.','wp_all_export_plugin');?></a>
+															<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=wooco+orders&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to export to Excel. <br>If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></a>
 														</span>														
 													</div>
 												</div>
