@@ -193,6 +193,13 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 			
 		}				
 
+		$max_input_vars = @ini_get('max_input_vars');			
+
+		if(ctype_digit($max_input_vars) && count($_POST, COUNT_RECURSIVE) >= $max_input_vars)	
+		{
+			$this->errors->add('form-validation', sprintf(__('You\'ve reached your max_input_vars limit of %d. Please increase this.', 'wp_all_export_plugin'), $max_input_vars));				
+		}
+
 		PMXE_Plugin::$session->save_data(); 
 
 		$this->data['post'] =& $post;		

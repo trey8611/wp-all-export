@@ -228,7 +228,7 @@
 														<input type="text" name="delimiter" value="<?php echo esc_attr($post['delimiter']) ?>" style="width: 40px; height: 30px; top: 0px; text-align: center;"/>
 													</div>	
 													<div class="wpallexport-clear"></div>
-													<div class="input switcher-target-export_to_xls" style="vertical-align:middle;  height: 35px; position: relative; top: -13px;">														
+													<div class="input switcher-target-export_to_xls" style="vertical-align:middle; position: relative; top: -13px;">														
 														<span class="wpallexport-free-edition-notice">									
 															<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=wooco+orders&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to export to Excel. <br>If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></a>
 														</span>														
