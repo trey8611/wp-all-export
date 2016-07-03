@@ -177,7 +177,8 @@ if ( ! class_exists('XmlExportEngine') ){
 								array(
 									'name'  => 'URL',
 									'label' => 'url',
-									'type'  => 'image_url'
+									'type'  => 'image_url',
+									'auto'  => 1
 								),
 								array(
 									'name'  => 'Filename',
@@ -197,22 +198,26 @@ if ( ! class_exists('XmlExportEngine') ){
 								array(
 									'name'  => 'Title',
 									'label' => 'title',
-									'type'  => 'image_title'
+									'type'  => 'image_title',
+									'auto'  => 1
 								),
 								array(
 									'name'  => 'Caption',
 									'label' => 'caption',
-									'type'  => 'image_caption'
+									'type'  => 'image_caption',
+									'auto'  => 1
 								),
 								array(
 									'name'  => 'Description',
 									'label' => 'description',
-									'type'  => 'image_description'
+									'type'  => 'image_description',
+									'auto'  => 1
 								),
 								array(
 									'name'  => 'Alt Text',
 									'label' => 'alt',
-									'type'  => 'image_alt'
+									'type'  => 'image_alt',
+									'auto'  => 1
 								),
 							)
 						),
@@ -222,7 +227,8 @@ if ( ! class_exists('XmlExportEngine') ){
 								array(
 									'name'  => 'URL',
 									'label' => 'url',
-									'type'  => 'attachment_url'
+									'type'  => 'attachment_url',
+									'auto'  => 1
 								),
 								array(
 									'name'  => 'Filename',
@@ -403,7 +409,8 @@ if ( ! class_exists('XmlExportEngine') ){
 					else
 					{		
 						remove_all_actions('parse_query');
-						remove_all_actions('pre_get_posts');															
+						remove_all_actions('pre_get_posts');				
+						remove_all_filters('posts_clauses');														
 
 						add_filter('posts_where', 'wp_all_export_posts_where', 10, 1);
 						add_filter('posts_join', 'wp_all_export_posts_join', 10, 1);
@@ -446,7 +453,8 @@ if ( ! class_exists('XmlExportEngine') ){
 				else
 				{			
 					remove_all_actions('parse_query');
-					remove_all_actions('pre_get_posts');						
+					remove_all_actions('pre_get_posts');	
+					remove_all_filters('posts_clauses');								
 
 					add_filter('posts_where', 'wp_all_export_posts_where', 10, 1);
 					add_filter('posts_join', 'wp_all_export_posts_join', 10, 1);					

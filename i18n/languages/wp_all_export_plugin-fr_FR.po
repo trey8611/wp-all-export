@@ -2,12 +2,12 @@ msgid ""
 msgstr ""
 "Project-Id-Version: WP All Export\n"
 "POT-Creation-Date: 2015-10-05 22:42-0600\n"
-"PO-Revision-Date: 2016-01-27 12:30+0200\n"
+"PO-Revision-Date: 2016-06-15 09:58-0400\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.4\n"
+"X-Generator: Poedit 1.8.6\n"
 "X-Poedit-Basepath: .\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -29,7 +29,7 @@ msgstr "année"
 #: views/admin/export/process.php:9 views/admin/export/template.php:7
 #: views/admin/manage/index.php:4 views/admin/settings/index.php:6
 msgid "WP All Export"
-msgstr "WP Tous Export"
+msgstr "WP All Export"
 
 #: actions/admin_menu.php:11
 msgid "All Export"
@@ -41,7 +41,7 @@ msgstr "Exporter vers XML"
 
 #: actions/admin_menu.php:14
 msgid "New Export"
-msgstr "Nouvelle Export"
+msgstr "Nouvelle exportation"
 
 #: actions/admin_menu.php:15 views/admin/export/process.php:51
 #: views/admin/manage/index.php:5
@@ -228,7 +228,7 @@ msgstr "Exporter #%s est pas déclenché. Demande ignorée."
 #: actions/wp_loaded.php:77
 #, php-format
 msgid "Export #%s complete"
-msgstr "Exporter le #%s de complète de"
+msgstr "Exportation complétée à %s"
 
 #: actions/wp_loaded.php:82
 #, php-format
@@ -291,11 +291,11 @@ msgstr "&raquo;"
 
 #: controllers/admin/manage.php:155 views/admin/manage/index.php:292
 msgid "Export canceled"
-msgstr "Exporter annulé"
+msgstr "Exportation annulée"
 
 #: controllers/admin/manage.php:221
 msgid "Export deleted"
-msgstr "Export supprimé"
+msgstr "Exportation supprimée"
 
 #: controllers/admin/manage.php:249
 #, php-format
@@ -481,7 +481,7 @@ msgstr "Titre"
 #: libraries/XmlExportWooCommerceOrder.php:72
 #: libraries/XmlExportWooCommerceOrder.php:954
 msgid "Order Status"
-msgstr "Užsakymo būsena"
+msgstr "État de la commande"
 
 #: libraries/XmlExportWooCommerceOrder.php:73
 #: libraries/XmlExportWooCommerceOrder.php:955
@@ -491,7 +491,7 @@ msgstr "Afin devise"
 #: libraries/XmlExportWooCommerceOrder.php:74
 #: libraries/XmlExportWooCommerceOrder.php:956
 msgid "Payment Method"
-msgstr "Mokėjimo būdas"
+msgstr "Méthode de paiement"
 
 #: libraries/XmlExportWooCommerceOrder.php:75
 #: libraries/XmlExportWooCommerceOrder.php:957
@@ -620,7 +620,7 @@ msgstr "Tout d'abord, choisir ce que d'exporter."
 
 #: views/admin/export/index.php:33
 msgid "Specific Post Type"
-msgstr "Type Contribution spécifique"
+msgstr "Type de donnée spécifique"
 
 #: views/admin/export/index.php:37
 msgid "WP_Query Results"
@@ -659,16 +659,16 @@ msgstr "Créé par"
 
 #: views/admin/export/options.php:43
 msgid "Your export is ready to run."
-msgstr "Votre exportation est prêt à fonctionner."
+msgstr "Votre exportation est prête à être lancée."
 
 #: views/admin/export/options.php:45
 #, php-format
 msgid "WP All Export will export %d %s."
-msgstr "WP toute exportation exportera %d %s."
+msgstr "WP All Export exportera %d %s."
 
 #: views/admin/export/options.php:54 views/admin/export/options.php:227
 msgid "Confirm & Run Export"
-msgstr "Confirmation d'exportation"
+msgstr "Confirmer et exécuter l'exportation"
 
 #: views/admin/export/options.php:70
 msgid "Filters"
@@ -676,7 +676,7 @@ msgstr "Filtres"
 
 #: views/admin/export/options.php:185
 msgid "Advanced Export"
-msgstr "Export"
+msgstr "Exportation avancée"
 
 #: views/admin/export/options.php:195
 msgid "Include BOM in export file"
@@ -704,10 +704,10 @@ msgid ""
 "server's timeout settings. If your export fails before completion, to "
 "troubleshoot you should lower this number."
 msgstr ""
-"WP toute exportation doit être en mesure de traiter ces nombreux "
-"enregistrements en moins les paramètres de délai d'attente de votre serveur. "
-"Si votre exportation échoue avant la fin, pour résoudre les problèmes que "
-"vous devriez réduire ce nombre."
+"WP All Export doit être en mesure de traiter ces nombreux enregistrements en "
+"moins les paramètres de délai d'attente de votre serveur. Si votre "
+"exportation échoue avant la fin, pour résoudre les problèmes que vous "
+"devriez réduire ce nombre."
 
 #: views/admin/export/options.php:206
 msgid "Friendly Name:"
@@ -744,19 +744,19 @@ msgstr ""
 
 #: views/admin/export/process.php:29
 msgid "Time Elapsed"
-msgstr "temps écoulé"
+msgstr "Temps écoulé"
 
 #: views/admin/export/process.php:31
 msgid "Exported"
-msgstr "Eksportuotas"
+msgstr "Exportation"
 
 #: views/admin/export/process.php:36
 msgid "Export Complete!"
-msgstr "Exportation terminée."
+msgstr "Exportation terminée"
 
 #: views/admin/export/process.php:37
 msgid "WP All Export successfully exported your data!"
-msgstr "WP toute exportation exporté avec succès vos données!"
+msgstr "WP All Export a exporté avec succès vos données!"
 
 #: views/admin/export/process.php:38
 msgid "Download Data"
@@ -765,7 +765,7 @@ msgstr "Télécharger de nouvelles données…"
 #: views/admin/export/process.php:45 views/admin/manage/index.php:139
 #: views/admin/manage/index.php:145
 msgid "Bundle"
-msgstr "Carton pour vrac"
+msgstr "Vrac"
 
 #: views/admin/export/process.php:46
 msgid "Settings & Data for WP All Import"
@@ -855,7 +855,7 @@ msgstr "Auto Generate"
 
 #: views/admin/export/template.php:249
 msgid "Edit Export Field"
-msgstr "Modifier l'exportation champs"
+msgstr "Modifier les champs d'exportation"
 
 #: views/admin/export/template/new_field_cpt.php:4
 #: views/admin/export/template/new_field_shop_order.php:4
@@ -899,7 +899,7 @@ msgstr "Images & Média"
 
 #: views/admin/export/template/new_field_cpt.php:17
 msgid "Attachment"
-msgstr "Fixation"
+msgstr "Fichier attaché"
 
 #: views/admin/export/template/new_field_cpt.php:20
 msgid "Post Status"
@@ -923,7 +923,7 @@ msgstr "Modèle"
 
 #: views/admin/export/template/new_field_cpt.php:25
 msgid "Parent"
-msgstr "Parente"
+msgstr "Parent"
 
 #: views/admin/export/template/new_field_cpt.php:26
 msgid "Menu Order"
@@ -931,11 +931,11 @@ msgstr "Menu des commandes"
 
 #: views/admin/export/template/new_field_cpt.php:27
 msgid "Permalink"
-msgstr "Percaline"
+msgstr "Permalien"
 
 #: views/admin/export/template/new_field_cpt.php:32
 msgid "WooCommerce Data"
-msgstr "WooCommerce données"
+msgstr "WooCommerce Données"
 
 #: views/admin/export/template/new_field_cpt.php:33
 msgid "WooCommerce Taxonomies"
@@ -954,7 +954,7 @@ msgstr "Champs personnalités avancés"
 #: views/admin/export/template/new_field_shop_order.php:19
 #: views/admin/export/template/new_field_user.php:35
 msgid "SQL Query"
-msgstr "requête SQL"
+msgstr "Requête SQL"
 
 #: views/admin/export/template/new_field_cpt.php:52
 #: views/admin/export/template/new_field_cpt.php:56
@@ -991,7 +991,7 @@ msgstr "URL de l'image d'exportation"
 
 #: views/admin/export/template/new_field_cpt.php:88
 msgid "Export Image Filenames"
-msgstr "Exporter l'image noms de fichiers"
+msgstr "Exporter les noms de fichiers des images"
 
 #: views/admin/export/template/new_field_cpt.php:89
 msgid "Export Image File Paths"
@@ -1095,7 +1095,7 @@ msgstr "Date d’inscription"
 
 #: views/admin/export/template/new_field_user.php:14
 msgid "Nicename"
-msgstr "Joli nom"
+msgstr "Nicename"
 
 #: views/admin/export/template/new_field_user.php:15
 msgid "URL"
@@ -1135,7 +1135,7 @@ msgstr "Champ personnalisé / Meta utilisateur"
 
 #: views/admin/help/index.php:1
 msgid "WP All Export Support"
-msgstr "WP Tout Appui à l'exportation"
+msgstr "WP All Export soutien"
 
 #: views/admin/manage/bulk.php:10
 #, php-format
@@ -1153,7 +1153,7 @@ msgstr "Voulez-vous vraiment supprimer <strong>%s</strong> ?"
 
 #: views/admin/manage/index.php:18 views/admin/manage/index.php:20
 msgid "Search Exports"
-msgstr "Recherche exportations"
+msgstr "Rechercher exportations"
 
 #: views/admin/manage/index.php:28
 msgid "Name"
@@ -1232,7 +1232,7 @@ msgstr "en cours de traitement avec cron"
 
 #: views/admin/manage/index.php:277
 msgid "Export currently in progress"
-msgstr "Exporter en cours"
+msgstr "Exportation en cours"
 
 #: views/admin/manage/index.php:291
 #, php-format
@@ -1260,15 +1260,15 @@ msgstr "Format d’article : %s"
 
 #: views/admin/manage/index.php:303
 msgid "settings edited since last run"
-msgstr "paramètres modifiés depuis la dernière course"
+msgstr "paramètres modifiés depuis la dernière exécution"
 
 #: views/admin/manage/index.php:315
 msgid "Edit"
-msgstr "Éditer"
+msgstr "Modifier"
 
 #: views/admin/manage/index.php:316
 msgid "Run Export"
-msgstr "Exécuter Export"
+msgstr "Exécuter l'exportation"
 
 #: views/admin/manage/index.php:318
 msgid "Cancel Cron"
@@ -1303,7 +1303,7 @@ msgstr "URL du fichier d'exportation"
 
 #: views/admin/manage/scheduling.php:20
 msgid "Import Bundle URL"
-msgstr "Importer Bundle URL"
+msgstr "Importer URL en vrac"
 
 #: views/admin/manage/scheduling.php:25
 msgid "Trigger Script"

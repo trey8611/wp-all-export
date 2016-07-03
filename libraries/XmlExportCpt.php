@@ -154,16 +154,16 @@ final class XmlExportCpt
 						switch ($fieldSettings) 
 						{
 							case 'unix':
-								$post_date = get_post_time('U', true);
+								$post_date = get_post_time('U', true, $entry->ID);
 								break;									
 							default:
-								$post_date = date($fieldSettings, get_post_time('U', true));
+								$post_date = date($fieldSettings, get_post_time('U', true, $entry->ID));
 								break;
 						}														
 					}
 					else
 					{
-						$post_date = date("Ymd", get_post_time('U', true));
+						$post_date = date("Ymd", get_post_time('U', true, $entry->ID));
 					}
 					
 					wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_post_date', pmxe_filter($post_date, $fieldSnipped), $entry->ID) );

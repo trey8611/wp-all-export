@@ -75,6 +75,7 @@ function pmxe_wp_ajax_wpae_filtering_count(){
 		{			
 			remove_all_actions('parse_query');
 			remove_all_actions('pre_get_posts');
+			remove_all_filters('posts_clauses');			
 
 			ob_start();
 			// get custom post type records depends on filters
@@ -123,6 +124,7 @@ function pmxe_wp_ajax_wpae_filtering_count(){
 		{									
 			remove_all_actions('parse_query');
 			remove_all_actions('pre_get_posts');			
+			remove_all_filters('posts_clauses');			
 
 			$cpt = ($is_products_export) ? array('product', 'product_variation') : array($post['cpt']);
 

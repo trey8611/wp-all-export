@@ -90,24 +90,6 @@ final class XmlExportMediaGallery
 				// prepare attached images data
 				if ( empty($options) or ! empty($options['is_export_attached']) )
 				{
-					$images = get_posts( array(
-						'post_type' => 'attachment',
-						'posts_per_page' => -1,
-						'post_parent' => self::$pid,
-					) );
-
-					if ( ! empty($images)):
-
-						foreach ($images as $image) 
-						{
-							if ( wp_attachment_is_image( $image->ID ) and ( empty(self::$featured_image) or self::$featured_image->ID != $image->ID ) ) 
-							{
-								self::$images[]     = $image;	
-								self::$images_ids[] = $image->ID;						
-							}																
-						}
-
-					endif;
 
 					$_gallery = get_post_meta(self::$pid, '_product_image_gallery', true); 
 
@@ -130,7 +112,26 @@ final class XmlExportMediaGallery
 								} 
 							}
 						}
-					}					
+					}
+					
+					$images = get_posts( array(
+						'post_type' => 'attachment',
+						'posts_per_page' => -1,
+						'post_parent' => self::$pid,
+					) );
+
+					if ( ! empty($images)):
+
+						foreach ($images as $image) 
+						{
+							if ( wp_attachment_is_image( $image->ID ) and ( empty(self::$featured_image) or self::$featured_image->ID != $image->ID ) ) 
+							{
+								self::$images[]     = $image;	
+								self::$images_ids[] = $image->ID;						
+							}																
+						}
+
+					endif;										
 				}				
 
 				break;
@@ -265,7 +266,7 @@ final class XmlExportMediaGallery
 			case 'image_title':
 				$field_options = json_decode($options['cc_options'][$ID], true);
 				if ( (int) $field_options['is_export_featured'] == (int) self::$is_include_feature_meta && (int) $field_options['is_export_attached'] == (int) self::$is_include_gallery_meta )
-				{
+				{					
 					$templateOptions['set_image_meta_title'] = 1;				
 					$templateOptions['image_meta_title_delim'] = (empty($field_options['image_separator'])) ? "|" : $field_options['image_separator'];
 					if ( empty($templateOptions['image_meta_title'])) {

@@ -573,8 +573,9 @@ if ( ! class_exists('XmlExportACF') )
 
 						    		if ($acf and version_compare($acf->settings['version'], '5.0.0') >= 0)
 						    		{
-						    			$v = $row['value'][ $row['i'] ][ $sub_field['key'] ]; 
-
+						    			$v = $row['value'][ $row['i'] ][ $sub_field['key'] ]; 						    			
+						    			$cache_slug = "format_value/post_id=".$row['post_id']."/name={$sub_field['name']}";
+						    			wp_cache_delete($cache_slug, 'acf');
 										if ($is_xml_export) $v = acf_format_value($v, $row['post_id'], $sub_field);
 						    		}
 						    		else

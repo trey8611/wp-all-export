@@ -71,6 +71,7 @@ function pmxe_wp_ajax_wpae_preview(){
 		{			
 			remove_all_actions('parse_query');
 			remove_all_actions('pre_get_posts');
+			remove_all_filters('posts_clauses');			
 			
 			add_filter('posts_join', 'wp_all_export_posts_join', 10, 1);
 			add_filter('posts_where', 'wp_all_export_posts_where', 10, 1);
