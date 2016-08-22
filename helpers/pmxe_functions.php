@@ -64,7 +64,7 @@
 
 			$_existing_meta_keys = array();
 			if ( ! empty($meta_keys)){
-				$exclude_keys = array('_first_variation_attributes', '_is_first_variation_created', '_thumbnail_id');
+				$exclude_keys = array('_first_variation_attributes', '_is_first_variation_created');
 				foreach ($meta_keys as $meta_key) {
 					if ( strpos($meta_key->meta_key, "_tmp") === false && strpos($meta_key->meta_key, "_v_") === false && ! in_array($meta_key->meta_key, $exclude_keys)) 
 						$_existing_meta_keys[] = $meta_key->meta_key;

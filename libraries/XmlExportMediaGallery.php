@@ -230,7 +230,7 @@ final class XmlExportMediaGallery
 
 		$is_xml_template = $options['export_to'] == 'xml';
 
-		$implode_delimiter = ($options['delimiter'] == ',') ? '|' : ',';
+		$implode_delimiter = XmlExportEngine::$implode;
 
 		$element_type = $options['cc_type'][$ID];
 

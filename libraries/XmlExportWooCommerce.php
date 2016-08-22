@@ -502,7 +502,7 @@ if ( ! class_exists('XmlExportWooCommerce') )
 
 			if ( ! empty($element_value) )
 			{									
-				$implode_delimiter = ($options['delimiter'] == ',') ? '|' : ',';			
+				$implode_delimiter = XmlExportEngine::$implode;
 
 				$element_name = ( ! empty($options['cc_name'][$elId]) ) ? $options['cc_name'][$elId] : 'untitled_' . $elId;				
 				$fieldSnipped = ( ! empty($options['cc_php'][$elId]) and ! empty($options['cc_code'][$elId]) ) ? $options['cc_code'][$elId] : false;
@@ -590,8 +590,11 @@ if ( ! class_exists('XmlExportWooCommerce') )
 						if ( ! empty($cur_meta_values) and is_array($cur_meta_values) )
 						{
 							foreach ($cur_meta_values as $key => $cur_meta_value) 
-							{																
-								switch ($options['cc_label'][$elId]) 
+							{								
+								$fieldOptions = $options['cc_options'][$elId];
+								$fieldSettings = empty($options['cc_settings'][$elId]) ? $fieldOptions : $options['cc_settings'][$elId];
+
+								switch ($element_value)
 								{									
 									case '_downloadable_files':
 										
@@ -645,7 +648,42 @@ if ( ! class_exists('XmlExportWooCommerce') )
 										}													
 										$data[$element_name] = apply_filters('pmxe_woo_field', pmxe_filter(implode($implode_delimiter, $_values), $fieldSnipped), $element_value, $record->ID);								
 										break;
-									
+
+									case '_sale_price_dates_from':
+									case '_sale_price_dates_to':
+					
+										if ( ! empty($fieldSettings))
+										{
+											switch ($fieldSettings) 
+											{
+												case 'unix':
+													$post_date = $cur_meta_value;
+													break;									
+												default:
+													$post_date = date($fieldSettings, $cur_meta_value);
+													break;
+											}														
+										}
+										else
+										{
+											$post_date = $cur_meta_value;
+										}
+										$data[$element_name] = apply_filters('pmxe_woo_field', pmxe_filter($post_date, $fieldSnipped), $element_value, $record->ID);								
+										
+										// wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_post_date', pmxe_filter($post_date, $fieldSnipped), $record->ID) );
+										break;		
+
+                                    case '_tax_class':
+
+                                        if ( $cur_meta_value == '' ){
+                                            $tax_status = get_post_meta($record->ID, '_tax_status', true);
+                                            if ( 'taxable' == $tax_status ){
+                                                $cur_meta_value = 'standard';
+                                            }
+                                        }
+                                        $data[$element_name] = apply_filters('pmxe_woo_field', pmxe_filter($cur_meta_value, $fieldSnipped), $element_value, $record->ID);
+                                        break;
+
 									default:
 
 										if ( empty($data[$element_name]) )
@@ -783,7 +821,7 @@ if ( ! class_exists('XmlExportWooCommerce') )
 
 				$xmlWriter->beginElement($element_name_ns, $element_name, null);
 					$xmlWriter->writeData($data, $element_name);
-				$xmlWriter->endElement();			
+				$xmlWriter->closeElement();			
 
 				$xmlWriter = apply_filters('wp_all_export_add_after_element', $xmlWriter, $element_name, XmlExportEngine::$exportID, $record->ID);		
 			}
@@ -796,7 +834,7 @@ if ( ! class_exists('XmlExportWooCommerce') )
 
 			$is_xml_template = $exportOptions['export_to'] == 'xml';
 
-			$implode_delimiter = ($exportOptions['delimiter'] == ',') ? '|' : ',';	
+			$implode_delimiter = XmlExportEngine::$implode;
 
 			switch ($element_key) 
 			{												

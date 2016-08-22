@@ -173,21 +173,7 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 
 		if ($this->input->post('is_confirmed')) {
 
-			check_admin_referer('update-export', '_wpnonce_update-export');	
-
-			$post['main_xml_tag'] = preg_replace('/[^a-z0-9]/i', '', $post['main_xml_tag']);
-			if ( empty($post['main_xml_tag']) ){
-				$this->errors->add('form-validation', __('Main XML Tag is required.', 'wp_all_export_plugin'));
-			}				
-
-			$post['record_xml_tag'] = preg_replace('/[^a-z0-9]/i', '', $post['record_xml_tag']);
-			if ( empty($post['record_xml_tag']) ){
-				$this->errors->add('form-validation', __('Single Record XML Tag is required.', 'wp_all_export_plugin'));
-			}				
-
-			if ($post['main_xml_tag'] == $post['record_xml_tag']){			
-				$this->errors->add('form-validation', __('Main XML Tag equals to Single Record XML Tag.', 'wp_all_export_plugin'));
-			}
+			check_admin_referer('update-export', '_wpnonce_update-export');				
 
 			$iteration = ( empty($item->options['creata_a_new_export_file']) && ! empty($post['creata_a_new_export_file'])) ? 0 : $item->iteration;			
 

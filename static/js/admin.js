@@ -3,6 +3,12 @@
  */
 (function($){$(function () {
 
+	var vm = {
+		'isWoocommerceOrderExport' : function(){
+			return $('#woo_commerce_order').length;
+		}
+	};
+
 	if ( ! $('body.wpallexport-plugin').length) return; // do not execute any code if we are not on plugin page
 
 	// fix layout position
@@ -52,6 +58,48 @@
 		}); 
 	}
 	
+	if ($('#wp_all_export_custom_xml_template').length)
+	{
+		var xml_editor = CodeMirror.fromTextArea(document.getElementById("wp_all_export_custom_xml_template"), {
+	        lineNumbers: true,
+	        matchBrackets: true,
+	        mode: "xml",
+	        indentUnit: 4,
+	        indentWithTabs: true,
+	        lineWrapping: true,
+	        autoRefresh: true,
+	        // dragDrop: true,
+	        // handleMouseEvents: true
+	    });
+
+	    xml_editor.setCursor(1);
+	    $('.CodeMirror').resizable({
+		  resize: function() {
+		    xml_editor.setSize("100%", $(this).height());
+		  }
+		});
+
+		var xml_editor_doc = xml_editor.getDoc();
+
+	}
+
+	if ($('#wp_all_export_main_code').length){
+		var main_editor = CodeMirror.fromTextArea(document.getElementById("wp_all_export_main_code"), {
+	        lineNumbers: true,
+	        matchBrackets: true,
+	        mode: "application/x-httpd-php",
+	        indentUnit: 4,
+	        indentWithTabs: true,
+	        lineWrapping: true
+	    });
+	    main_editor.setCursor(1);
+	    $('.CodeMirror').resizable({
+		  resize: function() {
+		    main_editor.setSize("100%", $(this).height());
+		  }
+		});
+	}
+
 	// swither show/hide logic
 	$('input.switcher').live('change', function (e) {	
 
@@ -116,12 +164,19 @@
 	$('.wpallexport-collapsed').find('.wpallexport-collapsed-header').live('click', function(){
 		var $parent = $(this).parents('.wpallexport-collapsed:first');
 		if ($parent.hasClass('closed')){			
+			$parent.find('hr').show();
 			$parent.removeClass('closed');
-			$parent.find('.wpallexport-collapsed-content:first').slideDown();
+			$parent.find('.wpallexport-collapsed-content:first').slideDown(400, function(){
+				if ($('#wp_all_export_main_code').length) main_editor.setCursor(1);
+				if ($('#wp_all_export_custom_xml_template').length){
+					xml_editor.setCursor(1);
+				}
+			});
 		}
 		else{
 			$parent.addClass('closed');			
 			$parent.find('.wpallexport-collapsed-content:first').slideUp();			
+			$parent.find('hr').hide();
 		}
 	});	
 
@@ -201,8 +256,12 @@
 
 			var warning_template = $('#warning_template').length ? $('#warning_template').val().replace("%s", fields) : '';
 
-			$('.wp-all-export-warning').find('p').html(warning_template);
-			$('.wp-all-export-warning').show();
+            var is_dismiss_warnings = parseInt($('#dismiss_warnings').val());
+
+            if ( ! is_dismiss_warnings ) {
+                $('.wp-all-export-warning').find('p').html(warning_template);
+                $('.wp-all-export-warning').show();
+            }
 		}
 		else
 		{
@@ -449,7 +508,8 @@
 			},
 			dataType: "json"
 		}).fail(function(xhr, textStatus, error) {		    
-			$('.wpallexport-header').next('.clear').after("<div class='error inline'><p>" + textStatus + " " + error + "</p></div>");		    
+			$('div.error.inline').remove();
+			$('.wpallexport-header').next('.clear').after("<div class='error inline'><p>" + textStatus + " " + error + "</p></div>");
 		});
 
 	}
@@ -691,9 +751,63 @@
 
 		var $sortable = $( "#columns" );
 
-		$( "#available_data li:not(.available_sub_section, .wpallexport_disabled)" ).draggable({
+		var currentLine = -1;
+
+		function isDraggingOverTextEditor(event) {
+			var e = event.originalEvent.originalEvent.target;
+			return $.contains(xml_editor.display.scroller, e)
+		}
+
+		function addLine(str, line, ch) {
+			if(typeof ch === 'undefined') {
+				ch = 0;
+			}
+			xml_editor.replaceRange(str, {line: line, ch:0}, {line:line, ch:0});
+		}
+
+		function removeLine(line) {
+			xml_editor.removeLine(line);
+		}
+
+		$( "#available_data li:not(.available_sub_section)" ).draggable({
 			appendTo: "body",
-			helper: "clone"
+			helper: "clone",
+			drag: function(e, ui)
+			{
+				if ( $('select.xml_template_type').val() == 'custom' && isDraggingOverTextEditor(e))
+				{
+					xml_editor.focus();
+
+					if ( ui.helper.find('.custom_column').length )
+					{
+						var $elementName = ui.helper.find('.custom_column').find('input[name^=cc_name]').val();
+						if ( ! ui.helper.find('.custom_column').hasClass('wp-all-export-custom-xml-drag-over') ) ui.helper.find('.custom_column').addClass('wp-all-export-custom-xml-drag-over');
+						ui.helper.find('.custom_column').find('.wpallexport-xml-element').html("&lt;" + $elementName.replace(/ /g,'') + "&gt;<span>{" + $elementName + "}</span>&lt;/" + $elementName.replace(/ /g,'') + "&gt;");
+					}
+					if ( ui.helper.find('.default_column').length )
+					{
+						var $elementName = ui.helper.find('.default_column').find('.wpallexport-element-label').html();
+						if ( ! ui.helper.find('.default_column').hasClass('wp-all-export-custom-xml-drag-over') ) ui.helper.find('.default_column').addClass('wp-all-export-custom-xml-drag-over');
+					}
+
+					var line = xml_editor.lineAtHeight(ui.position.top, 'page');
+					var ch   = xml_editor.coordsChar(ui.position, 'page');
+
+					if( line == currentLine ) {
+						return;
+					}
+
+					if (currentLine != -1) {
+						removeLine(currentLine);
+					}
+
+					currentLine = line;
+
+					addLine("\n", line);
+
+					xml_editor_doc.setCursor({line:line, ch:ch.ch});
+				}
+			}
 		});
 
 		var outsideContainer = 0;
@@ -808,6 +922,62 @@
 			}
 		});		
 
+		$( ".CodeMirror-code" ).droppable({
+			activeClass: "pmxe-template-state-default",
+			hoverClass: "pmxe-template-state-hover",
+			accept: ":not(.ui-sortable-helper)",
+			drag: function( event, ui ){
+				console.log(event);
+			},
+			drop: function( event, ui ) {
+
+				function getCodeToPlace($elementName) {
+					return "<" + $elementName.replace(/ /g,'') + ">{" + $elementName + "}</" + $elementName.replace(/ /g,'') + ">\n"
+				}
+
+
+				function replaceLineWithElements(content){
+					removeLine(currentLine);
+
+					addLine( content, currentLine, currentLine);
+					currentLine = -1;
+
+					var totalLines = xml_editor.lineCount();
+					xml_editor.autoIndentRange({line:0, ch:0}, {line:totalLines,ch:100});
+				}
+
+				function processElementName($element, $elementName){
+					if ( $element.find('input[name^=cc_type]').val().indexOf('image_') !== -1 )
+					{
+						$elementName = 'Image ' + $elementName;
+					}
+					if ( $element.find('input[name^=cc_type]').val().indexOf('attachment_') !== -1 )
+					{
+						$elementName = 'Attachment ' + $elementName;
+					}
+					return $elementName;
+				}
+
+				if (ui.draggable.find('input[name^=rules]').length){
+					var content = "";
+					$('li.' + ui.draggable.find('input[name^=rules]').val()).each(function(){
+						var $elementName = $(this).find('input[name^=cc_name]').val();
+						$elementName = processElementName($(this),$elementName);
+						content = content + getCodeToPlace($elementName);
+					});
+
+					replaceLineWithElements(content);
+				}
+				else{
+					var $elementName = ui.draggable.find('.custom_column').find('input[name^=cc_name]').val();
+					var $element = ui.draggable.find('.custom_column');
+					$elementName = processElementName($element, $elementName);
+
+					replaceLineWithElements(getCodeToPlace($elementName));
+				}
+			}
+		});
+
 		var $this = $(this);
 		var $addAnother = $this.find('input.add_column');
 		var $addAnotherForm = $('fieldset.wp-all-export-edit-column');
@@ -891,6 +1061,8 @@
 			var $elementType = $addAnotherForm.find('select[name=column_value_type]');
 			// element label, options and other stuff
 			var $elementDetails = $elementType.find('option:selected');
+			// element labeel
+			var $elementLabel = $elementDetails.attr('label');
 
 			var $clone = ( $elementIndex ) ? $('#columns').find('.custom_column[rel='+ $elementIndex +']') : $template.clone(true);
 
@@ -928,8 +1100,12 @@
 				$sortable.find('li:last').append($clone.removeClass('template').fadeIn());				
 			}			
 
+			var $fieldType = $elementType.val();
+
+			if ($elementLabel == '_sale_price_dates_from' || $elementLabel == '_sale_price_dates_to') $fieldType = 'date';
+
 			// set up additional element settings by element type
-			switch ( $elementType.val() )
+			switch ( $fieldType )
 			{
 				// save post date field format
 				case 'date':											
@@ -1036,7 +1212,11 @@
 			var $options = $(this).find('input[name^=cc_options]').val();
 			var $settings = $(this).find('input[name^=cc_settings]').val();			
 
-			switch ( $elementType.val() ){
+			var $fieldType = $elementType.val();
+
+			if ($elementLabel.val() == '_sale_price_dates_from' || $elementLabel.val() == '_sale_price_dates_to') $fieldType = 'date';
+
+			switch ( $fieldType ){
 				case 'sql':
 					$addAnotherForm.find('textarea.column_value').val($(this).find('input[name^=cc_sql]').val());
 					$addAnotherForm.find('.sql_field_type').show();
@@ -1081,11 +1261,12 @@
 					});			
 
 					if ($settings != 'php' && $settings != 'unix'){
-						$('.pmxe_date_format').val($settings);
+						if ($settings != '0') $('.pmxe_date_format').val($settings); else $('.pmxe_date_format').val('');
 						$('.pmxe_date_format_wrapper').show();
 					}
-					else
+					else{
 						$('.pmxe_date_format').val('');
+					}
 					$addAnotherForm.find('.date_field_type').show();
 					break;				
 				default:					
@@ -1149,13 +1330,23 @@
 			var request = {
 				action: 'wpae_preview',	
 				data: $('form.wpallexport-step-3').serialize(),
+				custom_xml: xml_editor.getValue(),
 				tagno: tagno,
 				security: wp_all_export_security				
 		    };    		    
 
+			var url = get_valid_ajaxurl();
+			var show_cdata = $('#show_cdata_in_preview').val();
+
+			if (url.indexOf("?") == -1)  {
+				url += '?show_cdata=' + show_cdata;
+			} else {
+				url += '&show_cdata=' + show_cdata;
+			}
+
 			$.ajax({
 				type: 'POST',
-				url: get_valid_ajaxurl(),
+				url: url,
 				data: request,
 				success: function(response) {						
 
@@ -1189,6 +1380,34 @@
 		$(this).find('.preview_a_row').click( function(){ 			
 			doPreview($(this), 1); 
 		});		
+
+		// preview custom XML template
+		$(this).find('.preview_a_custom_xml_row').click(function(){
+			doPreview($(this), 1);
+		});
+
+        // help custom XML template
+        $(this).find('.help_custom_xml').click(function(){
+            $('.wp-all-export-custom-xml-help').css('left', ($( document ).width()/2) - 255 ).show();
+            $('#wp-all-export-custom-xml-help-inner').css('max-height', $( window ).height()-150).show();
+            $('.wpallexport-overlay').show();
+        });
+
+        $('.wp_all_export_custom_xml_help').find('h3').click(function(){
+            var $action = $(this).find('span').html();
+            $('.wp_all_export_custom_xml_help').find('h3').each(function(){
+                $(this).find('span').html("+");
+            });
+            if ( $action == "+" ) {
+                $('.wp_all_export_help_tab').slideUp();
+                $('.wp_all_export_help_tab[rel=' + $(this).attr('id') + ']').slideDown();
+                $(this).find('span').html("-");
+            }
+            else{
+                $('.wp_all_export_help_tab[rel=' + $(this).attr('id') + ']').slideUp();
+                $(this).find('span').html("+");
+            }
+        });
 
 		$('.wpae-available-fields-group').click(function(){
 			var $mode = $(this).find('.wpae-expander').text();
@@ -1355,20 +1574,50 @@
 
     	$('.wpallexport-import-to-format').click(function(){
 
+			var isWooCommerceOrder = vm.isWoocommerceOrderExport();
+
     		$('.wpallexport-import-to-format').removeClass('selected');
     		$(this).addClass('selected');
 
     		if ($(this).hasClass('wpallexport-csv-type'))
     		{
+    			$('.wpallexport-custom-xml-template').slideUp();
+    			$('.wpallexport-simple-xml-template').slideDown();
     			$('.wpallexport-csv-options').show();
     			$('.wpallexport-xml-options').hide();
+
+				$('.wpallexport-csv-advanced-options').css('display', 'block');
+				$('.wpallexport-xml-advanced-options').css('display', 'none');
+
     			$('input[name=export_to]').val('csv');
+
+				if($('#export_to_sheet').val() === 'csv') {
+					if(!isWooCommerceOrder){
+						$('.export_to_csv').show();
+						$('.csv_delimiter').show();
+					} else {
+						$('.export_to_csv').show();
+					}					
+					$('.export_to_xls_upgrade_notice').hide();
+				} else {
+					if(isWooCommerceOrder){
+						$('.csv_delimiter').hide();
+						$('.export_to_csv').show();
+					} else {
+						$('.export_to_csv').hide();
+					}
+					$('.export_to_xls_upgrade_notice').show();
+				}
     		}
     		else
     		{
     			$('.wpallexport-csv-options').hide();
     			$('.wpallexport-xml-options').show();
     			$('input[name=export_to]').val('xml');
+    			$('.xml_template_type').change();
+
+				$('.wpallexport-csv-advanced-options').css('display', 'none');
+				$('.wpallexport-xml-advanced-options').css('display', 'block');
     		}
     	});
 
@@ -1380,7 +1629,39 @@
 		var height = $(window).height();
 		$('#available_data').find('.wpallexport-xml').css({'max-height': height - 125});
 
-	});	
+        // dismiss export template warnings
+        $('.wp-all-export-warning').find('.notice-dismiss').click(function(){
+
+            var $parent = $(this).parent('.wp-all-export-warning');
+
+            $('#dismiss_warnings').val('1');
+
+            if ( typeof export_id == 'undefined') {
+                $parent.slideUp();
+                return true;
+            }
+
+            var request = {
+                action: 'dismiss_export_warnings',
+                data: {
+                    export_id: export_id,
+                    warning: $parent.find('p:first').html()
+                },
+                security: wp_all_export_security
+            };
+
+            $parent.slideUp();
+
+            $.ajax({
+                type: 'POST',
+                url: get_valid_ajaxurl(),
+                data: request,
+                success: function(response) {},
+                dataType: "json"
+            });
+        });
+
+	});
 	// [ \Step 2 ( export template ) ]			
 
 	
@@ -1522,9 +1803,13 @@
 	});
     // saving & validating function editor
     $('.wp_all_export_save_functions').click(function(){
+
+
+    	var data = $(this).hasClass('wp_all_export_save_main_code') ? main_editor.getValue() : editor.getValue();
+
     	var request = {
 			action: 'save_functions',	
-			data: editor.getValue(),				
+			data: data,
 			security: wp_all_export_security				
 	    };    
 	    $('.wp_all_export_functions_preloader').show();
@@ -1582,11 +1867,78 @@
 		});
     });
 
+    var $tmp_xml_template = '';
+    var $xml_template_first_load = true;
+
+    $('.xml_template_type').change(function(e){
+
+    	switch ($(this).find('option:selected').val()){
+    		case 'simple':
+    			$('.simple_xml_template_options').slideDown();
+    			$('.wpallexport-simple-xml-template').slideDown();
+    			$('.wpallexport-custom-xml-template').slideUp();
+    			$('.pmxe_product_data').find(".wpallexport-xml-element:contains('Attributes')").parents('li:first').show();
+    			break;
+    		case 'custom':
+            case 'XmlGoogleMerchants':
+    			$('.simple_xml_template_options').slideUp();
+    			$('.wpallexport-simple-xml-template').slideUp();
+    			if ( ! $('.wpallexport-file-options').hasClass('closed')) $('.wpallexport-file-options').find('.wpallexport-collapsed-header').click();
+    			$('.wpallexport-custom-xml-template').slideDown(400, function(){
+    				xml_editor.setCursor(1);
+    			});
+    			$('.pmxe_product_data').find(".wpallexport-xml-element:contains('Attributes')").parents('li:first').hide();
+
+                if ( $(this).find('option:selected').val() == 'XmlGoogleMerchants' ){
+                    if ( ! $xml_template_first_load ) {
+                        $tmp_xml_template = xml_editor.getValue();
+                        // Get all necessary data according to the spec
+                        var request = {
+                            action: 'get_xml_spec',
+                            security: wp_all_export_security,
+                            spec_class: $(this).find('option:selected').val()
+                        };
+                        xml_editor.setValue("Loading...");
+                        $.ajax({
+                            type: 'POST',
+                            url: get_valid_ajaxurl(),
+                            data: request,
+                            success: function (response) {
+                                if (response.result) {
+                                    xml_editor.setValue(response.fields);
+                                }
+                            },
+                            error: function (jqXHR, textStatus) {
+
+                            },
+                            dataType: "json"
+                        });
+                    }
+                }
+                else{
+                    if ( $tmp_xml_template != '' ){
+                        xml_editor.setValue($tmp_xml_template);
+                        $tmp_xml_template = '';
+                    }
+                }
+    			break;
+    		default:
+    			$('.simple_xml_template_options').slideUp();
+    			$('.wpallexport-simple-xml-template').slideDown();
+    			$('.wpallexport-custom-xml-template').slideUp();
+    			$('.pmxe_product_data').find(".wpallexport-xml-element:contains('Attributes')").parents('li:first').show();
+
+    			break;
+    	}
+        $xml_template_first_load = false;
+    }).change();
+
     $('.wpallexport-overlay').click(function(){
 		$('.wp-pointer').hide();		
 		$('#columns').find('div.active').removeClass('active');
 		$('fieldset.wp-all-export-edit-column').hide();
-		$(this).hide();        
+        $('fieldset.wp-all-export-custom-xml-help').hide();
+		$(this).hide();
 	});		    		
 
     if ( $('.wpallexport-template').length )
@@ -1597,4 +1949,53 @@
     }	
 	// [ \Additional functionality ]
 	
+	// Logic for radio boxes (CDATA settings)
+	$('input[name=simple_custom_xml_cdata_logic]').change(function(){
+		var value = $('input[name=simple_custom_xml_cdata_logic]:checked').val();
+		$('#custom_custom_xml_cdata_logic_'+value).prop('checked', true);
+		$('#custom_xml_cdata_logic').val(value);
+	});
+
+
+	$('input[name=custom_custom_xml_cdata_logic]').change(function(event) {
+		event.stopImmediatePropagation();
+		var value = $('input[name=custom_custom_xml_cdata_logic]:checked').val();
+		$('#simple_custom_xml_cdata_logic_'+value).prop('checked', true);
+		$('input[name=simple_custom_xml_cdata_logic]').trigger('change');
+
+	});
+
+	// Logic for show CDATA tags in preview
+	$('.show_cdata_in_preview').change(function(){
+		if($(this).is(':checked')) {
+			$('#show_cdata_in_preview').val(1);
+			$('.show_cdata_in_preview').prop('checked', true);
+		} else {
+			$('#show_cdata_in_preview').val(0);
+			$('.show_cdata_in_preview').prop('checked', false);
+		}
+	});
+
+	// Logic to show CSV advanced options
+	$('#export_to_sheet').change(function(){
+
+		//Todo: Cache this value in vm
+		var isWooCommerceOrder = vm.isWoocommerceOrderExport();
+		var value = $(this).val();
+		if(value === 'xls') {
+			if(isWooCommerceOrder) {
+				$('.csv_delimiter').hide();
+			} else {
+				$('.export_to_csv').slideUp();
+			}
+			$('.export_to_xls_upgrade_notice').show();
+		} else {
+			if(isWooCommerceOrder) {
+				$('.csv_delimiter').show();
+			} else {
+				$('.export_to_csv').slideDown();
+			}
+			$('.export_to_xls_upgrade_notice').hide();
+		}
+	});
 });})(jQuery);

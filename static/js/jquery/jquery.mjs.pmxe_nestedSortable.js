@@ -346,7 +346,7 @@
 				
 				if (id) {
 
-					var clause = ($(item).find('.condition').is(':visible')) ? $(item).find('input.rule_condition:checked').val().toUpperCase() : false;								
+					var clause = ($(item).find('.condition:first').hasClass('last_condition')) ? false : $(item).find('input.rule_condition:checked').val().toUpperCase();
 					
 					ret.push({"item_id": id[2], "left": left, "right": right, "parent_id": pid, "element":$(item).find('input.wp_all_export_xml_element').val(), "title" : $(item).find('input.wp_all_export_xml_element_title').val(), "condition" : $(item).find('input.wp_all_export_rule').val(), "value" : $(item).find('input.wp_all_export_value').val(),  "clause" : clause });
 				}

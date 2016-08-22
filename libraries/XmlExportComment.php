@@ -170,13 +170,15 @@ if ( ! class_exists('XmlExportComment') )
 
 			global $wp_version;
 					
-			if ( version_compare($wp_version, '4.2.0', '>=') ) 
-			{
-				$comments = XmlExportEngine::$exportQuery->get_comments();
-			}
-			else
-			{
-				$comments = XmlExportEngine::$exportQuery;
+			if ( ! empty(XmlExportEngine::$exportQuery)){
+				if ( version_compare($wp_version, '4.2.0', '>=') ) 
+				{
+					$comments = XmlExportEngine::$exportQuery->get_comments();
+				}
+				else
+				{
+					$comments = XmlExportEngine::$exportQuery;
+				}
 			}
 
 			if ( ! empty( $comments ) ) {

@@ -210,8 +210,6 @@ final class PMXE_Wpallimport
 					'make_simple_product' => 1,
 					'single_product_regular_price_adjust_type' => '%',
 					'single_product_sale_price_adjust_type' => '%',
-					'is_update_attributes' => 1,
-					'update_attributes_logic' => 'full_update',						
 					'is_variation_product_manage_stock' => 'no',
 					'variation_stock_status' => 'auto'
 				);
@@ -326,7 +324,7 @@ final class PMXE_Wpallimport
 
 			$tpl_data = array(						
 				'name' => $exportOptions['template_name'],
-				'is_keep_linebreaks' => 0,
+				'is_keep_linebreaks' => 1,
 				'is_leave_html' => 0,
 				'fix_characters' => 0,
 				'options' => $tpl_options,							
@@ -499,11 +497,11 @@ final class PMXE_Wpallimport
 					$field_options = unserialize($options['cc_options'][$ID]);
 
 					// add ACF group ID to the template options
-					if( ! empty($templateOptions['acf']) and ! in_array($field_options['group_id'], $templateOptions['acf'])){
-						$templateOptions['acf'][$field_options['group_id']] = 1;
+					if( ! in_array($field_options['group_id'], self::$templateOptions['acf'])){
+						self::$templateOptions['acf'][$field_options['group_id']] = 1;
 					}					
 
-					$templateOptions['fields'][$field_options['key']] = XmlExportACF::prepare_import_template( $options, self::$templateOptions, $acf_list, $element_name, $field_options);											 
+					self::$templateOptions['fields'][$field_options['key']] = XmlExportACF::prepare_import_template( $options, self::$templateOptions, $acf_list, $element_name, $field_options);
 
 					break;				
 
@@ -527,8 +525,12 @@ final class PMXE_Wpallimport
 		if ( ! empty($attr_list) )
 		{
 			self::$templateOptions['is_update_attributes'] = 1;
+			self::$templateOptions['update_attributes_logic'] = 'only';
 			self::$templateOptions['attributes_list'] = $attr_list;
 			self::$templateOptions['attributes_only_list'] = implode(',', $attr_list);
+		}
+		else{
+			self::$templateOptions['is_update_attributes'] = 0;
 		}
 		if ( ! empty($taxs_list) )
 		{

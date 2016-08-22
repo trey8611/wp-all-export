@@ -36,10 +36,13 @@ if ( ! class_exists('XmlExportACF') )
 
 			if ( ! empty($saved_acfs) ){
 				foreach ($saved_acfs as $key => $obj) {
-					$this->_acf_groups[] = array(
-						'ID' => $obj->ID,
-						'title' => $obj->post_title
-					);
+					if ( ! isset($acfs[$obj->post_name]))
+					{
+						$this->_acf_groups[] = array(
+							'ID' => $obj->ID,
+							'title' => $obj->post_title
+						);
+					}
 				}
 			}								
 
@@ -183,7 +186,7 @@ if ( ! class_exists('XmlExportACF') )
 				if ( ! empty($existing_meta_keys)){					
 					foreach ($existing_meta_keys as $key => $meta_key) {
 						foreach ($this->_existing_acf_meta_keys as $acf_key => $acf_value) {
-							if (in_array($meta_key, array($acf_value, "_" . $acf_value)) or strpos($meta_key, $acf_value) === 0 or strpos($meta_key, "_" . $acf_value) === 0){
+							if (in_array($meta_key, array($acf_value, "_" . $acf_value))) {
 								unset($existing_meta_keys[$key]);
 							}
 						}						
@@ -204,17 +207,24 @@ if ( ! class_exists('XmlExportACF') )
 			$field_options = ($ID) ? unserialize($exportOptions['cc_options'][$ID]) : $exportOptions;
 			$field_settings = ($ID) ? json_decode($exportOptions['cc_settings'][$ID], true) : false;
 
-			$is_xml_export = $xmlWriter and XmlExportEngine::$exportOptions['export_to'] == 'xml';
+			$is_xml_export = false;
+
+			if ( ! empty($xmlWriter) and XmlExportEngine::$exportOptions['export_to'] == 'xml' and ! in_array(XmlExportEngine::$exportOptions['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ){
+				$is_xml_export = true;
+			}
 
 			if ( ! empty($field_value) ) 
 			{						
 				$field_value = maybe_unserialize($field_value);																					
 
-				$implode_delimiter = (isset($exportOptions['delimiter']) and $exportOptions['delimiter'] == ',') ? '|' : ',';	
+				$implode_delimiter = XmlExportEngine::$implode;
 
 				switch ($field_options['type']) 
 				{			
 					case 'date_time_picker':
+						$format = empty($field_options['return_format']) ? 'Y-m-d H:i:s' : $field_options['return_format'];
+						$field_value = date($format, strtotime($field_value));				
+						break;		
 					case 'date_picker':
 						$field_value = date('Ymd', strtotime($field_value));				
 						break;		
@@ -249,20 +259,20 @@ if ( ! class_exists('XmlExportACF') )
 								$xmlWriter->beginElement($element_name_ns, $element_name, null);
 									$xmlWriter->startElement('address');
 										$xmlWriter->writeData($localion_parts[0], 'address');
-									$xmlWriter->endElement();
+									$xmlWriter->closeElement();
 
 									if (!empty($localion_parts[1])){
 										$coordinates = explode(",", $localion_parts[1]);
 										if (!empty($coordinates)){
 											$xmlWriter->startElement('lat');
 												$xmlWriter->writeData($coordinates[0], 'lat');
-											$xmlWriter->endElement();
+											$xmlWriter->closeElement();
 											$xmlWriter->startElement('lng');
 												$xmlWriter->writeData($coordinates[1], 'lng');
-											$xmlWriter->endElement();
+											$xmlWriter->closeElement();
 										}
 									}
-								$xmlWriter->endElement();
+								$xmlWriter->closeElement();
 
 							}
 						}
@@ -322,10 +332,10 @@ if ( ! class_exists('XmlExportACF') )
 									foreach ($field_value as $key => $value) {
 										$xmlWriter->beginElement($element_name_ns, $key, null);
 											$xmlWriter->writeData($value, $key);
-										$xmlWriter->endElement();
+										$xmlWriter->closeElement();
 									}
 								}													
-							$xmlWriter->endElement();
+							$xmlWriter->closeElement();
 						}	
 						else
 						{
@@ -354,14 +364,14 @@ if ( ! class_exists('XmlExportACF') )
 							$xmlWriter->beginElement($element_name_ns, $element_name, null);
 								$xmlWriter->startElement('address');
 									$xmlWriter->writeData($field_value['address'], 'address');
-								$xmlWriter->endElement();
+								$xmlWriter->closeElement();
 								$xmlWriter->startElement('lat');
 									$xmlWriter->writeData($field_value['lat'], 'lat');
-								$xmlWriter->endElement();
+								$xmlWriter->closeElement();
 								$xmlWriter->startElement('lng');
 									$xmlWriter->writeData($field_value['lng'], 'lng');
-								$xmlWriter->endElement();
-							$xmlWriter->endElement();
+								$xmlWriter->closeElement();
+							$xmlWriter->closeElement();
 						}
 						else
 						{
@@ -491,7 +501,7 @@ if ( ! class_exists('XmlExportACF') )
 										{
 											$xmlWriter->startElement('term');
 												$xmlWriter->writeData($entry->name, 'term');
-											$xmlWriter->endElement();
+											$xmlWriter->closeElement();
 										}
 									}						
 								}
@@ -501,11 +511,11 @@ if ( ! class_exists('XmlExportACF') )
 									{
 										$xmlWriter->startElement('term');
 											$xmlWriter->writeData($entry->name, 'term');
-										$xmlWriter->endElement();
+										$xmlWriter->closeElement();
 									}
 								}
 
-							$xmlWriter->endElement();
+							$xmlWriter->closeElement();
 
 							$put_to_csv = false;
 						}
@@ -628,7 +638,7 @@ if ( ! class_exists('XmlExportACF') )
 						    		}						    																						
 						    	}						    	
 
-					    		if ($is_xml_export) $xmlWriter->endElement();				    		    				    					       				    
+					    		if ($is_xml_export) $xmlWriter->closeElement();				    		    				    					       				    
 						        				        				        				        				    
 						    endwhile;	
 
@@ -712,7 +722,7 @@ if ( ! class_exists('XmlExportACF') )
 						 
 						endif; 
 
-						if ($is_xml_export) $xmlWriter->endElement();												
+						if ($is_xml_export) $xmlWriter->closeElement();												
 
 						$put_to_csv = false;
 
@@ -798,7 +808,7 @@ if ( ! class_exists('XmlExportACF') )
 									    		}
 						    				}								    								    		
 								    	}
-								    	if ($is_xml_export) $xmlWriter->endElement();							    	
+								    	if ($is_xml_export) $xmlWriter->closeElement();							    	
 								    }						    					    	
 							    }
 
@@ -810,7 +820,7 @@ if ( ! class_exists('XmlExportACF') )
 
 						endif;					
 
-						if ($is_xml_export) $xmlWriter->endElement();
+						if ($is_xml_export) $xmlWriter->closeElement();
 
 						if ( ! empty($fc_sub_field_names)) $acfs[$element_name] = $fc_sub_field_names;
 
@@ -834,7 +844,7 @@ if ( ! class_exists('XmlExportACF') )
 		    	{
 		    		$xmlWriter->beginElement($element_name_ns, $element_name, null);
 		    			$xmlWriter->writeData($val, $element_name);
-					$xmlWriter->endElement();	    		
+					$xmlWriter->closeElement();	    		
 		    	}
 		    	else
 		    	{		    				    			
@@ -872,6 +882,36 @@ if ( ! class_exists('XmlExportACF') )
 			}			
 
 			return $articles;
+		}
+
+		public function get_fields_options( &$fields, $field_keys = array() ){
+
+			if ( ! empty($this->_acf_groups) )
+			{
+				foreach ($this->_acf_groups as $key => $group) 
+				{
+					if ( ! empty($group['fields']))
+					{
+						foreach ($group['fields'] as $field) 
+						{
+							$field_key = $field['label'];
+
+							if ( ! in_array($field_key, $field_keys) ) continue;
+
+							$fields['ids'][] = 1;
+							$fields['cc_label'][] = $field['name'];
+							$fields['cc_php'][] = '';
+							$fields['cc_code'][] = '';
+							$fields['cc_sql'][] = '';
+							$fields['cc_options'][] = esc_html(serialize(array_merge($field, array('group_id' => ((!empty($group['ID'])) ? $group['ID'] : $group['id']) ))));
+							$fields['cc_type'][] = 'acf';
+							$fields['cc_value'][] = $field['name'];
+							$fields['cc_name'][] = $field_key;
+							$fields['cc_settings'][] = '';							
+						}
+					}
+				}	
+			}
 		}
 
 		public function render( & $i ){
@@ -985,7 +1025,7 @@ if ( ! class_exists('XmlExportACF') )
 
 		public static function prepare_import_template( $exportOptions, &$templateOptions, &$acf_list, $element_name, $field_options)
 		{
-			$field_tpl_key = $element_name . '[1]';
+			$field_tpl_key = $element_name . '[1]';			
 
 			$acf_list[] = '[' . $field_options['name'] . '] ' . $field_options['label'];
 
@@ -997,7 +1037,7 @@ if ( ! class_exists('XmlExportACF') )
 
 			$xpath_separator = $is_xml_template ? '/' : '_';
 
-			$implode_delimiter = ($exportOptions['delimiter'] == ',') ? '|' : ',';	
+			$implode_delimiter = XmlExportEngine::$implode;
 
 			switch ($field_options['type']) 
 			{
@@ -1290,8 +1330,7 @@ if ( ! class_exists('XmlExportACF') )
 
 					break;
 
-			}				
-
+			}							
 			return $field_template;
 		}
 

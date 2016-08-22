@@ -97,6 +97,8 @@ function pmxe_wp_ajax_wpallexport(){
 
 	XmlExportEngine::$exportQuery = $exportQuery;	
 
+    $engine->init_additional_data();
+
 	// get total founded records
 	if (XmlExportEngine::$is_comment_export)
 	{				

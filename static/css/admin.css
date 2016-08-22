@@ -1,4 +1,6 @@
-.wpallexport-plugin .preview_a_row, 
+.wpallexport-plugin .help_custom_xml,
+.wpallexport-plugin .preview_a_custom_xml_row,
+.wpallexport-plugin .preview_a_row,
 .wpallexport-plugin .add_column,
 .wpallexport-plugin .wp_all_export_auto_generate_data,
 .wpallexport-plugin .wp_all_export_clear_all_data{
@@ -15,6 +17,81 @@
 	padding: 10px 20px 10px 20px;
 	border: none;
 	cursor: pointer;
+}
+.wpallexport-plugin .wp_all_export_custom_xml_help{
+    padding: 15px;
+    background: #fff;
+    font-size: 12px;
+    /*max-height: 600px;*/
+    overflow: auto;
+}
+.wpallexport-plugin .wp_all_export_custom_xml_help p{
+    font-size: 12px;
+    padding-left: 11px;
+}
+.wpallexport-plugin .wp_all_export_custom_xml_help ul{
+    list-style: inside;
+    padding-left: 12px;
+}
+.wpallexport-plugin .wp_all_export_custom_xml_help h2{
+    margin: 0;
+}
+.wpallexport-plugin .wp_all_export_custom_xml_help h3{
+    color: #40acad;
+    cursor: pointer;
+    /*font-family: "Open Sans",​​sans-serif;*/
+    font-size: 14px;
+    font-weight: normal;
+    margin: 5px 0;
+}
+
+.wpallexport-plugin .code-block {
+    border-radius: 2px 2px 2px 2px;
+	-moz-border-radius: 2px 2px 2px 2px;
+	-webkit-border-radius: 2px 2px 2px 2px;
+	border: 0px solid #000000;
+	background-color: #F1F1F1;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.wpallexport-plugin .wp_all_export_code{
+    font-family: monospace;
+    font-size: 12px;
+}
+    .wpallexport-plugin .wp_all_export_code .wp_all_export_code_comment{
+        color:#a50;
+    }
+    .wpallexport-plugin .wp_all_export_code .wp_all_export_code_tag{
+        color:#170;
+    }
+    .wpallexport-plugin .wp_all_export_code p.wp_all_export_code_comment,
+    .wpallexport-plugin .wp_all_export_code p.wp_all_export_code_tag{
+        margin: 0;
+    }
+        .wpallexport-plugin .wp_all_export_code .wp_all_export_code_tag.lv1,
+        .wpallexport-plugin .wp_all_export_code .wp_all_export_code_comment.lv1{
+            padding-left: 15px;
+        }
+        .wpallexport-plugin .wp_all_export_code .wp_all_export_code_tag.lv2,
+        .wpallexport-plugin .wp_all_export_code .wp_all_export_code_comment.lv2{
+            padding-left: 30px;
+        }
+        .wpallexport-plugin .wp_all_export_code .wp_all_export_code_tag.lv3,
+        .wpallexport-plugin .wp_all_export_code .wp_all_export_code_comment.lv3{
+            padding-left: 45px;
+        }
+        .wpallexport-plugin .wp_all_export_code .wp_all_export_code_tag .wp_all_export_code_text{
+            color:#000;
+            font-weight: bold;
+        }
+    .wpallexport-plugin .wp_all_export_code .wp_all_export_code_text{
+        color:#000;
+        font-weight: bold;
+    }
+.wpallexport-plugin .wp_all_export_help_tab{
+    display: none;
+    padding-bottom: 15px;
 }
 .wpallexport-plugin .wp_all_export_auto_generate_data,
 .wpallexport-plugin .wp_all_export_clear_all_data{
@@ -112,6 +189,13 @@
 	margin-left: 0;
 	overflow: auto;	
 }
+.wpallexport-plugin .CodeMirror-line.pmxe-state-hover,
+.wpallexport-plugin .CodeMirror-line.pmxe-state-default{
+	width: 100%;
+	height: 18px;
+	margin-left: 0;
+	overflow: auto;
+}
 .wpallexport-plugin .av-state-default{
 	overflow: hidden;
 	height: 100%;
@@ -138,7 +222,8 @@
 	overflow: hidden;
 }
 	.wpallexport-plugin #available_data .title,
-	.wpallexport-plugin .wp-all-export-edit-column .title {
+	.wpallexport-plugin .wp-all-export-edit-column .title,
+    .wpallexport-plugin .wp-all-export-custom-xml-help .title{
 		font-weight: bold;
 		padding: 12px 8px;
 		color: #464646;
@@ -153,7 +238,18 @@
 		-webkit-border-top-right-radius: 4px;
 		border-top-right-radius: 4px;
 	}
-	.wpallexport-plugin .wp-all-export-edit-column{		
+	.wpallexport-plugin .wp-all-export-custom-xml-help{
+		position: fixed;
+		top: 8%;
+		width: 515px;
+		z-index: 999999;
+		border: 1px solid #ccc;
+		display: none;
+		margin-bottom: 20px;
+		padding: 0 !important;
+	}
+
+	.wpallexport-plugin .wp-all-export-edit-column{
 		
 		position: fixed;
 		top: 8%;
@@ -164,7 +260,8 @@
 		margin-bottom: 20px;
 		padding: 0 !important;
 	}
-	.wpallexport-plugin .wp-all-export-edit-column form{
+	.wpallexport-plugin .wp-all-export-edit-column form,
+    .wpallexport-plugin .wp-all-export-custom-xml-help form{
 		/*padding: 10px;*/
 		background: #fff;
 	}
@@ -183,13 +280,10 @@
 .wpallexport-plugin .wp-all-export-sku-warning,
 .wpallexport-plugin .wp-all-export-advanced-query-warning,
 .wpallexport-plugin .wp-all-export-product-type-warning{
-	/*border: 4px dashed #f0f0f0;
-	padding: 3px 6px;
-	background: #fef7f1;
-	margin-top: 10px;*/
+	position: relative;
 	clear: both;	
 	background: none repeat scroll 0 0 #fff;
-	border-left: 4px solid #dd3d36;
+	border-left: 4px solid #ffa500;
 	box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
 	margin: 0;
 	padding: 1px 12px;
@@ -349,6 +443,22 @@
 	height: auto;
 	/*max-height: 500px;	*/
 }
+
+.wp-all-export-custom-xml-drag-over{
+	border: none !important;
+	margin: 0;
+	padding: 0;
+	width: auto !important;
+	min-width: 350px;
+	text-align: left;
+	background: none !important;
+}
+
+.wp-all-export-custom-xml-drag-over .wpallexport-xml-element span{
+	color: #000;
+	font-weight: bold;
+}
+
 /*--------------------------------------------------------------------------
 *
 *	Basic rules
@@ -786,7 +896,7 @@
 	height:25px;
 	padding-left: 20px;
 	color:#21759B;
-	font-family: "Open Sans",​sans-serif;
+	/*font-family: "Open Sans",​sans-serif;*/
 	padding-top: 2px;
 	text-decoration: underline;
 	display: block;
@@ -2514,7 +2624,7 @@
 }
 .wpallexport-plugin .wpallexport-cf-menu li a{
 	padding: 0;
-	font-family: "Open Sans",​sans-serif;
+	/*font-family: "Open Sans",​sans-serif;*/
 	font-size: 12px;
 	display: inline;
 	color: #777;
@@ -3055,6 +3165,9 @@
 .wpallexport-plugin .xml-content.textonly.short {
 	padding-left: 0px;
 	display: inline;
+}
+.wpallexport-plugin .xml-content.textonly.cdata{
+	color: #a50;
 }
 .wpallexport-plugin .xml-tag {
 	display: inline;

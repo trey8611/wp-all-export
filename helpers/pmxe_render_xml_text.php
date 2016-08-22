@@ -14,8 +14,11 @@ function pmxe_render_xml_text($text, $shorten = false, $is_render_collapsed = fa
 		$text = $mtch[0];
 		$more = '<span class="xml-more">[' . __('more', 'pmxi_plugin') . ']</span>';
 	}
+	$text = esc_html($text);
+	// $text = preg_replace('%(?<!\s)\b(?!\s|\W[\w\s])|\w{20}%', '$0&#8203;', $text); // put explicit breaks for xml content to wrap
+	$is_cdata = ( strpos($text, 'CDATABEGIN') !== false );
+	$text = str_replace('CDATABEGIN', '&lt;![CDATA[', $text);
+	$text = str_replace('CDATACLOSE', ']]&gt;', $text);
 	$is_short = strlen($text) <= 40;
-	$text = esc_html($text); 
-	$text = preg_replace('%(?<!\s)\b(?!\s|\W[\w\s])|\w{20}%', '$0&#8203;', $text); // put explicit breaks for xml content to wrap
-	echo '<div class="xml-content textonly' . ($is_short ? ' short' : '') . ($is_render_collapsed ? ' collapsed' : '') . '">' . $text . $more . '</div>';
+	echo '<div class="xml-content textonly' . ($is_short ? ' short' : '') . ($is_cdata ? ' cdata' : '') . ($is_render_collapsed ? ' collapsed' : '') . '">' . $text . $more . '</div>';
 }

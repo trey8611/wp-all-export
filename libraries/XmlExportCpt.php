@@ -1,5 +1,6 @@
 <?php
 
+
 final class XmlExportCpt
 {
 	/**
@@ -46,6 +47,12 @@ final class XmlExportCpt
 			unset($postRecord);
 		}
 
+		$is_xml_export = false;
+
+		if ( ! empty($xmlWriter) and XmlExportEngine::$exportOptions['export_to'] == 'xml' and ! in_array(XmlExportEngine::$exportOptions['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ){
+			$is_xml_export = true;
+		}
+
 		foreach (XmlExportEngine::$exportOptions['ids'] as $ID => $value) 
 		{		
 			$pType = $entry->post_type;
@@ -64,13 +71,13 @@ final class XmlExportCpt
 			$fieldType    = XmlExportEngine::$exportOptions['cc_type'][$ID];
 			$fieldOptions = XmlExportEngine::$exportOptions['cc_options'][$ID];
 			$fieldSettings = empty(XmlExportEngine::$exportOptions['cc_settings'][$ID]) ? $fieldOptions : XmlExportEngine::$exportOptions['cc_settings'][$ID];
-
+			
 			if ( empty($fieldName) or empty($fieldType) or ! is_numeric($ID) ) continue;
 			
 			$element_name = ( ! empty($fieldName) ) ? $fieldName : 'untitled_' . $ID;
 			$element_name_ns = '';
 
-			if (XmlExportEngine::$exportOptions['export_to'] == 'xml')
+			if ( $is_xml_export )
 			{				
 				$element_name = ( ! empty($fieldName) ) ? preg_replace('/[^a-z0-9_:-]/i', '', $fieldName) : 'untitled_' . $ID;				
 
@@ -241,7 +248,7 @@ final class XmlExportCpt
 
 						$field_options = unserialize($fieldOptions);
 
-						if (XmlExportEngine::$exportOptions['export_to'] == 'csv')
+						if ( ! $is_xml_export )
 						{
 							switch ($field_options['type']) {
 								case 'textarea':
@@ -288,7 +295,7 @@ final class XmlExportCpt
 
 				case 'woo':
 
-					if ( $xmlWriter and XmlExportEngine::$exportOptions['export_to'] == 'xml')
+					if ( $is_xml_export )
 					{
 						XmlExportEngine::$woo_export->export_xml($xmlWriter, $entry, XmlExportEngine::$exportOptions, $ID); 
 					}
@@ -301,13 +308,13 @@ final class XmlExportCpt
 				
 				case 'woo_order':								
 
-					if ( $xmlWriter and XmlExportEngine::$exportOptions['export_to'] == 'xml')
+					if ( $is_xml_export )
 					{
-						XmlExportEngine::$woo_order_export->export_xml($xmlWriter, $entry, XmlExportEngine::$exportOptions, $ID, $preview); 						
+						XmlExportEngine::$woo_order_export->export_xml($xmlWriter, $entry, XmlExportEngine::$exportOptions, $ID, $preview); 																		
 					}
 					else
 					{
-						XmlExportEngine::$woo_order_export->export_csv($article, $woo_order, $entry, XmlExportEngine::$exportOptions, $ID, $preview); 			
+						XmlExportEngine::$woo_order_export->export_csv($article, $woo_order, $entry, XmlExportEngine::$exportOptions, $ID, $preview); 					
 					}									
 
 					break;
@@ -345,16 +352,21 @@ final class XmlExportCpt
 
 					if ( ! empty($fieldValue) )
 					{	
-						// $article[$element_name] = null;										
-						$txes_list = get_the_terms($entry->ID, $fieldValue);
+						
+						// get categories from parent product in case when variation exported
+						$entry_id = ( $entry->post_type == 'product_variation' ) ? $entry->post_parent : $entry->ID;
+
+						$txes_list = get_the_terms($entry_id, $fieldValue);
+
+						$hierarchy_groups = array();
+
 						if ( ! is_wp_error($txes_list) and ! empty($txes_list) ) 
 						{															
-							$txes_ids = array();										
-							$hierarchy_groups = array();
+							$txes_ids = array();																	
 																
 							foreach ($txes_list as $t) {																						
 								$txes_ids[] = $t->term_id;
-							}
+							}							
 
 							foreach ($txes_list as $t) {
 								if ( wp_all_export_check_children_assign($t->term_id, $fieldValue, $txes_ids) ){
@@ -374,14 +386,13 @@ final class XmlExportCpt
 										$hierarchy_groups[] = $t->name;
 									}
 								}
-							}	
+							}								
 
-							if ( ! empty($hierarchy_groups) )
-							{
-								wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_post_taxonomy', pmxe_filter(implode($implode_delimiter, $hierarchy_groups), $fieldSnipped), $entry->ID) );
-							}																	
+							// if ( empty($hierarchy_groups) ) $hierarchy_groups = '';													
 							
 						}
+
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_post_taxonomy', pmxe_filter(implode($implode_delimiter, $hierarchy_groups), $fieldSnipped), $entry->ID) );																							
 						
 						// if ( ! in_array($element_name, $taxes)) $taxes[] = $element_name;
 
@@ -391,11 +402,11 @@ final class XmlExportCpt
 
 							$article['parent_id']  = $entry->post_parent;	
 
-							if ($xmlWriter and XmlExportEngine::$exportOptions['export_to'] == 'xml')
+							if ( $is_xml_export )
 							{
 								$xmlWriter->beginElement($element_name_ns, 'parent_id', null);
 									$xmlWriter->writeData($article['parent_id'], 'parent_id');
-								$xmlWriter->endElement();
+								$xmlWriter->closeElement();
 							}
 						}							
 					}							
@@ -468,8 +479,8 @@ final class XmlExportCpt
 					# code...
 					break;
 			}
-			
-			if ( $xmlWriter and XmlExportEngine::$exportOptions['export_to'] == 'xml' and isset($article[$element_name]) )
+
+			if ( $is_xml_export and isset($article[$element_name]) )
 			{								
 				$element_name_in_file = XmlCsvExport::_get_valid_header_name( $element_name );
 				
@@ -477,7 +488,7 @@ final class XmlExportCpt
 
 				$xmlWriter->beginElement($element_name_ns, $element_name_in_file, null);
 					$xmlWriter->writeData($article[$element_name], $element_name_in_file);
-				$xmlWriter->endElement();	
+				$xmlWriter->closeElement();
 
 				$xmlWriter = apply_filters('wp_all_export_add_after_element', $xmlWriter, $element_name_in_file, XmlExportEngine::$exportID, $entry->ID);
 			}
@@ -493,7 +504,7 @@ final class XmlExportCpt
 
 		$is_xml_template = $options['export_to'] == 'xml';
 
-		$implode_delimiter = ($options['delimiter'] == ',') ? '|' : ',';		
+		$implode_delimiter = XmlExportEngine::$implode;
 
 		switch ($element_type) 
 		{

@@ -165,7 +165,12 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 										$is_re_import_allowed = true;
 										if ( ! empty($item['options']['ids']) )
 										{											
-											$required_fields = array('id' => 'id');									
+											if (in_array('shop_order', $item['options']['cpt']) and class_exists('WooCommerce')) {
+												$required_fields = array('woo_order' => 'id');
+											}
+											else {
+											$required_fields = array('id' => 'id');
+											}
 											// re-import products
 											if ((in_array('product', $item['options']['cpt']) or $item['options']['export_type'] == 'advanced') and class_exists('WooCommerce') and (empty($item['options']['wp_query_selector']) or $item['options']['wp_query_selector'] == 'wp_query')) {	
 												$required_fields['woo']  = '_sku';

@@ -3,9 +3,11 @@
 Plugin Name: WP All Export
 Plugin URI: http://www.wpallimport.com/export/
 Description: Export any post type to a CSV or XML file. Edit the exported data, and then re-import it later using WP All Import.
-Version: 1.0.7
+Version: 1.0.8
 Author: Soflyy
 */
+
+require_once(__DIR__.'/classes/CdataStrategyFactory.php');
 
 if( ! defined( 'PMXE_SESSION_COOKIE' ) )
 	define( 'PMXE_SESSION_COOKIE', '_pmxe_session' );
@@ -50,7 +52,7 @@ else {
 	 */
 	define('PMXE_PREFIX', 'pmxe_');
 
-	define('PMXE_VERSION', '1.0.7');
+	define('PMXE_VERSION', '1.0.8');
 
 	define('PMXE_EDITION', 'free');
 
@@ -621,7 +623,7 @@ else {
 				'filter_rules_hierarhy' => '',
 				'product_matching_mode' => 'parent',
 				'order_item_per_row' => 1,
-				'order_item_fill_empty_columns' => 0,
+				'order_item_fill_empty_columns' => 1,
 				'filepath' => '',				
 				'current_filepath' => '',
 				'bundlepath' => '',
@@ -672,7 +674,16 @@ else {
 				'order_include_coupons' => 0,
 				'order_include_all_coupons' => 0,
 				'order_include_customers' => 0,
-				'order_include_all_customers' => 0	
+				'order_include_all_customers' => 0,
+				'migration' => '',
+				'xml_template_type' => 'simple',
+				'custom_xml_template' => '',
+				'custom_xml_template_header' => '',
+				'custom_xml_template_loop' => '',
+				'custom_xml_template_footer' => '',				
+				'custom_xml_template_options' => array(),
+                'custom_xml_cdata_logic' => 'auto',
+				'show_cdata_in_preview' => 0	
 			);
 		}		
 

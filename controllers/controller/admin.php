@@ -79,6 +79,8 @@ abstract class PMXE_Controller_Admin extends PMXE_Controller {
 		wp_enqueue_script('jquery-codemirror-javascript', PMXE_ROOT_URL . '/static/codemirror/javascript.js', array('jquery-codemirror-xml'), PMXE_VERSION);
 		wp_enqueue_script('jquery-codemirror-clike', PMXE_ROOT_URL . '/static/codemirror/clike.js', array('jquery-codemirror-javascript'), PMXE_VERSION);
 		wp_enqueue_script('jquery-codemirror-php', PMXE_ROOT_URL . '/static/codemirror/php.js', array('jquery-codemirror-clike'), PMXE_VERSION);
+		wp_enqueue_script('jquery-codemirror-autorefresh', PMXE_ROOT_URL . '/static/codemirror/autorefresh.js', array('jquery-codemirror'), PMXE_VERSION);
+
 		wp_enqueue_script('wp-pointer');
 
 		/* load plupload scripts */		

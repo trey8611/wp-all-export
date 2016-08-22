@@ -8,14 +8,14 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 	 */
 	public function __construct($data = array()) {
 		parent::__construct($data);		
-		$this->setTable(PMXE_Plugin::getInstance()->getTablePrefix() . 'exports');
-	}						
+		$this->setTable(PMXE_Plugin::getInstance()->getTablePrefix() . 'exports');		
+	}					
 
     public function set_html_content_type(){
         return 'text/html';
     }
 
-	public function generate_bundle( $debug = false)
+    public function generate_bundle( $debug = false)
 	{
 		// do not generate export bundle if not supported
 		if ( ! self::is_bundle_supported($this->options) ) return;
@@ -63,7 +63,53 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 			$readme = __("The other two files in this zip are the export file containing all of your data and the import template for WP All Import. \n\nTo import this data, create a new import with WP All Import and upload this zip file.", "wp_all_export_plugin");	
 
 			file_put_contents($bundle_dir . 'readme.txt', $readme);
-		}					
+		}			
+
+		// [ Add child exports to the bundle]
+		$exportList = new PMXE_Export_List();				
+
+		foreach ($exportList->getBy('parent_id', $this->id)->convertRecords() as $child_export) 
+		{
+			$is_generate_child_template = true;
+
+			switch ($child_export->export_post_type) 
+			{
+				case 'product':
+					if ( ! $this->options['order_include_poducts'] ) $is_generate_child_template = false;
+					break;
+				case 'shop_coupon':
+					if ( ! $this->options['order_include_coupons'] ) $is_generate_child_template = false;
+					break;				
+				case 'shop_customer':
+					if ( ! $this->options['order_include_customers'] ) $is_generate_child_template = false;
+					break;
+			}
+
+			if ( ! $is_generate_child_template ) continue; 			
+
+			if ( ! $is_secure_import)
+			{
+				$filepath = get_attached_file($child_export->attch_id);
+			}
+			else
+			{
+				$filepath = wp_all_export_get_absolute_path($child_export->options['filepath']);
+			}				
+
+			if ( ! empty($child_export->options['tpl_data']))
+			{
+				$template_data = array($child_export->options['tpl_data']);				
+
+				$template_data[0]['source_file_name'] = basename($filepath);
+
+				$template_key = ($child_export->export_post_type == 'shop_customer') ? 'import_users' : $child_export->export_post_type;
+
+				$templates[$template_key] = $template_data;							
+			}
+			
+			@copy( $filepath, $bundle_dir . basename($filepath) );
+		}	
+		// \[ Add child exports to the bundle]	
 
 		file_put_contents($bundle_dir . $template, json_encode($templates));							
 
@@ -74,9 +120,9 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 		// else
 		// {
 		// 	$bundle_path = $export_dir . $friendly_name . '.zip';			
-		// }	
+		// }		
 
-		$bundle_path = $export_dir . $friendly_name . '.zip';				
+		$bundle_path = $export_dir . $friendly_name . '.zip';			
 
 		if ( @file_exists($bundle_path))
 		{
@@ -99,7 +145,7 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 
 	public function fix_template_options()
 	{
-		// migrate media options since @version 1.0.5		
+		// migrate media options since @version 1.2.4		
 		if ( empty($this->options['migration']) )
 		{
 			$options = $this->options;
@@ -137,7 +183,7 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 					'cc_options' => empty($options['cc_options'][$ID]) ? '' : $options['cc_options'][$ID],
 					'cc_value' => empty($options['cc_value'][$ID]) ? '' : $options['cc_value'][$ID],
 					'cc_name' => empty($options['cc_name'][$ID]) ? '' : $options['cc_name'][$ID],
-					'cc_settings' => empty($options['cc_settings'][$ID]) ? '' : $options['cc_settings'][$ID]
+					'cc_settings' => empty($options['cc_settings'][$ID]) ? '' : $options['cc_settings'][$ID],
 				);
 
 				switch ($field['cc_type']) 
@@ -169,7 +215,7 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 						}
 
 						$field_name = $field['cc_name'];
-						$field['cc_name']    .= '_images';				
+						$field['cc_name']    .= '_images';
 						$field['cc_options'] = '{"is_export_featured":true,"is_export_attached":true,"image_separator":"|"}';											
 
 						$fields[] = $field;
@@ -231,7 +277,7 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 				$options['cc_value'][] = $field['cc_value'];
 				$options['cc_name'][] = $field['cc_name'];
 				$options['cc_settings'][] = $field['cc_settings'];
-			}			
+			}
 
 			$this->set(array('options' => $options))->save();
 		}		
@@ -241,7 +287,10 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 
     public static function is_bundle_supported( $options )
     {	
-    	$unsupported_post_types = array('comments', 'shop_order');
+    	// custom XML template do not support import bundle
+    	if ( $options['export_to'] == 'xml' && in_array($options['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ) return false;
+
+    	$unsupported_post_types = array('comments');
     	return ( empty($options['cpt']) and ! in_array($options['wp_query_selector'], array('wp_comment_query')) or ! empty($options['cpt']) and ! in_array($options['cpt'][0], $unsupported_post_types) ) ? true : false;
     }
 

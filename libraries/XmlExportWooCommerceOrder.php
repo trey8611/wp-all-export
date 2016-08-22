@@ -111,7 +111,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 						}									
 					}
 
-				endforeach;		
+				endforeach;	
 
 				foreach ( $this->order_core_fields as $core_field ):
 
@@ -124,7 +124,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 						}
 					}
 
-				endforeach;
+				endforeach;		
 
 				foreach ($existing_meta_keys as $key => $record_meta_key) 
 				{							
@@ -198,8 +198,50 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 
 		public function init_additional_data(){
 
-			if ( ! self::$is_active ) return;											
+			if ( ! self::$is_active || empty(XmlExportEngine::$exportQuery)) return;
 
+            $in_orders = preg_replace("%(SQL_CALC_FOUND_ROWS|LIMIT.*)%", "", XmlExportEngine::$exportQuery->request);
+
+            if ( ! empty($in_orders) ){
+
+                global $wpdb;
+
+                $table_prefix = $wpdb->prefix;
+
+                if ( empty(self::$orders_data['line_items_max_count']) ){
+                    self::$orders_data['line_items_max_count'] = $wpdb->get_var($wpdb->prepare("SELECT max(cnt) as line_items_count FROM ( 
+					SELECT order_id, COUNT(*) as cnt FROM {$table_prefix}woocommerce_order_items 
+						WHERE {$table_prefix}woocommerce_order_items.order_item_type = %s AND {$table_prefix}woocommerce_order_items.order_id IN (". $in_orders .") GROUP BY order_id) AS T3", 'line_item'));
+                }
+
+                if ( empty(self::$orders_data['taxes'])){
+                    self::$orders_data['taxes'] = $wpdb->get_results($wpdb->prepare("SELECT order_item_id, order_id, order_item_name FROM {$table_prefix}woocommerce_order_items 
+						WHERE {$table_prefix}woocommerce_order_items.order_item_type = %s AND {$table_prefix}woocommerce_order_items.order_id IN (". $in_orders .") GROUP BY order_item_name", 'tax'));
+                }
+
+                if ( empty(self::$orders_data['coupons'])){
+                    self::$orders_data['coupons'] = $wpdb->get_results($wpdb->prepare("SELECT order_item_id, order_id, order_item_name FROM {$table_prefix}woocommerce_order_items 
+						WHERE {$table_prefix}woocommerce_order_items.order_item_type = %s AND {$table_prefix}woocommerce_order_items.order_id IN (". $in_orders .") GROUP BY order_item_name", 'coupon'));
+                }
+
+                if ( empty(self::$orders_data['fees'])){
+                    self::$orders_data['fees'] = $wpdb->get_results($wpdb->prepare("SELECT order_item_id, order_id, order_item_name FROM {$table_prefix}woocommerce_order_items 
+						WHERE {$table_prefix}woocommerce_order_items.order_item_type = %s AND {$table_prefix}woocommerce_order_items.order_id IN (". $in_orders .") GROUP BY order_item_name", 'fee'));
+                }
+
+                if ( empty(self::$orders_data['variations'])){
+                    self::$orders_data['variations'] = $wpdb->get_results($wpdb->prepare("SELECT meta_key FROM {$table_prefix}woocommerce_order_itemmeta 
+						WHERE {$table_prefix}woocommerce_order_itemmeta.meta_key LIKE %s AND {$table_prefix}woocommerce_order_itemmeta.order_item_id IN (
+							SELECT {$table_prefix}woocommerce_order_items.order_item_id FROM {$table_prefix}woocommerce_order_items 
+							WHERE {$table_prefix}woocommerce_order_items.order_item_type = %s AND {$table_prefix}woocommerce_order_items.order_id IN (". $in_orders .") ) GROUP BY meta_key", 'pa_%', 'line_item'));
+                }
+
+                if ( ! empty(PMXE_Plugin::$session) )
+                {
+                    PMXE_Plugin::$session->set('orders_data', self::$orders_data);
+                    PMXE_Plugin::$session->save_data();
+                }
+            }
 		}
 
 		private $order_items  		= null;
@@ -207,6 +249,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 		private $order_shipping 	= null;
 		private $order_coupons 		= null;
 		private $order_surcharge 	= null;
+		private $order_refunds      = null;
 		private $__total_fee_amount = null;	
 		private $__coupons_used     = null;
 		private $order_id 			= null;
@@ -231,9 +274,113 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 			); 
 
 			global $wpdb;
-			$table_prefix = $wpdb->prefix;								
+			$table_prefix = $wpdb->prefix;
 
-			if ( ! empty($options['cc_value'][$elId]) ){						
+            $implode_delimiter = XmlExportEngine::$implode;
+		
+			if ( empty($this->order_id) or $this->order_id != $record->ID)
+			{
+				$this->order_id   = $record->ID;
+
+				$all_order_items  = $wpdb->get_results("SELECT * FROM {$table_prefix}woocommerce_order_items WHERE order_id = {$record->ID}");
+
+				if ( ! empty($all_order_items) )
+				{
+					foreach ($all_order_items as $item) 
+					{
+						switch ($item->order_item_type) 
+						{
+							case 'line_item':
+								$this->order_items[] = $item;
+								break;
+							case 'tax':
+								$this->order_taxes[] = $item;
+								break;
+							case 'shipping':
+								$this->order_shipping[] = $item;
+								break;
+							case 'coupon':
+								$this->order_coupons[] = $item;
+								break;
+							case 'fee':
+								$this->order_surcharge[] = $item;
+								break;															
+						}
+					}
+				}	
+
+				$this->order_refunds = $wpdb->get_results("SELECT * FROM {$table_prefix}posts WHERE post_parent = {$record->ID} AND post_type = 'shop_order_refund'");
+			}
+
+			if ( ! empty($options['cc_value'][$elId]) ){		
+
+				$is_items_in_list = false;				
+				$is_item_data_in_list = false;		
+				foreach ($options['ids'] as $ID => $value) 
+				{	
+					if ($options['cc_options'][$ID] == 'items')
+					{
+						$is_items_in_list = true;						
+					}
+					if ( strpos($options['cc_label'][$ID], "item_data__") !== false )
+					{
+						$is_item_data_in_list = true;						
+					}
+				}				
+
+				$fieldSnipped = ( ! empty($options['cc_php'][$elId]) and ! empty($options['cc_code'][$elId]) ) ? $options['cc_code'][$elId] : false;
+
+				if ( ! $is_items_in_list and $is_item_data_in_list )
+				{
+					if ( ! empty($this->order_items)){							
+							
+						foreach ($this->order_items as $n => $order_item) {											
+							
+							$meta_data = $wpdb->get_results("SELECT * FROM {$table_prefix}woocommerce_order_itemmeta WHERE order_item_id = {$order_item->order_item_id}", ARRAY_A);
+
+							$item_data = array();
+
+							foreach ($options['ids'] as $subID => $subvalue) 
+							{
+								if ( strpos($options['cc_label'][$subID], 'item_data__') !== false ) 
+								{
+									$product_id   = '';
+									$variation_id = '';
+									foreach ($meta_data as $meta) {
+										if ($meta['meta_key'] == '_variation_id' and ! empty($meta['meta_value'])){
+											$variation_id = $meta['meta_value'];																
+										}
+										if ($meta['meta_key'] == '_product_id' and ! empty($meta['meta_value'])){
+											$product_id = $meta['meta_value'];																
+										}
+									}
+
+									$_product_id = empty($variation_id) ? $product_id : $variation_id;
+
+									$_product = get_post($_product_id);
+
+									// do not export anything if product doesn't exist
+									if ( ! empty($_product) )
+									{										
+										$item_add_data = XmlExportCpt::prepare_data( $_product, false, $this->acfs, $this->woo, $this->woo_order, ",", $preview, true, $subID );
+
+										if ( ! empty($item_add_data))
+										{
+											foreach ($item_add_data as $item_add_data_key => $item_add_data_value) {
+												if ( ! isset($item_data[$item_add_data_key])) $item_data[$item_add_data_key] = $item_add_data_value;
+											}
+										}
+									}									
+								}
+							}
+
+							if ( ! empty($item_data)) $data['items'][] = $item_data;	
+
+						}
+
+						$this->order_items = null;						
+					}
+				}
 
 				switch ($options['cc_options'][$elId]) {
 					
@@ -245,13 +392,13 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 						if ($options['cc_value'][$elId] == "post_title")
 						{							
 							$data[$options['cc_name'][$elId]] = str_replace("&ndash;", '-', $data[$options['cc_name'][$elId]]);
-						}
+						}						
 
 						$data[$options['cc_name'][$elId]] = pmxe_filter( $data[$options['cc_name'][$elId]], $fieldSnipped);	
 
-						break;								
+						break;	
+					
 				}
-
 			}
 
 			return $data;
@@ -265,26 +412,81 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 
 			$data_to_export = $this->prepare_export_data( $record, $options, $elId, $preview );
 
+            $implode_delimiter = XmlExportEngine::$implode;
+
 			foreach ($data_to_export as $key => $data) {
 				
-				if ( ! in_array($key, array('items', 'taxes', 'shipping', 'coupons', 'surcharge')) )
-				{					
+				if ( in_array($key, array('items', 'taxes', 'shipping', 'coupons', 'surcharge', 'refunds')) )
+				{
+					if ( ! empty($data))
+					{													
+						if ( $key == 'items' and ( $options['order_item_per_row'] or $options['xml_template_type'] == 'custom'))
+						{																		
+							foreach ($data as $item) {			
+								$additional_article = array();											
+								if ( ! empty($item) ){																		
+									foreach ($item as $item_key => $item_value) {
+										$final_key = preg_replace("%\s#\d*%", "", $item_key);										
+										$additional_article[$final_key] = $item_value;										
+										// if ( ! in_array($final_key, $titles) ) $titles[] = $final_key;
+									}									
+								}																				
+
+								if ( ! empty($additional_article) )
+								{ 
+									if ( empty($this->additional_articles) )
+									{
+										foreach ($additional_article as $item_key => $item_value) {
+											$article[$item_key] = $item_value;
+										}
+									}								
+									$this->additional_articles[] = $additional_article;
+								}
+							}													
+						}	
+						else
+						{			
+							foreach ($data as $n => $item) 
+							{																	
+								if ( ! empty($item))
+								{
+									foreach ($item as $item_key => $item_value) 
+									{
+										$final_key = (strpos($item_key, "#") === false and ! in_array($key, array('taxes', 'shipping', 'coupons', 'surcharge', 'refunds'))) ? $item_key . " #" . ($n + 1) : $item_key;
+
+										if ( ! isset($article[$final_key])) 
+										{
+											$article[$final_key] = $item_value;										
+										}
+										else
+										{
+											$article[$final_key] .= $implode_delimiter . $item_value;
+										}
+										// if ( ! in_array($final_key, $titles) ) $titles[] = $final_key;										
+									}																
+								}							
+							}
+						}						
+					}					
+				}
+				else
+				{
 					// $article[$key] = $data;
 					wp_all_export_write_article( $article, $key, $data );		
-					// if ( ! in_array($key, $titles) ) $titles[] = $key;	
-				}
-			}			
+					// if ( ! in_array($key, $titles) ) $titles[] = $key;
+				}							
+			}					
 		}
 
 		public function filter_csv_rows($articles, $options){
-
-			if ( ! empty($this->additional_articles) and $options['order_item_per_row'] and $options['export_to'] == 'csv')
+			
+			if ( ! empty($this->additional_articles) and ( $options['order_item_per_row'] or $options['xml_template_type'] == 'custom') )
 			{
 				$base_article = $articles[count($articles) - 1];				
 				array_shift($this->additional_articles);								
 				if ( ! empty($this->additional_articles ) ){
 					foreach ($this->additional_articles as $article) {	
-						if ($options['order_item_fill_empty_columns'])
+						if ($options['order_item_fill_empty_columns'] and $options['export_to'] == 'csv')
 						{
 							foreach ($article as $key => $value) {
 								unset($base_article[$key]);				
@@ -317,8 +519,10 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					if ( ! empty(self::$orders_data['taxes']))
 					{
 						foreach ( self::$orders_data['taxes'] as $tax) {
-							$friendly_name = str_replace("per tax", $this->get_rate_friendly_name($tax->order_item_id), $options['cc_name'][$element_key]);							
+							// $friendly_name = str_replace("per tax", $this->get_rate_friendly_name($tax->order_item_id), $options['cc_name'][$element_key]);							
+							$friendly_name = str_replace(" (per tax)", "", $options['cc_name'][$element_key]);							
 							if ( ! in_array($friendly_name, $headers)) $headers[] = $friendly_name;
+							if ( ! in_array("Rate Name", $headers)) $headers[] = "Rate Name";
 						}
 					}
 
@@ -329,8 +533,10 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					if ( ! empty(self::$orders_data['coupons']))
 					{
 						foreach ( self::$orders_data['coupons'] as $coupon) {
-							$friendly_name = str_replace("per coupon", $coupon->order_item_name, $options['cc_name'][$element_key]);
+							// $friendly_name = str_replace("per coupon", $coupon->order_item_name, $options['cc_name'][$element_key]);
+							$friendly_name = str_replace("(per coupon)", "", $options['cc_name'][$element_key]);
 							if ( ! in_array($friendly_name, $headers)) $headers[] = $friendly_name;
+							if ( ! in_array("Coupon Code", $headers)) $headers[] = "Coupon Code";
 						}
 					}
 
@@ -341,8 +547,10 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					if ( ! empty(self::$orders_data['fees']))
 					{
 						foreach ( self::$orders_data['fees'] as $fee) {
-							$friendly_name = str_replace("Amount (per surcharge)", "(" . $fee->order_item_name . ")", $options['cc_name'][$element_key]);
+							// $friendly_name = str_replace("Amount (per surcharge)", "(" . $fee->order_item_name . ")", $options['cc_name'][$element_key]);
+							$friendly_name = str_replace(" (per surcharge)", "", $options['cc_name'][$element_key]);
 							if ( ! in_array($friendly_name, $headers)) $headers[] = $friendly_name;
+							if ( ! in_array("Fee Name", $headers)) $headers[] = "Fee Name";
 						}
 					}
 
@@ -353,7 +561,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					
 					if ( ! empty(self::$orders_data['line_items_max_count']) and ! empty(self::$orders_data['variations']))
 					{
-						if ($options['order_item_per_row']){
+						if ( $options['order_item_per_row'] or $options['xml_template_type'] == 'custom'){
 							foreach ( self::$orders_data['variations'] as $variation) {																
 								$friendly_name = $options['cc_name'][$element_key] . " (" . sanitize_title(str_replace("pa_", "", $variation->meta_key)) . ")";									
 								if ( ! in_array($friendly_name, $headers)) $headers[] = $friendly_name;
@@ -378,7 +586,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 						// Order's product basic data headers
 						case 'items':
 							
-							if ($options['order_item_per_row'])
+							if ( $options['order_item_per_row'] or $options['xml_template_type'] == 'custom')
 							{
 								if ( ! in_array($options['cc_name'][$element_key], $headers)) $headers[] = $options['cc_name'][$element_key];
 							}
@@ -406,8 +614,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 								$element_name = ( ! empty($options['cc_name'][$element_key]) ) ? $options['cc_name'][$element_key] : 'untitled_' . $element_key;							
 
 								switch ($options['cc_type'][$element_key]) 
-								{																		
-									
+								{																											
 									case 'woo':
 										
 										XmlExportEngine::$woo_export->get_element_header( $element_headers, $options, $element_key );		
@@ -466,7 +673,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 								{
 									foreach ($element_headers as $header) 
 									{
-										if ($options['order_item_per_row'])
+										if ( $options['order_item_per_row'] or $options['xml_template_type'] == 'custom')
 										{
 											if ( ! in_array($header, $headers)) $headers[] = $header;
 										}
@@ -544,23 +751,190 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 
 			foreach ($data_to_export as $key => $data) {
 				
-				$element_name_ns = '';	
-				$element_name = str_replace("-", "_", preg_replace('/[^a-z0-9:_]/i', '', $key));
-				if (strpos($element_name, ":") !== false)
+				if ( in_array($key, array('items', 'taxes', 'shipping', 'coupons', 'surcharge', 'refunds')) )
 				{
-					$element_name_parts = explode(":", $element_name);
-					$element_name_ns = (empty($element_name_parts[0])) ? '' : $element_name_parts[0];
-					$element_name = (empty($element_name_parts[1])) ? 'untitled_' . $ID : $element_name_parts[1];							
+					if ( ! empty($data)){						
+						$xmlWriter->startElement('Order' . ucfirst($key));
+							foreach ($data as $item) {															
+								if ( ! empty($item)){
+									$xmlWriter->startElement(preg_replace("%(s|es)$%", "", ucfirst($key)));
+									foreach ($item as $item_key => $item_value) {
+										$element_name_ns = '';	
+										$element_name = str_replace("-", "_", preg_replace('/[^a-z0-9:_]/i', '', preg_replace("%#\d%", "", $item_key)));
+										if (strpos($element_name, ":") !== false)
+										{
+											$element_name_parts = explode(":", $element_name);
+											$element_name_ns = (empty($element_name_parts[0])) ? '' : $element_name_parts[0];
+											$element_name = (empty($element_name_parts[1])) ? 'untitled_' . $ID : $element_name_parts[1];							
+										}
+										$xmlWriter->beginElement($element_name_ns, $element_name, null);
+											$xmlWriter->writeData($item_value, $element_name);
+										$xmlWriter->closeElement();
+										// $xmlWriter->writeElement(str_replace("-", "_", sanitize_title(preg_replace("%#\d%", "", $item_key))), $item_value);
+									}
+									$xmlWriter->closeElement();
+								}														
+							}							
+						$xmlWriter->closeElement();
+					}
 				}
-				$xmlWriter->beginElement($element_name_ns, $element_name, null);
-					$xmlWriter->writeData($data, $element_name);
-				$xmlWriter->endElement();				
+				else
+				{			
+					$element_name_ns = '';	
+					$element_name = str_replace("-", "_", preg_replace('/[^a-z0-9:_]/i', '', $key));
+					if (strpos($element_name, ":") !== false)
+					{
+						$element_name_parts = explode(":", $element_name);
+						$element_name_ns = (empty($element_name_parts[0])) ? '' : $element_name_parts[0];
+						$element_name = (empty($element_name_parts[1])) ? 'untitled_' . $ID : $element_name_parts[1];							
+					}
+					
+					$xmlWriter = apply_filters('wp_all_export_add_before_element', $xmlWriter, $element_name, XmlExportEngine::$exportID, $record->ID);
+
+					$xmlWriter->beginElement($element_name_ns, $element_name, null);
+						$xmlWriter->writeData($data, $element_name);
+					$xmlWriter->closeElement();				
+
+					$xmlWriter = apply_filters('wp_all_export_add_after_element', $xmlWriter, $element_name, XmlExportEngine::$exportID, $record->ID);				
+				}				
 			}				
 		}
 
 		public static function prepare_child_exports( $export, $is_cron = false )
 		{
-			return array();
+			$queue_exports = array();
+
+			$exportList = new PMXE_Export_List();										
+
+			global $wpdb;
+
+			$table_prefix = $wpdb->prefix;	
+			$pmxe_prefix  = PMXE_Plugin::getInstance()->getTablePrefix();
+
+			$in_orders = $wpdb->prepare("SELECT DISTINCT post_id FROM {$pmxe_prefix}posts WHERE export_id = %d AND iteration = %d", $export->id, $export->iteration - 1);
+
+			foreach ($exportList->getBy('parent_id', $export->id)->convertRecords() as $child_export) 
+			{
+				
+				$whereClause = "";
+
+				switch ($child_export->export_post_type) 
+				{
+					case 'product':
+						
+						if ( $export->options['order_include_poducts'])
+						{
+							$queue_exports[] = $child_export->id;
+
+							if ( ! $export->options['order_include_all_poducts'] )
+							{			
+								
+								$in_products = $wpdb->prepare("SELECT order_item_meta.meta_value as product_id FROM {$table_prefix}posts as posts INNER JOIN {$pmxe_prefix}posts AS order_export ON posts.ID = post_id INNER JOIN {$table_prefix}woocommerce_order_items AS order_items ON posts.ID = order_id INNER JOIN {$table_prefix}woocommerce_order_itemmeta AS order_item_meta ON order_items.order_item_id = order_item_meta.order_item_id WHERE order_export.export_id = %d AND order_export.iteration = %d AND order_items.order_item_type = 'line_item' AND order_item_meta.meta_key = '_product_id' GROUP BY product_id", $export->id, $export->iteration - 1);								
+
+								$whereClause = " AND ({$table_prefix}posts.ID IN (". $in_products .") OR {$table_prefix}posts.post_parent IN (". $in_products ."))";
+								
+							}
+						}
+
+						break;
+
+					case 'shop_coupon':
+
+						if ( $export->options['order_include_coupons'])
+						{
+							$queue_exports[] = $child_export->id;
+
+							if ( ! $export->options['order_include_all_coupons'] )
+							{								
+								$whereClause = " AND {$table_prefix}posts.post_title IN (". $wpdb->prepare("SELECT order_item_name FROM {$table_prefix}woocommerce_order_items 
+						WHERE {$table_prefix}woocommerce_order_items.order_item_type = %s AND {$table_prefix}woocommerce_order_items.order_id IN (". $in_orders .") GROUP BY order_item_name", 'coupon') .")";								
+							}
+						}
+
+						break;					
+
+					case 'shop_customer':
+
+						if ( $export->options['order_include_customers'])
+						{
+							$queue_exports[] = $child_export->id;
+
+							if ( ! $export->options['order_include_all_customers'] )
+							{								
+								$whereClause = " AND {$table_prefix}users.ID IN (" . $wpdb->prepare("SELECT meta_value FROM {$table_prefix}postmeta WHERE meta_key = %s AND post_id IN (". $in_orders .") GROUP BY meta_value", "_customer_user") . ")"; 
+							}
+						}
+
+						break;
+					
+					default:
+						# code...
+						break;
+				}
+				$child_export_options = $child_export->options;
+				$child_export_options['whereclause'] = $whereClause;		
+				$child_export->set(array(
+					'triggered'  => $is_cron ? 1 : 0,		
+					'processing' => 0,
+					'exported'   => 0,
+					'executing'  => $is_cron ? 0 : 1,
+					'canceled'   => 0,
+					'options'    => $child_export_options
+				))->save();
+			}
+			return $queue_exports;
+		}
+
+		public function get_fields_options( &$fields, $field_keys = array() ){
+
+			if ( ! self::$is_active ) return;
+
+			foreach (self::$order_sections as $slug => $section) :
+				if ( ! empty($section['meta'])): 
+					foreach ($section['meta'] as $cur_meta_key => $field) {						
+
+						$field_key = (is_array($field)) ? $field['name'] : $field;
+
+						if ( ! in_array($field_key, $field_keys) ) continue;
+
+						$fields['ids'][] = 1;
+						$fields['cc_label'][] = (is_array($field)) ? $field['label'] : $cur_meta_key;
+						$fields['cc_php'][] = '';
+						$fields['cc_code'][] = '';
+						$fields['cc_sql'][] = '';
+						$fields['cc_options'][] = (is_array($field)) ? $field['options'] : $slug;
+						$fields['cc_type'][] = (is_array($field)) ? $field['type'] : 'woo_order';
+						$fields['cc_value'][] = (is_array($field)) ? $field['label'] : $cur_meta_key;
+						$fields['cc_name'][] = $field_key;
+						$fields['cc_settings'][] = '';							
+					}
+
+				endif;
+				if ( ! empty($section['additional']) )
+				{
+					foreach ($section['additional'] as $sub_slug => $sub_section) 
+					{
+						foreach ($sub_section['meta'] as $field) {
+
+							$field_key = (is_array($field)) ? $field['name'] : $field;
+
+							if ( ! in_array($field_key, $field_keys) ) continue;
+
+							$fields['ids'][] = 1;
+							$fields['cc_label'][] = 'item_data__' . ((is_array($field)) ? $field['label'] : $field);
+							$fields['cc_php'][] = '';
+							$fields['cc_code'][] = '';
+							$fields['cc_sql'][] = '';
+							$fields['cc_options'][] = 'item_data';
+							$fields['cc_type'][] = (is_array($field)) ? $field['type'] : $sub_slug;
+							$fields['cc_value'][] = 'item_data__' . ((is_array($field)) ? $field['label'] : $field);
+							$fields['cc_name'][] = $field_key;
+							$fields['cc_settings'][] = '';																	
+						}
+					}
+				}				
+			endforeach;
+
 		}
 
 		public function render( & $i ){			
@@ -761,6 +1135,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 							case 'items':
 							case 'taxes':
 							case 'fees':
+							case 'refunds':
 								break;							
 							default:
 								switch ($field_type) 
@@ -827,6 +1202,17 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 						'comment_author_email'  => __('Note User Email', 'wp_all_export_plugin')
 					)
 				),
+				'refunds'    => array(
+					'title' => __('Refunds', 'wp_all_export_plugin'),
+					'meta' => array(
+						'_refund_total' 		=> __('Refund Total', 'wp_all_export_plugin'),
+                        'refund_id' 	 	    => __('Refund ID', 'wp_all_export_plugin'),
+						'refund_amount' 	 	=> __('Refund Amounts', 'wp_all_export_plugin'),
+						'refund_reason'  	 	=> __('Refund Reason', 'wp_all_export_plugin'),
+						'refund_date' 			=> __('Refund Date', 'wp_all_export_plugin'),
+						'refund_author_email'   => __('Refund Author Email', 'wp_all_export_plugin')
+					)
+				),
 				'cf'       => array(
 					'title' => __('Custom Fields', 'wp_all_export_plugin'),
 					'meta'  => array()
@@ -854,8 +1240,8 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 				'post_title' 			=> __('Title', 'wp_all_export_plugin'),
 				'post_status' 			=> __('Order Status', 'wp_all_export_plugin'),
 				'_order_currency' 		=> __('Order Currency', 'wp_all_export_plugin'),				
-				'_payment_method_title' => __('Payment Method', 'wp_all_export_plugin'),
-				'_order_total' 			=> __('Order Total', 'wp_all_export_plugin')
+				'_payment_method_title' => __('Payment Method Title', 'wp_all_export_plugin'),
+				'_order_total' 			=> __('Order Total', 'wp_all_export_plugin')				
 			);
 				
 			return apply_filters('wp_all_export_available_order_data_filter', $data);
@@ -874,7 +1260,10 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 				'__product_variation' 	=> __('Product Variation Details', 'wp_all_export_plugin'),
 				'_qty' 					=> __('Quantity', 'wp_all_export_plugin'),
 				'_line_subtotal' 		=> __('Item Cost', 'wp_all_export_plugin'),
-				'_line_total' 			=> __('Item Total', 'wp_all_export_plugin')
+				'_line_total' 			=> __('Item Total', 'wp_all_export_plugin'),
+                '_line_subtotal_tax'    => __('Item Tax', 'wp_all_export_plugin'),
+                '_line_tax' 			=> __('Item Tax Total', 'wp_all_export_plugin'),
+                '_line_tax_data'        => __('Item Tax Data', 'wp_all_export_plugin')
 			);			
 
 			return apply_filters('wp_all_export_available_order_default_product_data_filter', $data);
@@ -990,13 +1379,18 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 
 			$is_xml_template = $options['export_to'] == 'xml';
 
-			$implode_delimiter = ($options['delimiter'] == ',') ? '|' : ',';		
+            $implode_delimiter = XmlExportEngine::$implode;
 
 			switch ($element_type) 
 			{
 				case 'ID':
 					$templateOptions['unique_key'] = '{'. $element_name .'[1]}';
 					$templateOptions['tmp_unique_key'] = '{'. $element_name .'[1]}';
+					break;
+
+				case 'post_title':
+					$templateOptions['title'] = '{'. $element_name .'[1]}';
+					$templateOptions['is_update_title'] = 1;
 					break;
 
 				case 'post_status':
@@ -1040,12 +1434,35 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 						$templateOptions['pmwi_order']['products_repeater_mode_foreach'] = '{OrderItems[1]/Item}';
 						$templateOptions['pmwi_order']['products'][0]['sku'] = '{'. $element_name .'[1]}';	
 					}
+					else
+					{
+						$templateOptions['pmwi_order']['products_repeater_mode_separator'] = $implode_delimiter;
+
+						if ( $options['order_item_per_row'] or $options['xml_template_type'] == 'custom') {
+							$templateOptions['pmwi_order']['products'][0]['sku'] = '{'. $element_name .'[1]}';	
+						}
+						else{
+							$templateOptions['pmwi_order']['products'][0]['sku'] = '{'. $element_name .'1[1]}';	
+						}
+					}
 					break;
 
 				case '_qty':
+
 					if ($is_xml_template)
 					{						
 						$templateOptions['pmwi_order']['products'][0]['qty'] = '{'. $element_name .'[1]}';	
+					}
+					else
+					{
+						$templateOptions['pmwi_order']['products_repeater_mode_separator'] = $implode_delimiter;
+
+						if ( $options['order_item_per_row'] or $options['xml_template_type'] == 'custom') {
+							$templateOptions['pmwi_order']['products'][0]['qty'] = '{'. $element_name .'[1]}';	
+						}
+						else{
+							$templateOptions['pmwi_order']['products'][0]['qty'] = '{'. $element_name .'1[1]}';	
+						}
 					}
 					break;
 
@@ -1056,8 +1473,14 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					if ($is_xml_template)
 					{	
 						$templateOptions['pmwi_order']['fees_repeater_mode_foreach'] = '{OrderSurcharge[1]/Surcharge}';
-						$templateOptions['pmwi_order']['fees'][0]['name'] = '{fee_name[1]}';	
-						$templateOptions['pmwi_order']['fees'][0]['amount'] = '{fee_amount[1]}';	
+						$templateOptions['pmwi_order']['fees'][0]['name'] = '{FeeName[1]}';	
+						$templateOptions['pmwi_order']['fees'][0]['amount'] = '{'.$element_name.'[1]}';
+					}
+					else
+					{
+						$templateOptions['pmwi_order']['fees_repeater_mode_separator'] = $implode_delimiter;
+						$templateOptions['pmwi_order']['fees'][0]['name'] = '{feename[1]}';	
+						$templateOptions['pmwi_order']['fees'][0]['amount'] = '{'.$element_name.'[1]}';
 					}
 					break;
 
@@ -1065,28 +1488,39 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 				case 'discount_amount':
 					$templateOptions['pmwi_order']['is_update_coupons'] = 1;
 					$templateOptions['pmwi_order']['coupons_repeater_mode'] = $options['export_to'];
+					$templateOptions['pmwi_order']['coupons'][0]['amount_tax'] = '';
 					if ($is_xml_template)
 					{	
 						$templateOptions['pmwi_order']['coupons_repeater_mode_foreach'] = '{OrderCoupons[1]/Coupon}';
-						$templateOptions['pmwi_order']['coupons'][0]['code'] = '{coupon_code[1]}';	
-						$templateOptions['pmwi_order']['coupons'][0]['amount'] = '{discount_amount[1]}';	
-						$templateOptions['pmwi_order']['coupons'][0]['amount_tax'] = '';	
+						$templateOptions['pmwi_order']['coupons'][0]['code'] = '{CouponCode[1]}';	
+						$templateOptions['pmwi_order']['coupons'][0]['amount'] = '[str_replace("-","",{'.$element_name.'[1]})]';
 					}					
+					else
+					{
+						$templateOptions['pmwi_order']['coupons_repeater_mode_separator'] = $implode_delimiter;
+						$templateOptions['pmwi_order']['coupons'][0]['code'] = '{couponcode[1]}';	
+						$templateOptions['pmwi_order']['coupons'][0]['amount'] = '[str_replace("-","",{'.$element_name.'[1]})]';
+					}
 					break;
 
 				// prepare template for shipping line items
 				case 'shipping_order_item_name':
 					$templateOptions['pmwi_order']['is_update_shipping'] = 1;
 					$templateOptions['pmwi_order']['shipping_repeater_mode'] = $options['export_to'];
+					$templateOptions['pmwi_order']['shipping'][0]['name'] = '{'. $element_name.'[1]}';							
+					$templateOptions['pmwi_order']['shipping'][0]['class'] = 'xpath';	
+					$templateOptions['pmwi_order']['shipping'][0]['class_xpath'] = '{'. $element_name .'[1]}';
+
 					if ($is_xml_template)
 					{	
-						$templateOptions['pmwi_order']['shipping_repeater_mode_foreach'] = '{OrderShipping[1]/Shipping}';
-						$templateOptions['pmwi_order']['shipping'][0]['name'] = '{'. $element_name.'[1]}';							
-						$templateOptions['pmwi_order']['shipping'][0]['class'] = 'xpath';	
-						$templateOptions['pmwi_order']['shipping'][0]['class_xpath'] = '{'. $element_name .'}';	
+						$templateOptions['pmwi_order']['shipping_repeater_mode_foreach'] = '{OrderShipping[1]/Shipping}';							
 					}	
+					else
+					{
+						$templateOptions['pmwi_order']['shipping_repeater_mode_separator'] = $implode_delimiter;
+					}
 					break;
-
+				// shipping cost
 				case '_order_shipping':
 					$templateOptions['pmwi_order']['shipping'][0]['amount'] = '{'. $element_name .'[1]}';	
 					break;
@@ -1095,47 +1529,79 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 				case 'tax_order_item_name':	
 					$templateOptions['pmwi_order']['is_update_taxes'] = 1;
 					$templateOptions['pmwi_order']['taxes_repeater_mode'] = $options['export_to'];
+					$templateOptions['pmwi_order']['taxes'][0]['shipping_tax_amount'] = '';
+					$templateOptions['pmwi_order']['taxes'][0]['code'] = 'xpath';	
+					$templateOptions['pmwi_order']['taxes'][0]['code_xpath'] = '{'. str_replace("pertax", "", $element_name) .'[1]}';
+
 					if ($is_xml_template)
 					{	
-						$templateOptions['pmwi_order']['taxes_repeater_mode_foreach'] = '{OrderTaxes[1]/Tax}';						
-						$templateOptions['pmwi_order']['taxes'][0]['shipping_tax_amount'] = '';
-						$templateOptions['pmwi_order']['taxes'][0]['code'] = 'xpath';	
-						$templateOptions['pmwi_order']['taxes'][0]['code_xpath'] = '{'. $element_name .'[1]}';	
+						$templateOptions['pmwi_order']['taxes_repeater_mode_foreach'] = '{OrderTaxes[1]/Tax}';												
 					}
-
-					// $tax_data[$element_name] = pmxe_filter( $order_tax->order_item_name, $TaxesfieldSnipped);															
+					else
+					{
+						$templateOptions['pmwi_order']['taxes_repeater_mode_separator'] = $implode_delimiter;						
+					}					
 					break;
 
 				case 'tax_rate':
-					// $tax_data[$element_name] = pmxe_filter(( ! empty($rate_details)) ? $rate_details->tax_rate : '', $TaxesfieldSnipped);					
+                     $templateOptions['pmwi_order']['taxes'][0]['tax_code'] = 'xpath';
+                     $templateOptions['pmwi_order']['taxes'][0]['tax_code_xpath'] = '{ratename[1]}';
 					break;
 
 				case 'tax_amount':
-					$templateOptions['pmwi_order']['taxes'][0]['tax_amount'] = '{'. $element_name.'[1]}';							
+					$templateOptions['pmwi_order']['taxes'][0]['tax_amount'] = '{'. str_replace("pertax", "", $element_name).'[1]}';							
 					break;
 
 				// order notes
-				case 'comment_content':
+				case 'comment_content':					
+				case 'comment_date':							
 					$templateOptions['pmwi_order']['is_update_notes'] = 1;
-					$templateOptions['pmwi_order']['order_note_content'] = '{'. $element_name .'[1]}';	
+					$templateOptions['pmwi_order']['notes_repeater_mode'] = 'csv';
+					$templateOptions['pmwi_order']['notes_repeater_mode_separator'] = $implode_delimiter;						
+					$templateOptions['pmwi_order']['notes'][0][str_replace('comment_', '', $element_type)] = '{'. $element_name .'[1]}';																						
 					break;
-
-				case 'comment_date':
-					$templateOptions['pmwi_order']['order_note_date'] = '{'. $element_name .'[1]}';	
-					break;
-
 				case 'visibility':
-					$templateOptions['pmwi_order']['order_note_visibility'] = '{xpath[1]}';	
-					$templateOptions['pmwi_order']['order_note_visibility_xpath'] = '{'. $element_name .'[1]}';	
+					$templateOptions['pmwi_order']['notes'][0]['visibility'] = 'xpath';
+					$templateOptions['pmwi_order']['notes'][0]['visibility_xpath'] = '{'. $element_name .'[1]}';
 					break;
-
 				case 'comment_author':
-					$templateOptions['pmwi_order']['order_note_author'][0]['username'] = '{'. $element_name .'[1]}';	
+					$templateOptions['pmwi_order']['notes'][0]['username'] = '{'. $element_name .'[1]}';
 					break;
-					
-				case 'comment_author_email':
-					$templateOptions['pmwi_order']['order_note_author'][0]['email'] = '{'. $element_name .'[1]}';	
+				case 'comment_author_email':			
+					$templateOptions['pmwi_order']['notes'][0]['email'] = '{'. $element_name .'[1]}';
 					break;
+				// Order Total
+				case '_order_total':
+					$templateOptions['pmwi_order']['order_total_logic'] = 'manually';
+					$templateOptions['pmwi_order']['order_total_xpath'] = '{'. $element_name .'[1]}';
+					break;
+				// Order Refunds
+				case 'refund_amount':
+				case 'refund_reason':
+				case 'refund_date':				
+					$templateOptions['pmwi_order']['is_update_refunds'] = 1;						
+					if ($is_xml_template)
+					{	
+						$templateOptions['pmwi_order']['order_' . $element_type] = '{OrderRefunds[1]/Refund/'.$element_name.'[1]}';												
+					}
+					else
+					{
+						$templateOptions['pmwi_order']['order_' . $element_type] = '{'. $element_name .'[1]}';
+					}
+					break;
+				case 'refund_author_email':
+					$templateOptions['pmwi_order']['order_refund_issued_email'] = '{'. $element_name .'[1]}';
+					$templateOptions['pmwi_order']['order_refund_issued_match_by'] = 'email';
+					if ($is_xml_template)
+					{	
+						$templateOptions['pmwi_order']['order_refund_issued_email'] = '{OrderRefunds[1]/Refund/'.$element_name.'[1]}';												
+					}
+					else
+					{
+						$templateOptions['pmwi_order']['order_refund_issued_email'] = '{'. $element_name .'[1]}';
+					}
+					break;
+				
 			}
 
 		}

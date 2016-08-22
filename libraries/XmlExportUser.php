@@ -80,88 +80,30 @@ if ( ! class_exists('XmlExportUser') ){
 			)
 		);		
 
-		private $advanced_fields = array(					
-			array(
-				'label' => 'rich_editing',
-				'name'  => 'rich_editing',
-				'type'  => 'cf'
-			),
-			array(
-				'label' => 'comment_shortcuts',
-				'name'  => 'comment_shortcuts',
-				'type'  => 'cf'
-			),
-			array(
-				'label' => 'admin_color',
-				'name'  => 'admin_color',
-				'type'  => 'cf'
-			),
-			array(
-				'label' => 'use_ssl',
-				'name'  => 'use_ssl',
-				'type'  => 'cf'
-			),
-			array(
-				'label' => 'show_admin_bar_front',
-				'name'  => 'show_admin_bar_front',
-				'type'  => 'cf'
-			),
+		private $advanced_fields = array(								
 			array(
 				'label' => 'wp_capabilities',
-				'name'  => 'wp_capabilities',
+				'name'  => 'User Role',
 				'type'  => 'wp_capabilities'
-			),
-			array(
-				'label' => 'wp_user_level',
-				'name'  => 'wp_user_level',
-				'type'  => 'cf'
-			),
-			array(
-				'label' => 'show_welcome_panel',
-				'name'  => 'show_welcome_panel',
-				'type'  => 'cf'
-			),
+			),			
 			array(
 				'label' => 'user_pass',
-				'name'  => 'user_pass',
+				'name'  => 'User Pass',
 				'type'  => 'user_pass'
-			),			
-			array(
-				'label' => 'dismissed_wp_pointers',
-				'name'  => 'dismissed_wp_pointers',
-				'type'  => 'cf'
-			),										
-			array(
-				'label' => 'session_tokens',
-				'name'  => 'session_tokens',
-				'type'  => 'cf'
-			),
-			array(
-				'label' => 'wp_user-settings',
-				'name'  => 'wp_user-settings',
-				'type'  => 'cf'
-			),
-			array(
-				'label' => 'wp_user-settings-time',
-				'name'  => 'wp_user-settings-time',
-				'type'  => 'cf'
-			),
-			array(
-				'label' => 'wp_dashboard_quick_press_last_post_id',
-				'name'  => 'wp_dashboard_quick_press_last_post_id',
-				'type'  => 'cf'
-			),			
+			),							
 			array(
 				'label' => 'user_activation_key',
-				'name'  => 'user_activation_key',
+				'name'  => 'User Activation Key',
 				'type'  => 'user_activation_key'
 			),			
 			array(
 				'label' => 'user_status',
-				'name'  => 'user_status',
+				'name'  => 'User Status',
 				'type'  => 'user_status'
-			)
+			)			
 		);
+
+		private $user_core_fields = array();
 
 		public static $is_active = true;
 
@@ -169,6 +111,8 @@ if ( ! class_exists('XmlExportUser') ){
 
 		public function __construct()
 		{			
+
+			$this->user_core_fields = array('rich_editing', 'comment_shortcuts', 'admin_color', 'use_ssl', 'show_admin_bar_front', 'wp_user_level', 'show_welcome_panel', 'dismissed_wp_pointers', 'session_tokens', 'wp_user-settings', 'wp_user-settings-time', 'wp_dashboard_quick_press_last_post_id', 'metaboxhidden_dashboard', 'closedpostboxes_dashboard', 'wp_nav_menu_recently_edited', 'meta-box-order_dashboard', 'closedpostboxes_product', 'metaboxhidden_product', 'manageedit-shop_ordercolumnshidden', 'aim', 'yim', 'jabber', 'wp_media_library_mode');
 
 			if ( ( XmlExportEngine::$exportOptions['export_type'] == 'specific' and ! in_array('users', XmlExportEngine::$post_types)  and ! in_array('shop_customer', XmlExportEngine::$post_types) ) 
 					or ( XmlExportEngine::$exportOptions['export_type'] == 'advanced' and XmlExportEngine::$exportOptions['wp_query_selector'] != 'wp_user_query' ) ){ 
@@ -214,7 +158,22 @@ if ( ! class_exists('XmlExportUser') ){
 			*
 			*/
 			public function filter_other_fields($other_fields){
-				return $this->advanced_fields;
+
+				$other_fields = array();
+
+				foreach ( $this->advanced_fields as $key => $field ) {
+					$other_fields[] = $field;					
+				}
+
+				foreach ( $this->user_core_fields as $field ) {
+					$other_fields[] = $this->fix_titles(array(
+						'label' => $field,
+						'name'  => $field,
+						'type'  => 'cf'
+					));
+				}
+
+				return $other_fields;
 			}	
 
 			/**
@@ -261,14 +220,14 @@ if ( ! class_exists('XmlExportUser') ){
 				{
 					$customer_data = array(
 						'customer' => array(
-							'title'   => __("Customer", "wp_all_export_plugin"), 
+							'title'   => __("Address", "wp_all_export_plugin"), 
 							'content' => 'customer_fields'					
 						)
 					);
 					$available_sections = array_merge(array_slice($available_sections, 0, 1), $customer_data, array_slice($available_sections, 1));	
 				}	
 
-				self::$is_export_shop_customer or $available_sections['other']['title'] = __("Advanced", "wp_all_export_plugin");			
+				self::$is_export_shop_customer or $available_sections['other']['title'] = __("Other", "wp_all_export_plugin");			
 
 				return $available_sections;
 			}					
@@ -284,15 +243,28 @@ if ( ! class_exists('XmlExportUser') ){
 			global $wpdb;
 			$table_prefix = $wpdb->prefix;
 			self::$meta_keys = $wpdb->get_results("SELECT DISTINCT {$table_prefix}usermeta.meta_key FROM {$table_prefix}usermeta, {$table_prefix}users WHERE {$table_prefix}usermeta.user_id = {$table_prefix}users.ID LIMIT 500");			
+
+			$user_ids = array();
+			if ( ! empty(XmlExportEngine::$exportQuery->results)) {
+				foreach ( XmlExportEngine::$exportQuery->results as $user ) :				
+					$user_ids[] = $user->ID;
+				endforeach;
+			}			
 			
 			if ( ! empty(self::$meta_keys)){
 
 				$address_fields = $this->available_customer_data();
+
+				$customer_users = $wpdb->get_results($wpdb->prepare("SELECT DISTINCT meta_value FROM $wpdb->postmeta, $wpdb->users WHERE meta_key = %s AND meta_value != %s ", '_customer_user', '0'));
+
 				// detect if at least one filtered user is a WooCommerce customer
-				foreach (self::$meta_keys as $meta_key) {
-					if ( $meta_key->meta_key == '_customer_user'){
-						self::$is_woo_custom_founded = true;
-						break;
+				if ( ! empty($customer_users) ) {					
+					foreach ($customer_users as $customer_user) {
+						if ( in_array($customer_user->meta_value, $user_ids) ) 
+						{
+							self::$is_woo_custom_founded = true;				
+							break;
+						}
 					}
 				}
 
@@ -310,6 +282,14 @@ if ( ! class_exists('XmlExportUser') ){
 						if ( $to_add ){
 							foreach ($this->advanced_fields as $advanced_value) {
 								if ( $meta_key->meta_key == $advanced_value['name'] || $meta_key->meta_key == $advanced_value['type']){
+									$to_add = false;
+									break;
+								}
+							}
+						}
+						if ( $to_add ){
+							foreach ($this->user_core_fields as $core_field) {
+								if ( $meta_key->meta_key == $core_field ){
 									$to_add = false;
 									break;
 								}
@@ -427,9 +407,9 @@ if ( ! class_exists('XmlExportUser') ){
 				*/
 				protected function fix_title($title)
 				{
-					$uc_title = ucwords(trim(str_replace("_", " ", $title)));
+					$uc_title = ucwords(trim(str_replace("-", " ", str_replace("_", " ", $title))));
 
-					return stripos($uc_title, "width") === false ? str_ireplace(array('id', 'url', 'sku'), array('ID', 'URL', 'SKU'), $uc_title) : $uc_title;
+					return stripos($uc_title, "width") === false ? str_ireplace(array('id', 'url', 'sku', 'wp', 'ssl'), array('ID', 'URL', 'SKU', 'WP', 'SSL'), $uc_title) : $uc_title;
 				}			
 
 		/**
