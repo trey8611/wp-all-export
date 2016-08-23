@@ -14,6 +14,8 @@ function pmxe_wp_ajax_wpae_preview(){
 	
 	XmlExportEngine::$is_preview = true;
 
+	$custom_xml_valid = true;
+
 	ob_start();
 
 	$values = array();
@@ -27,7 +29,13 @@ function pmxe_wp_ajax_wpae_preview(){
 	$exportOptions['custom_xml_template'] = (isset($_POST['custom_xml'])) ? stripcslashes($_POST['custom_xml']) : '';
 
     if ( ! empty($exportOptions['custom_xml_template'])) {
-
+		$originalXmlTemplate = $exportOptions['custom_xml_template'];
+		libxml_use_internal_errors(true);
+		$custom_xml_template = simplexml_load_string($exportOptions['custom_xml_template']);
+		if ($custom_xml_template === false) {
+			$custom_xml_template_errors = libxml_get_errors();
+			$custom_xml_valid = false;
+		}
         $exportOptions['custom_xml_template'] = str_replace("<!-- BEGIN POST LOOP -->", "<!-- BEGIN LOOP -->", $exportOptions['custom_xml_template']);
         $exportOptions['custom_xml_template'] = str_replace("<!-- END POST LOOP -->", "<!-- END LOOP -->", $exportOptions['custom_xml_template']);
 
@@ -142,15 +150,53 @@ function pmxe_wp_ajax_wpae_preview(){
 			
 		<?php		
 
+		if(!$custom_xml_valid) {
+			$error_msg = '<strong class="error">' . __('Invalid XML', 'wp_all_import_plugin') . '</strong><ul  class="error">';
+			foreach($custom_xml_template_errors as $error) {
+				$error_msg .= '<li>';
+				$error_msg .= __('Line', 'wp_all_import_plugin') . ' ' . $error->line . ', ';
+				$error_msg .= __('Column', 'wp_all_import_plugin') . ' ' . $error->column . ', ';
+				$error_msg .= __('Code', 'wp_all_import_plugin') . ' ' . $error->code . ': ';
+				$error_msg .= '<em>' . trim(esc_html($error->message)) . '</em>';
+				$error_msg .= '</li>';
+			}
+			$error_msg .= '</ul>';
+			echo $error_msg;
+			exit( json_encode(array('html' => ob_get_clean())) );
+		}
+
+		$wp_uploads = wp_upload_dir();
+
+		$functions = $wp_uploads['basedir'] . DIRECTORY_SEPARATOR . WP_ALL_EXPORT_UPLOADS_BASE_DIRECTORY . DIRECTORY_SEPARATOR . 'functions.php';
+		if ( @file_exists($functions) )
+			require_once $functions;
+
 		switch ($exportOptions['export_to']) {
 
 			case 'xml':				
 
 				$dom = new DOMDocument('1.0', $exportOptions['encoding']);
 				libxml_use_internal_errors(true);
-
+				try{
 				$xml = XmlCsvExport::export_xml( true );
-				
+				} catch (WpaeMethodNotFoundException $e) {
+					// Find the line where the function is
+					$errorMessage = '';
+					$functionName = $e->getMessage();
+					$txtParts = explode("\n",$originalXmlTemplate);
+					for ($i=0, $length = count($txtParts);$i<$length;$i++)
+					{
+						$tmp = strstr($txtParts[$i], $functionName);
+						if ($tmp) {
+							$errorMessage .= 'Error parsing XML feed: Call to undefined function <em>"'.$functionName.'"</em> on Line '.($i+1);
+						}
+					}
+
+					$error_msg = '<span class="error">'.__($errorMessage, 'wp_all_import_plugin').'</span>';
+					echo $error_msg;
+					exit( json_encode(array('html' => ob_get_clean())) );
+				}
+
                 $xml_errors = false;
 
                 $main_xml_tag = '';
@@ -239,7 +285,7 @@ function pmxe_wp_ajax_wpae_preview(){
 					libxml_clear_errors();
 
 					if ($preview_xml_errors){
-						$error_msg = '<strong>' . __('Invalid XML', 'wp_all_import_plugin') . '</strong><ul>';
+						$error_msg = '<strong class="error">' . __('Invalid XML', 'wp_all_import_plugin') . '</strong><ul  class="error">';
 						foreach($preview_xml_errors as $error) {
 							$error_msg .= '<li>';
 							$error_msg .= __('Line', 'wp_all_import_plugin') . ' ' . $error->line . ', ';

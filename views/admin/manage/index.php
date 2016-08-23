@@ -169,7 +169,7 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 												$required_fields = array('woo_order' => 'id');
 											}
 											else {
-											$required_fields = array('id' => 'id');
+												$required_fields = array('id' => 'id');
 											}
 											// re-import products
 											if ((in_array('product', $item['options']['cpt']) or $item['options']['export_type'] == 'advanced') and class_exists('WooCommerce') and (empty($item['options']['wp_query_selector']) or $item['options']['wp_query_selector'] == 'wp_query')) {	
@@ -211,22 +211,23 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 										}		
 
 									?>
-									<?php if ( wp_all_export_is_compatible() and !empty($item['options']['import_id']) and $is_re_import_allowed): ?>
-										<a href="<?php echo add_query_arg(array('page' => 'pmxi-admin-import', 'id' => $item['options']['import_id'], 'deligate' => 'wpallexport'), remove_query_arg('page', $this->baseUrl)); ?>"><?php _e("Import with WP All Import", "wp_all_export_plugin"); ?></a><br/>
-									<?php endif;?>			
-									<?php
-										if ( !in_array($item['options']['wp_query_selector'], array('wp_comment_query')) and (empty($item['options']['cpt']) or ! in_array('shop_order', $item['options']['cpt']) and ! in_array('comments', $item['options']['cpt']))) {
-											//$template = new PMXI_Template_Record();
-											if ( ! empty($item['options']['tpl_data'])) { 
-												//$template->getByName($item['options']['template_name']);
-												//if ( ! $template->isEmpty() ){
-													?>													
-													<a href="<?php echo add_query_arg(array('id' => $item['id'], 'action' => 'templates'), $this->baseUrl)?>"><?php _e('Download Import Templates', 'wp_all_export_plugin'); ?></a>
-													<?php
-												//}
+									<?php if ( $item['options']['export_to'] == 'csv' || ( empty($item['options']['xml_template_type']) || ! in_array($item['options']['xml_template_type'], array('custom', 'XmlGoogleMerchants'))) ): ?>
+										<?php if ( wp_all_export_is_compatible() and !empty($item['options']['import_id']) and $is_re_import_allowed): ?>
+											<a href="<?php echo add_query_arg(array('page' => 'pmxi-admin-import', 'id' => $item['options']['import_id'], 'deligate' => 'wpallexport'), remove_query_arg('page', $this->baseUrl)); ?>"><?php _e("Import with WP All Import", "wp_all_export_plugin"); ?></a><br/>
+										<?php endif;?>			
+										<?php
+											if ( !in_array($item['options']['wp_query_selector'], array('wp_comment_query')) and (empty($item['options']['cpt']) or ! in_array('comments', $item['options']['cpt']))) {
+												if ( ! empty($item['options']['tpl_data'])) { 
+													//$template->getByName($item['options']['template_name']);
+													//if ( ! $template->isEmpty() ){
+														?>													
+														<a href="<?php echo add_query_arg(array('id' => $item['id'], 'action' => 'templates'), $this->baseUrl)?>"><?php _e('Download Import Templates', 'wp_all_export_plugin'); ?></a>
+														<?php
+													//}
+												}
 											}
-										}
-									?>													
+										?>													
+									<?php endif; ?>
 								</td>
 								<?php
 								break;

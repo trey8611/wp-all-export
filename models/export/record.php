@@ -288,7 +288,7 @@ class PMXE_Export_Record extends PMXE_Model_Record {
     public static function is_bundle_supported( $options )
     {	
     	// custom XML template do not support import bundle
-    	if ( $options['export_to'] == 'xml' && in_array($options['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ) return false;
+    	if ( $options['export_to'] == 'xml' && ! empty($options['xml_template_type']) && in_array($options['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ) return false;
 
     	$unsupported_post_types = array('comments');
     	return ( empty($options['cpt']) and ! in_array($options['wp_query_selector'], array('wp_comment_query')) or ! empty($options['cpt']) and ! in_array($options['cpt'][0], $unsupported_post_types) ) ? true : false;

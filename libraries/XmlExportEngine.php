@@ -733,7 +733,7 @@ if ( ! class_exists('XmlExportEngine') ){
 
 					<optgroup label="<?php echo $section['title']; ?>">
 					
-						<?php if ( ! empty($this->available_data[$section['content']]) ): ?>
+						<?php if ( ! empty($section['content']) && ! empty($this->available_data[$section['content']]) ): ?>
 						
 							<?php foreach ($this->available_data[$section['content']] as $field) : ?>
 							

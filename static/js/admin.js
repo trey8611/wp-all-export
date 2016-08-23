@@ -781,8 +781,12 @@
 					if ( ui.helper.find('.custom_column').length )
 					{
 						var $elementName = ui.helper.find('.custom_column').find('input[name^=cc_name]').val();
+
+						var $elementValue = $elementName;
+						$elementName = helpers.sanitizeElementName($elementName);
+
 						if ( ! ui.helper.find('.custom_column').hasClass('wp-all-export-custom-xml-drag-over') ) ui.helper.find('.custom_column').addClass('wp-all-export-custom-xml-drag-over');
-						ui.helper.find('.custom_column').find('.wpallexport-xml-element').html("&lt;" + $elementName.replace(/ /g,'') + "&gt;<span>{" + $elementName + "}</span>&lt;/" + $elementName.replace(/ /g,'') + "&gt;");
+						ui.helper.find('.custom_column').find('.wpallexport-xml-element').html("&lt;" + $elementName.replace(/ /g,'') + "&gt;<span>{" + $elementValue + "}</span>&lt;/" + $elementName.replace(/ /g,'') + "&gt;");
 					}
 					if ( ui.helper.find('.default_column').length )
 					{
@@ -932,7 +936,9 @@
 			drop: function( event, ui ) {
 
 				function getCodeToPlace($elementName) {
-					return "<" + $elementName.replace(/ /g,'') + ">{" + $elementName + "}</" + $elementName.replace(/ /g,'') + ">\n"
+					var $elementValue = $elementName;
+					$elementName = helpers.sanitizeElementName($elementName);
+					return "<" + $elementName.replace(/ /g,'') + ">{" + $elementValue+ "}</" + $elementName.replace(/ /g,'') + ">\n"
 				}
 
 
@@ -1451,7 +1457,7 @@
 
 	    var wp_all_export_config = {
 	      '.wp-all-export-chosen-select' : {width:"50%"}    
-	    }
+	    };
 
 	    for (var selector in wp_all_export_config) {
 	    	$(selector).chosen(wp_all_export_config[selector]);
@@ -1559,18 +1565,68 @@
     		// } 
 
 		    $('form.wpallexport-template').find('input[type=submit]').click(function(e){
-				e.preventDefault();			
-				
-				$('.hierarhy-output').each(function(){
-					var sortable = $('.wp_all_export_filtering_rules.ui-sortable');
-					if (sortable.length){
-						$(this).val(window.JSON.stringify(sortable.pmxe_nestedSortable('toArray', {startDepthCount: 0})));								
-					}
-				});			
+				e.preventDefault();
 
-				$(this).parents('form:first').submit();
+				$('#validationError').fadeOut();
+				$('#validationError p').find('*').remove();
+
+				var submitButton = $(this);
+
+				// Validate the form by sending it to preview before submitting it
+				var request = {
+					action: 'wpae_preview',
+					data: $('form.wpallexport-step-3').serialize(),
+					custom_xml: xml_editor.getValue(),
+					security: wp_all_export_security
+				};
+
+				$.ajax({
+					type: 'POST',
+					url: get_valid_ajaxurl(),
+					data: request,
+					success: function(response) {
+
+						// Look for errors
+						var tempDom = $('<div>').append($.parseHTML(response.html));
+						var errorMessage = $('.error', tempDom);
+
+						// If we have error messages
+						if(errorMessage.length) {
+							// Display the error messages
+							errorMessage.each(function(){
+								$('#validationError').find('p').append($(this));
+							});
+
+							$('#validationError').fadeIn();
+							$('html, body').animate({scrollTop: $("#validationError").offset().top - 50});
+						} else {
+							// Else submit the form
+							$('.hierarhy-output').each(function(){
+								var sortable = $('.wp_all_export_filtering_rules.ui-sortable');
+								if (sortable.length){
+									$(this).val(window.JSON.stringify(sortable.pmxe_nestedSortable('toArray', {startDepthCount: 0})));
+								}
+							});
+							submitButton.parents('form:first').submit();
+						}
+					},
+					error: function( jqXHR, textStatus ) {
+						// We don't know the error
+						errorMessage.each(function(){
+							$('#validationError').find('p').append($('<ul><li>An unknown error occured</li></ul>'));
+						});
+					},
+					dataType: "json"
+				});
 			});			
-    	}   	     	    
+    	}   	     	   
+
+    	if ( $('input[name=export_to]').val() == 'csv' && $('#export_to_sheet').val() == 'xls'){
+    		$('.export_to_xls_upgrade_notice').show();
+    	} 
+    	else{
+    		$('.export_to_xls_upgrade_notice').hide();
+    	}
 
     	$('.wpallexport-import-to-format').click(function(){
 
@@ -1608,6 +1664,7 @@
 					}
 					$('.export_to_xls_upgrade_notice').show();
 				}
+				$('.wpallexport-submit-template').removeAttr('disabled');
     		}
     		else
     		{
@@ -1618,6 +1675,10 @@
 
 				$('.wpallexport-csv-advanced-options').css('display', 'none');
 				$('.wpallexport-xml-advanced-options').css('display', 'block');
+				var $xml_export_format = $('.xml_template_type').val();
+				if ( $xml_export_format == 'custom' || $xml_export_format == 'XmlGoogleMerchants'){
+					$('.wpallexport-submit-template').attr('disabled', 'disabled');
+				}
     		}
     	});
 
@@ -1801,48 +1862,7 @@
 		else
 			$('#wp_all_export_value').show();
 	});
-    // saving & validating function editor
-    $('.wp_all_export_save_functions').click(function(){
-
-
-    	var data = $(this).hasClass('wp_all_export_save_main_code') ? main_editor.getValue() : editor.getValue();
-
-    	var request = {
-			action: 'save_functions',	
-			data: data,
-			security: wp_all_export_security				
-	    };    
-	    $('.wp_all_export_functions_preloader').show();
-	    $('.wp_all_export_saving_status').html('');
-
-		$.ajax({
-			type: 'POST',
-			url: get_valid_ajaxurl(),
-			data: request,
-			success: function(response) {						
-				$('.wp_all_export_functions_preloader').hide();
-				
-				if (response.result)
-				{
-					$('.wp_all_export_saving_status').css({'color':'green'});
-					setTimeout(function() {
-						$('.wp_all_export_saving_status').html('').fadeOut();
-					}, 3000);
-				}
-				else
-				{
-					$('.wp_all_export_saving_status').css({'color':'red'});
-				}
-
-				$('.wp_all_export_saving_status').html(response.msg).show();
-									
-			},
-			error: function( jqXHR, textStatus ) {						
-				$('.wp_all_export_functions_preloader').hide();
-			},
-			dataType: "json"
-		});
-    }); 
+    
     // auot-generate zapier API key
     $('input[name=pmxe_generate_zapier_api_key]').click(function(e){
     	
@@ -1878,6 +1898,7 @@
     			$('.wpallexport-simple-xml-template').slideDown();
     			$('.wpallexport-custom-xml-template').slideUp();
     			$('.pmxe_product_data').find(".wpallexport-xml-element:contains('Attributes')").parents('li:first').show();
+    			$('.wpallexport-submit-template').removeAttr('disabled');
     			break;
     		case 'custom':
             case 'XmlGoogleMerchants':
@@ -1921,13 +1942,14 @@
                         $tmp_xml_template = '';
                     }
                 }
+                $('.wpallexport-submit-template').attr('disabled', 'disabled');
     			break;
     		default:
     			$('.simple_xml_template_options').slideUp();
     			$('.wpallexport-simple-xml-template').slideDown();
     			$('.wpallexport-custom-xml-template').slideUp();
     			$('.pmxe_product_data').find(".wpallexport-xml-element:contains('Attributes')").parents('li:first').show();
-
+    			$('.wpallexport-submit-template').removeAttr('disabled');
     			break;
     	}
         $xml_template_first_load = false;

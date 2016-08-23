@@ -206,14 +206,23 @@ class PMXE_XMLWriter extends XMLWriter
 
       if ( ! empty($snipets) ){
           foreach ($snipets as $snipet) {
-              // function founded
+              // if function is found
               if ( preg_match("%\w+\(.*\)%", $snipet) ){
+
                   $filtered = trim(trim(trim($snipet, "]"), "["));
                   $filtered = preg_replace("%[\{\}]%", "\"", $filtered);
                   $filtered = str_replace('CLOSEBRAKET', ']', str_replace('OPENBRAKET', '[', $filtered));
                   $filtered = str_replace('CLOSECURVE', '}', str_replace('OPENCURVE', '{', $filtered));
 
+                  $functionName = str_replace(['(',')'],'',$filtered);
+                  $functionName = preg_replace('/"[^"]+"/', '', $functionName);
+                  
+                  if(!function_exists($functionName)) {
+                      throw new WpaeMethodNotFoundException($functionName);
+                  }
+
                   $values = eval("return " . $filtered . ";");
+
                   if ( is_array($values) && count($values) == 1 ) $values = $values[0];
                   $v = '';
                   if ( is_array($values) ){

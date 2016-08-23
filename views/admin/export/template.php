@@ -341,6 +341,12 @@
 					</div>
 				</div>
 
+				<div class="error inline" id="validationError" style="display: none;">
+					<p>
+
+					</p>
+				</div>
+
 				<div class="wpallexport-collapsed wpallexport-section wpallexport-custom-xml-template">
 					<div class="wpallexport-content-section" style="padding-bottom: 0; margin-bottom: 10px;">
 						<div class="wpallexport-collapsed-header" style="margin-bottom: 15px;">
@@ -348,7 +354,11 @@
 						</div>
 						<div class="wpallexport-collapsed-content" style="padding: 0;">
 							<div class="wpallexport-collapsed-content-inner" style="padding-top: 5px;">
-
+								<div class="input custom_xml_upgrade_notice" style="vertical-align:middle; position: relative; top: -5px;">														
+									<span class="wpallexport-free-edition-notice" style="margin: 0 0 10px;">									
+										<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=wooco+orders&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to create custom XML file.<br/>If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></a>
+									</span>														
+								</div>
 								<?php $default_template = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<data>\n\t<!-- BEGIN LOOP -->\n\t<post>\n\n\t</post>\n\t<!-- END LOOP -->\n</data>";?>
 
 								<textarea id="wp_all_export_custom_xml_template" name="custom_xml_template"><?php echo (empty($post['custom_xml_template'])) ? $default_template : esc_textarea($post['custom_xml_template']);?></textarea>						
@@ -475,7 +485,7 @@
 						<?php else: ?>						
 							<a href="<?php echo add_query_arg('action', 'index', $this->baseUrl); ?>" class="back rad3"><?php _e('Back', 'wp_all_export_plugin') ?></a>							
 						<?php endif; ?>					
-						<input type="submit" class="button button-primary button-hero wpallexport-large-button" value="<?php _e( ($this->isWizard) ? 'Continue' : 'Update Template', 'wp_all_export_plugin') ?>" />
+						<input type="submit" class="button button-primary button-hero wpallexport-large-button wpallexport-submit-template" value="<?php _e( ($this->isWizard) ? 'Continue' : 'Update Template', 'wp_all_export_plugin') ?>" />
 					</div>
 
 				</div>
