@@ -285,7 +285,7 @@
 						<div class="wpallexport-collapsed-header" style="padding-left: 25px;">
 							<h3><?php _e('Export File Type','wp_all_export_plugin');?></h3>	
 						</div>
-						<div class="wpallexport-collapsed-content" style="padding: 0; overflow: hidden; height: 305px;">
+						<div class="wpallexport-collapsed-content" style="padding: 0; overflow: hidden;">
 							<div class="wpallexport-collapsed-content-inner">								
 								<div class="wpallexport-choose-data-type">
 									<h3 style="margin-top: 10px; margin-bottom: 40px;"><?php _e('Choose your export file type', 'wp_all_export_plugin'); ?></h3>
@@ -315,9 +315,10 @@
 											</div>
 											<div class="clear"></div>
 											<div class="wpallexport-clear"></div>
-											<div class="input export_to_xls_upgrade_notice" style="vertical-align:middle; position: relative; top: 5px;">														
+											<div class="input export_to_xls_upgrade_notice" style="vertical-align:middle; position: relative; margin-top: 48px;">														
 												<span class="wpallexport-free-edition-notice">									
-													<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=wooco+orders&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to export to Excel. <br>If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></a>
+													<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=wooco+orders&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to Export to Excel','wp_all_export_plugin');?></a>
+													<p><?php _e('If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></p>
 												</span>														
 											</div>
 										</div>
@@ -354,11 +355,7 @@
 						</div>
 						<div class="wpallexport-collapsed-content" style="padding: 0;">
 							<div class="wpallexport-collapsed-content-inner" style="padding-top: 5px;">
-								<div class="input custom_xml_upgrade_notice" style="vertical-align:middle; position: relative; top: -5px;">														
-									<span class="wpallexport-free-edition-notice" style="margin: 0 0 10px;">									
-										<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=wooco+orders&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to create custom XML file.<br/>If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></a>
-									</span>														
-								</div>
+ 
 								<?php $default_template = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<data>\n\t<!-- BEGIN LOOP -->\n\t<post>\n\n\t</post>\n\t<!-- END LOOP -->\n</data>";?>
 
 								<textarea id="wp_all_export_custom_xml_template" name="custom_xml_template"><?php echo (empty($post['custom_xml_template'])) ? $default_template : esc_textarea($post['custom_xml_template']);?></textarea>						
@@ -429,7 +426,10 @@
 							<div class="wpallexport-collapsed-content-inner">									
 
 								<textarea id="wp_all_export_main_code" name="wp_all_export_main_code"><?php echo "<?php\n\n?>";?></textarea>						
-
+								<div class="wpallexport-free-edition-notice" style="margin: 15px 0;">
+									<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=custom-php&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to use Custom PHP Functions','wp_all_export_plugin');?></a>
+									<p><?php _e('If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></p>
+								</div>
 								<div class="input" style="margin-top: 10px;">
 
 									<div class="input" style="display:inline-block; margin-right: 20px;">
@@ -473,6 +473,13 @@
 				</div>
 				
 				<hr>
+
+				<div class="input custom_xml_upgrade_notice wpallexport-custom-xml-template" style="vertical-align:middle; position: relative; top: -5px;">
+					<span class="wpallexport-free-edition-notice" style="margin: 0 0 10px;">									
+						<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=wooco+orders&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to Export Custom XML','wp_all_export_plugin');?></a>
+						<p><?php _e('If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></p>
+					</span>
+				</div>
 
 				<div class="wpallexport-submit-buttons">
 					

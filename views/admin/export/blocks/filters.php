@@ -1,5 +1,6 @@
 <div class="wpallexport-free-edition-notice" style="padding: 20px; margin-bottom: 10px;">
-	<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-pro/?utm_source=free-plugin&amp;utm_medium=in-plugin&amp;utm_campaign=download-from-url"><?php _e('Upgrade to the Pro edition of WP All Export to add filtering rules.','wp_all_export_plugin');?></a>
+	<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-pro/?utm_source=free-plugin&amp;utm_medium=in-plugin&amp;utm_campaign=download-from-url"><?php _e('Upgrade to the Pro edition of WP All Export to Add Filters','wp_all_export_plugin');?></a>
+	<p><?php _e('If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></p>
 </div>	
 <div class="wp_all_export_rule_inputs">
 	<table>
