@@ -163,7 +163,7 @@
 	list-style-type: none; 
 	margin: 0; 
 	padding: 0;	
-	height: 250px; 
+	/*height: 250px; */
 	/*width: 450px; */
 }
 .wpallexport-plugin #columns_to_export li { 
@@ -287,6 +287,12 @@
 	box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
 	margin: 0;
 	padding: 1px 12px;
+}
+.wpallexport-plugin .wp-all-export-warning{
+	margin-top: 20px;
+}
+.wpallexport-plugin .wp-all-export-warning .notice-dismiss{
+	margin-top: 5px;
 }
 .wpallexport-plugin .wpallexport-csv-delimiter{
 	float: right;

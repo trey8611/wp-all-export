@@ -9,6 +9,18 @@
 		}
 	};
 
+	var helpers = {
+		'sanitizeElementName' : function($elementName) {
+			if($elementName.indexOf('(per tax)') !== false ){
+				$elementName = $elementName.replace('(per tax)','PerTax');
+				$elementName = $elementName.replace('(per coupon)','PerCoupon');
+				$elementName = $elementName.replace('(per surcharge)','PerSurcharge');
+			}
+
+			return $elementName;
+		}
+	};
+
 	if ( ! $('body.wpallexport-plugin').length) return; // do not execute any code if we are not on plugin page
 
 	// fix layout position

@@ -237,17 +237,27 @@ if ( ! class_exists('XmlExportACF') )
 						}
 						elseif(is_array($field_value))
 						{
-							$field_value = $field_value['url'];
+							$field_value = empty($field_value['url']) ? '' : $field_value['url'];
 						}
 						break;	
 
 					case 'gallery':																	
-						$v = array();
+						$v = array();						
+
 						foreach ($field_value as $key => $item) 
-						{
-							$v[] = $item['url'];											
+						{			
+							if (!empty($item['url'])){
+								$v[] = $item['url'];											
+							}							
+							elseif (is_numeric($item)){
+								$gallery_item_url = wp_get_attachment_url($item);
+								if (!empty($gallery_item_url)){
+									$v[] = $gallery_item_url;
+								}
+							}									
 						}
 						$field_value = implode($implode_delimiter, $v);
+
 						break;																																										
 					case 'location-field':
 						$localion_parts = explode("|", $field_value);
@@ -591,7 +601,22 @@ if ( ! class_exists('XmlExportACF') )
 						    		else
 						    		{
 										$v = get_sub_field($sub_field['name']);				    			
-						    		}									    			
+						    		}							
+
+						    		if ($preview && ! $is_xml_export){
+						    			switch ($sub_field['type']) {
+											case 'textarea':
+											case 'oembed':
+											case 'wysiwyg':
+											case 'wp_wysiwyg':
+											case 'date_time_picker':
+											case 'date_picker':											
+												$v = preg_replace( "/\r|\n/", "", esc_html($v) );
+												break;											
+											default:
+												break;
+										}
+						    		}		    			
 									
 									$sub_field['delimiter'] = $implode_delimiter;
 
@@ -763,6 +788,21 @@ if ( ! class_exists('XmlExportACF') )
 								    			}
 								    		}		
 
+								    		if ($preview && ! $is_xml_export){
+								    			switch ($sub_field['type']) {
+													case 'textarea':
+													case 'oembed':
+													case 'wysiwyg':
+													case 'wp_wysiwyg':
+													case 'date_time_picker':
+													case 'date_picker':											
+														$v = preg_replace( "/\r|\n/", "", esc_html($v) );														
+														break;											
+													default:
+														break;
+												}
+								    		}	
+
 								    		$sub_field['delimiter'] = $implode_delimiter;
 
 							    			$sub_field_values = self::export_acf_field(
@@ -799,7 +839,7 @@ if ( ! class_exists('XmlExportACF') )
 									    			
 									    			default:
 									    				
-									    				$article[$layout_field_name . '_' . $sub_field['name']] = $v;						    							
+									    				$article[$layout_field_name . '_' . $sub_field['name']] = $sub_field_values;						    							
 
 														if ( ! in_array($layout_field_name . '_' . $sub_field['name'], $fc_sub_field_names)) 
 															$fc_sub_field_names[] = $layout_field_name . '_' . $sub_field['name'];
@@ -1065,16 +1105,17 @@ if ( ! class_exists('XmlExportACF') )
 
 					if ($is_xml_template)
 					{						
-						$field_template = '{' . $field_tpl_key . '}';						
+						$field_template = array(
+						  'gallery' => '{' . $field_tpl_key . '}'
+                        );
 					}
 					else
 					{
-						$field_tpl_key = str_replace("[1]", "", $field_tpl_key);
-
-						if ($implode_delimiter == "|")
-							$field_template = '[str_replace("|", ",",{' . $field_tpl_key . '[1]})]';
-						else
-							$field_template = '{' . $field_tpl_key . '[1]}';
+                        $field_template = array(
+                          'search_in_media' => 1,
+                          'delim' => $implode_delimiter,
+                          'gallery' => '{' . $field_tpl_key . '}'
+                        );						
 					}
 					break;
 				case 'post_object':

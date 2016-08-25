@@ -60,11 +60,11 @@
 
 				<div class="wpallexport-collapsed wpallexport-section wpallexport-simple-xml-template">
 					<div class="wpallexport-content-section" style="margin-bottom: 10px;">
-						<div class="wpallexport-collapsed-content" style="padding-bottom: 60px;">
-							<fieldset class="optionsset" style="padding: 10px 20px;">								
+						<div class="wpallexport-collapsed-content">
+							<fieldset class="optionsset" style="padding: 10px 20px 0px;">								
 								<div id="columns_to_export">								
 									<div class="columns-to-export-content" style="padding-right: 8px;">
-										<ol id="columns" class="rad4">										
+										<ol id="columns" class="rad4" style="margin-bottom:0;">										
 											<?php												
 												$i = 0;
 												$new_export = false;
@@ -174,14 +174,14 @@
 							</fieldset>
 
 							<!-- Add New Field Button -->
-							<div class="input" style="float:left; margin: 0 20px 15px;">
+							<div class="input" style="display:inline-block; margin: 20px 0 10px 20px;">
 								<input type="button" value="<?php _e('Add Field', 'wp_all_export_plugin');?>" class="add_column" style="float:left;">								
 								<input type="button" value="<?php _e('Add All', 'wp_all_export_plugin'); ?>" class="wp_all_export_auto_generate_data">								
 								<input type="button" value="<?php _e('Clear All', 'wp_all_export_plugin'); ?>" class="wp_all_export_clear_all_data">								
 							</div>
 
 							<!-- Preview a Row Button -->
-							<div class="input" style="float:right; margin: 0 20px 15px;">								
+							<div class="input" style="float:right; margin: 20px 20px 10px 0;">								
 								<input type="button" value="<?php _e('Preview', 'wp_all_export_plugin');?>" class="preview_a_row">	
 							</div>
 						</div>
@@ -307,7 +307,7 @@
 
 										<div class="wpallexport-csv-options" style="<?php if ($post['export_to'] == 'xml') echo 'display:none;'; ?> width:100%;">
 											<!-- Export File Format -->
-											<div class="input" style="width:84%; margin: 0 auto 5px;">
+											<div class="input" style="width:83%; margin: 0 auto 5px;">
 												<select name="export_to_sheet" id="export_to_sheet">
 													<option value="csv" <?php if ($post['export_to_sheet'] == 'csv') echo 'selected="selected"';?>><?php _e('CSV File', 'wp_all_export_plugin'); ?></option>
 													<option value="xls" <?php if ($post['export_to_sheet'] == 'xls') echo 'selected="selected"';?>><?php _e('Excel File', 'wp_all_export_plugin'); ?></option>
@@ -324,7 +324,7 @@
 
 										<div class="wpallexport-xml-options" <?php if ($post['export_to'] != 'xml') echo 'style="display:none;"'; ?>>
 
-											<div class="input" style="width:82%; margin: 0 auto 5px;">
+											<div class="input" style="width:83%; margin: 0 auto 5px;">
 												<select name="xml_template_type" class="xml_template_type">
 													<option value="simple" <?php if ($post['xml_template_type'] == 'simple') echo 'selected="selected"';?>><?php _e('Simple XML Feed', 'wp_all_export_plugin'); ?></option>
 													<?php if ( XmlExportWooCommerce::$is_active ): ?>
