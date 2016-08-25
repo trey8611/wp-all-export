@@ -18,6 +18,9 @@
 	border: none;
 	cursor: pointer;
 }
+.wpallexport-plugin .custom_xml_upgrade_notice{
+	display: none;
+}
 .wpallexport-plugin .wp_all_export_custom_xml_help{
     padding: 15px;
     background: #fff;

@@ -781,14 +781,14 @@
 			xml_editor.removeLine(line);
 		}
 
-		$( "#available_data li:not(.available_sub_section)" ).draggable({
+		$( "#available_data li:not(.available_sub_section, .wpallexport_disabled)" ).draggable({
 			appendTo: "body",
 			helper: "clone",
 			drag: function(e, ui)
 			{
 				if ( $('select.xml_template_type').val() == 'custom' && isDraggingOverTextEditor(e))
 				{
-					xml_editor.focus();
+					xml_editor.focus();					
 
 					if ( ui.helper.find('.custom_column').length )
 					{
@@ -1635,9 +1635,11 @@
 
     	if ( $('input[name=export_to]').val() == 'csv' && $('#export_to_sheet').val() == 'xls'){
     		$('.export_to_xls_upgrade_notice').show();
+    		$('.wpallexport-submit-template').attr('disabled', 'disabled');
     	} 
     	else{
     		$('.export_to_xls_upgrade_notice').hide();
+    		$('.wpallexport-submit-template').removeAttr('disabled');
     	}
 
     	$('.wpallexport-import-to-format').click(function(){
@@ -1667,6 +1669,7 @@
 						$('.export_to_csv').show();
 					}					
 					$('.export_to_xls_upgrade_notice').hide();
+					$('.wpallexport-submit-template').removeAttr('disabled');
 				} else {
 					if(isWooCommerceOrder){
 						$('.csv_delimiter').hide();
@@ -1675,8 +1678,9 @@
 						$('.export_to_csv').hide();
 					}
 					$('.export_to_xls_upgrade_notice').show();
-				}
-				$('.wpallexport-submit-template').removeAttr('disabled');
+					$('.wpallexport-submit-template').attr('disabled', 'disabled');
+				}			
+				$('.custom_xml_upgrade_notice').hide();
     		}
     		else
     		{
@@ -1690,6 +1694,7 @@
 				var $xml_export_format = $('.xml_template_type').val();
 				if ( $xml_export_format == 'custom' || $xml_export_format == 'XmlGoogleMerchants'){
 					$('.wpallexport-submit-template').attr('disabled', 'disabled');
+					$('.custom_xml_upgrade_notice').show();
 				}
     		}
     	});
@@ -1911,6 +1916,7 @@
     			$('.wpallexport-custom-xml-template').slideUp();
     			$('.pmxe_product_data').find(".wpallexport-xml-element:contains('Attributes')").parents('li:first').show();
     			$('.wpallexport-submit-template').removeAttr('disabled');
+    			$('.custom_xml_upgrade_notice').hide();
     			break;
     		case 'custom':
             case 'XmlGoogleMerchants':
@@ -1955,6 +1961,7 @@
                     }
                 }
                 $('.wpallexport-submit-template').attr('disabled', 'disabled');
+                $('.custom_xml_upgrade_notice').show();
     			break;
     		default:
     			$('.simple_xml_template_options').slideUp();
@@ -1962,6 +1969,7 @@
     			$('.wpallexport-custom-xml-template').slideUp();
     			$('.pmxe_product_data').find(".wpallexport-xml-element:contains('Attributes')").parents('li:first').show();
     			$('.wpallexport-submit-template').removeAttr('disabled');
+    			$('.custom_xml_upgrade_notice').hide();
     			break;
     	}
         $xml_template_first_load = false;
@@ -2023,6 +2031,7 @@
 				$('.export_to_csv').slideUp();
 			}
 			$('.export_to_xls_upgrade_notice').show();
+			$('.wpallexport-submit-template').attr('disabled', 'disabled');
 		} else {
 			if(isWooCommerceOrder) {
 				$('.csv_delimiter').show();
@@ -2030,6 +2039,7 @@
 				$('.export_to_csv').slideDown();
 			}
 			$('.export_to_xls_upgrade_notice').hide();
+			$('.wpallexport-submit-template').removeAttr('disabled');
 		}
 	});
 });})(jQuery);
