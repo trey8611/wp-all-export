@@ -1319,15 +1319,15 @@
 		});			
 		
 		// Preview export file
-		var doPreview = function( ths, tagno ){			
+		var doPreview = function( ths, tagno ){
 
-			$('.wpallexport-overlay').show();					
+			$('.wpallexport-overlay').show();
 
 			ths.pointer({
 	            content: '<div class="wpallexport-preview-preload wpallexport-pointer-preview"></div>',
 	            position: {
 	                edge: 'right',
-	                align: 'center'                
+	                align: 'center'
 	            },
 	            pointerWidth: 715,
 	            close: function() {
@@ -1339,19 +1339,19 @@
 	            }
 	        }).pointer('open');
 
-	        var $pointer = $('.wpallexport-pointer-preview').parents('.wp-pointer').first();	 
+	        var $pointer = $('.wpallexport-pointer-preview').parents('.wp-pointer').first();
 
 	        var $leftOffset = ($(window).width() - 715)/2;
 
-	        $pointer.css({'position':'fixed', 'top' : '15%', 'left' : $leftOffset + 'px'});	        
+	        $pointer.css({'position':'fixed', 'top' : '15%', 'left' : $leftOffset + 'px'});
 
 			var request = {
-				action: 'wpae_preview',	
+				action: 'wpae_preview',
 				data: $('form.wpallexport-step-3').serialize(),
 				custom_xml: xml_editor.getValue(),
 				tagno: tagno,
-				security: wp_all_export_security				
-		    };    		    
+				security: wp_all_export_security
+		    };
 
 			var url = get_valid_ajaxurl();
 			var show_cdata = $('#show_cdata_in_preview').val();
@@ -1366,28 +1366,42 @@
 				type: 'POST',
 				url: url,
 				data: request,
-				success: function(response) {						
+				success: function(response) {
 
 					ths.pointer({'content' : response.html});
 
 					$pointer.css({'position':'fixed', 'top' : '15%', 'left' : $leftOffset + 'px'});
-				
-					var $preview = $('.wpallexport-preview');		
+
+					var $preview = $('.wpallexport-preview');
 
 					$preview.parent('.wp-pointer-content').removeClass('wp-pointer-content').addClass('wpallexport-pointer-content');
 
 					$preview.find('.navigation a').unbind('click').die('click').live('click', function () {
 
-						tagno += '#prev' == $(this).attr('href') ? -1 : 1;						
+						tagno += '#prev' == $(this).attr('href') ? -1 : 1;
 
 						doPreview(ths, tagno);
 
 					});
 
 				},
-				error: function( jqXHR, textStatus ) {	
+				error: function( jqXHR, textStatus ) {
+					// Handle an eval error
+					if(jqXHR.responseText.indexOf('[[ERROR]]') !== -1) {
+						var json = jqXHR.responseText.split('[[ERROR]]')[1];
+						json = $.parseJSON(json);
+						ths.pointer({'content' : '<div id="post-preview" class="wpallexport-preview">' +
+						'<p class="wpallexport-preview-title">' + json.title + '</p>\
+						<div class="wpallexport-preview-content">'+json.error+'</div></div></div>'});
 
-					ths.pointer({'content' : jqXHR.responseText});													
+						$pointer.css({'position':'fixed', 'top' : '15%', 'left' : $leftOffset + 'px'});
+
+					} else {
+						ths.pointer({'content' : '<div id="post-preview" class="wpallexport-preview">' +
+						'<p class="wpallexport-preview-title">An error occured</p>\
+						<div class="wpallexport-preview-content">An unknown error occured</div></div></div>'});
+						$pointer.css({'position':'fixed', 'top' : '15%', 'left' : $leftOffset + 'px'});
+					}
 
 				},
 				dataType: "json"
@@ -1623,14 +1637,28 @@
 						}
 					},
 					error: function( jqXHR, textStatus ) {
-						// We don't know the error
-						errorMessage.each(function(){
-							$('#validationError').find('p').append($('<ul><li>An unknown error occured</li></ul>'));
-						});
+						$('#validationError p').html('');
+
+						// Handle an eval error
+						if(jqXHR.responseText.indexOf('[[ERROR]]') != -1) {
+							var json = jqXHR.responseText.split('[[ERROR]]')[1];
+							json = $.parseJSON(json);
+
+							$('#validationError').find('p').append(json.error);
+							$('#validationError').fadeIn();
+							$('html, body').animate({scrollTop: $("#validationError").offset().top - 50});
+
+						} else {
+							// We don't know the error
+							$('#validationError').find('p').html('An unknown error occured');
+							$('#validationError').fadeIn();
+							$('html, body').animate({scrollTop: $("#validationError").offset().top - 50});
+						}
+
 					},
 					dataType: "json"
 				});
-			});			
+			});		
     	}   	     	   
 
     	if ( $('input[name=export_to]').val() == 'csv' && $('#export_to_sheet').val() == 'xls'){

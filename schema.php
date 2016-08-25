@@ -41,7 +41,7 @@ CREATE TABLE {$table_prefix}templates (
 CREATE TABLE {$table_prefix}exports (
 	id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 	parent_id BIGINT(20) NOT NULL DEFAULT 0,
-	attch_id BIGINT(20) UNSIGNED NOT NULL,
+	attch_id BIGINT(20) NOT NULL DEFAULT 0,
 	options LONGTEXT,
 	scheduled VARCHAR(64) NOT NULL DEFAULT '',
 	registered_on DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',	

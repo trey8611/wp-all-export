@@ -1,18 +1,21 @@
 <?php
 
+// Handle eval errors that cause the script to finish
+$wpaeErrorHandler = new WpaePhpInterpreterErrorHandler();
+register_shutdown_function(array($wpaeErrorHandler, 'handle'));
 
 /**
  * Class PMXE_XMLWriter
  */
 class PMXE_XMLWriter extends XMLWriter
 {
-
   /**
    * @var array
    */
   public $articles = array();
 
-  /**
+
+    /**
    * @param array $articles
    */
   public function writeArticle($articles = array() ){
@@ -214,9 +217,15 @@ class PMXE_XMLWriter extends XMLWriter
                   $filtered = str_replace('CLOSEBRAKET', ']', str_replace('OPENBRAKET', '[', $filtered));
                   $filtered = str_replace('CLOSECURVE', '}', str_replace('OPENCURVE', '{', $filtered));
 
-                  $functionName = str_replace(['(',')'],'',$filtered);
-                  $functionName = preg_replace('/"[^"]+"/', '', $functionName);
-                  
+                  $functionName = self::sanitizeFunctionName($filtered);
+
+                  $numberOfSingleQuotes = substr_count($filtered, "'");
+                  $numberOfDoubleQuotes= substr_count($filtered, "\"");
+
+                  if($numberOfSingleQuotes % 2 || $numberOfDoubleQuotes % 2) {
+                      throw new WpaeInvalidStringException($functionName);
+                  }
+
                   if(!function_exists($functionName)) {
                       throw new WpaeMethodNotFoundException($functionName);
                   }
@@ -286,5 +295,30 @@ class PMXE_XMLWriter extends XMLWriter
               break;
       }
       return $is_wrap_into_cdata ? "<![CDATA[" . $v . "]]>" : $v ;
+    }
+
+    /**
+     * @param $filtered
+     * @return mixed
+     */
+    private static function sanitizeFunctionName($filtered)
+    {
+        $functionName = preg_replace('/"[^"]+"/', '', $filtered);
+        $functionName = preg_replace('/\'[^\']+\'/', '', $functionName);
+
+        $firstSingleQuote = strpos($functionName, '\'');
+        $firstDoubleQuote = strpos($functionName, '"');
+
+        if($firstDoubleQuote < $firstSingleQuote && $firstDoubleQuote != 0) {
+            $functionName = explode('"', $functionName);
+            $functionName = $functionName[0];
+        } else if ($firstSingleQuote !=0) {
+            $functionName = explode('\'', $functionName);
+            $functionName = $functionName[0];
+        }
+        $functionName = str_replace(['(', ')', ',', ' ','\'','"'], '', $functionName);
+
+
+        return $functionName;
     }
 } 

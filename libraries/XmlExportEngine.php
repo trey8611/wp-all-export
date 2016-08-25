@@ -377,7 +377,7 @@ if ( ! class_exists('XmlExportEngine') ){
 
             self::$implode = apply_filters('wp_all_export_implode_delimiter', self::$implode, self::$exportID);
 
-            if ( in_array(self::$exportOptions['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ) self::$implode = '#delimiter#';
+            if ( !empty(self::$exportOptions['xml_template_type']) && in_array(self::$exportOptions['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ) self::$implode = '#delimiter#';
 
 			self::$acf_export  		 = new XmlExportACF();
 			self::$woo_export  		 = new XmlExportWooCommerce();
