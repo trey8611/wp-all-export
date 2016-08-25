@@ -107,7 +107,7 @@
 	</table>	
 
 	<div class="wpallexport-free-edition-notice" style="margin: 15px 0; padding: 20px;">
-		<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=custom-php&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to add Zapier integration.','wp_all_export_plugin');?></a>
+		<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=custom-php&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export for Zapier Integration','wp_all_export_plugin');?></a>
 		<p><?php _e('If you already own it, remove the free edition and install the Pro edition.', 'wp_all_export_plugin'); ?></p>
 	</div>
 
@@ -129,12 +129,11 @@
 <br>
 <h3><?php _e('Function Editor', 'pmxe_plugin') ?></h3>
 
+<textarea id="wp_all_export_code" name="wp_all_export_code"><?php echo "<?php\n\n?>";?></textarea>						
 <div class="wpallexport-free-edition-notice" style="margin: 15px 0; padding: 20px;">
-	<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=custom-php&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to enable the Function Editor.','wp_all_export_plugin');?></a>
+	<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=custom-php&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to enable the Function Editor','wp_all_export_plugin');?></a>
 	<p><?php _e('If you already own it, remove the free edition and install the Pro edition.', 'wp_all_export_plugin'); ?></p>
 </div>
-
-<textarea id="wp_all_export_code" name="wp_all_export_code"><?php echo "<?php\n\n?>";?></textarea>						
 
 <div class="input" style="margin-top: 10px;">
 
@@ -146,7 +145,6 @@
 	<div class="input wp_all_export_saving_status" style="display:inline-block;">
 
 	</div>
-
 </div>
 
 <a href="http://soflyy.com/" target="_blank" class="wpallexport-created-by"><?php _e('Created by', 'wp_all_export_plugin'); ?> <span></span></a>

@@ -198,7 +198,7 @@ function pmxe_wp_ajax_wpae_filtering_count(){
 			<?php if ($found_records > 0) :?>				
 				<?php if (XmlExportEngine::$is_user_export || XmlExportEngine::$is_comment_export): ?>
 				<h3><span class="matches_count"><?php echo $found_records; ?></span> <strong><?php echo wp_all_export_get_cpt_name($cpt, $found_records); ?></strong> can be exported</h3>
-				<h4><?php printf(__('Upgrade to the Pro edition of WP All Export to export %s.', 'wp_all_export_plugin'), wp_all_export_get_cpt_name($cpt)); ?></h4>
+				<h4><?php printf(__('Upgrade to the Pro edition of WP All Export to Export %s', 'wp_all_export_plugin'), wp_all_export_get_cpt_name($cpt)); ?></h4>
 				<?php else:?>
 				<h3><span class="matches_count"><?php echo $found_records; ?></span> <strong><?php echo wp_all_export_get_cpt_name($cpt, $found_records); ?></strong> will be exported</h3>
 				<h4><?php _e("Continue to configure and run your export.", "wp_all_export_plugin"); ?></h4>

@@ -60,7 +60,8 @@
 		<a href="#help" class="wpallexport-help" title="<?php _e('The value of the field chosen for export will be passed to the PHP function.', 'wp_all_export_plugin'); ?>" style="top: 0;">?</a>								
 		<div class="switcher-target-coperate_php" style="margin-top:5px;">
 			<div class="wpallexport-free-edition-notice" style="margin: 15px 0;">
-				<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=custom-php&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to enable custom PHP functions.','wp_all_export_plugin');?></a>
+				<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=custom-php&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to use Custom PHP Functions','wp_all_export_plugin');?></a>
+				<p><?php _e('If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></p>
 			</div>
 			<?php echo "&lt;?php ";?>
 			<input type="text" class="php_code" value="" style="width:50%;" placeholder='your_function_name'/> 
