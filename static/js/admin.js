@@ -2070,4 +2070,25 @@
 			$('.wpallexport-submit-template').removeAttr('disabled');
 		}
 	});
+
+	$('select[name=column_value_type]').change(function(){
+		var disabledFields = ['fees', 'notes', 'refunds', 'taxes', 'item_data', 'items'];
+		var selectedField  = $(this).find('option:selected').attr('options');
+		var isShowWarning  = false;
+		for (var i = 0; i < disabledFields.length; i++) {
+			if (disabledFields[i] == selectedField){
+				isShowWarning = true;
+				break;
+			}
+		};
+		if (isShowWarning){ 
+			$('.disabled_fields_upgrade_notice').show(); 
+			$('.save_action').addClass('wp_all_export_disabled_button').attr('disabled', 'disabled');
+		}
+		else {
+			$('.disabled_fields_upgrade_notice').hide();
+			$('.save_action').removeClass('wp_all_export_disabled_button').removeAttr('disabled');
+		}
+	});
+
 });})(jQuery);

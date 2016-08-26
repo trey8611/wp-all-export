@@ -18,6 +18,13 @@
 		
 		<?php include_once 'advanced_field_options.php'; ?>
 
+		<div class="input disabled_fields_upgrade_notice" style="vertical-align:middle; position: relative;">
+			<span class="wpallexport-free-edition-notice">									
+				<a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=wooco+orders&utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to Export Order Data','wp_all_export_plugin');?></a>
+				<p><?php _e('If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></p>
+			</span>														
+		</div>
+
 	</div>																		
 	<div class="input wp-all-export-edit-column-buttons">			
 		<input type="button" class="delete_action" value="<?php _e("Delete", "wp_all_export_plugin"); ?>" style="border: none;"/>									

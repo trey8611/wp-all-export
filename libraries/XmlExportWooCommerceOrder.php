@@ -1040,7 +1040,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 			?>
 			<select class="wp-all-export-chosen-select" name="column_value_type" style="width:350px;">
 				<?php
-				foreach (self::$order_sections as $slug => $section) : if ( in_array($slug, array('taxes', 'fees', 'items', 'notes', 'refunds'))) continue;
+				foreach (self::$order_sections as $slug => $section) : //if ( in_array($slug, array('taxes', 'fees', 'items', 'notes', 'refunds'))) continue;
 					?>										
 					<optgroup label="<?php echo $section['title']; ?>">					
 						<?php
