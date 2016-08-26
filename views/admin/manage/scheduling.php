@@ -3,7 +3,7 @@
 </h2>
 
 <div class="wpallexport-free-edition-notice" style="padding: 20px; margin-left: 0px;">
-	<a class="upgrade_link" target="_blank" href="http://www.wpallexport.com/upgrade-to-wp-all-export-pro/?utm_source=wordpress.org&amp;utm_medium=cron&amp;utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export for Scheduled Exports', 'wp_all_export_plugin');?></a>
+	<a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=cron&utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export for Scheduled Exports', 'wp_all_export_plugin');?></a>
 	<p><?php _e('If you already own it, remove the free edition and install the Pro edition.', 'wp_all_export_plugin'); ?></p>
 </div>
 
