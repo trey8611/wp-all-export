@@ -129,6 +129,8 @@ class PMXE_XMLWriter extends XMLWriter
       else {
           if(XmlExportEngine::$is_preview && XmlExportEngine::$exportOptions['show_cdata_in_preview']) {
               $this->text('CDATABEGIN'.$value.'CDATACLOSE');
+          } else if(XmlExportEngine::$is_preview && !XmlExportEngine::$exportOptions['show_cdata_in_preview']){
+              return $this->text($value);
           } else {
               $this->writeCdata($value);
           }
@@ -261,9 +263,26 @@ class PMXE_XMLWriter extends XMLWriter
       if ( ! empty($simple_snipets) ){
           foreach ($simple_snipets as $snipet) {
               $filtered = preg_replace("%[\{\}]%", "", $snipet);
+
+              $is_attribute = false;
+              //Encode data in attributes
+              if(strpos($xml, "\"$snipet\"") !== false || strpos($xml, "'$snipet'") !== false ) {
+                  $is_attribute = true;
+                  $filtered = str_replace('&amp;', '&',$filtered);
+                  $filtered = str_replace('&', '&amp;',$filtered);
+                  $filtered = str_replace('\'', '&#x27;',$filtered);
+                  $filtered = str_replace('"', '&quot;',$filtered);
+                  $filtered = str_replace('<', '&lt;',$filtered);
+                  $filtered = str_replace('>', '&gt;',$filtered);
+              }
+
               $filtered = str_replace('CLOSEBRAKET', ']', str_replace('OPENBRAKET', '[', $filtered));
               $filtered = str_replace('CLOSECURVE', '}', str_replace('OPENCURVE', '{', $filtered));
-              $xml = str_replace($snipet, self::maybe_cdata($filtered), $xml);
+              if($is_attribute) {
+                  $xml = str_replace($snipet, $filtered, $xml);
+              } else {
+                  $xml = str_replace($snipet, self::maybe_cdata($filtered), $xml);
+              }
           }
       }
 
@@ -277,24 +296,29 @@ class PMXE_XMLWriter extends XMLWriter
      * @return string
      */
     public static function maybe_cdata($v ){
-      $is_wrap_into_cdata = false;
-      switch (XmlExportEngine::$exportOptions['custom_xml_cdata_logic'])
-      {
-          case 'auto':
-              if ( ! empty($v) and  preg_match('%[&<>]+%', $v)){
-                  $is_wrap_into_cdata = true;
-              }
-              break;
 
-          case 'all':
-              $is_wrap_into_cdata = true;
-              break;
+        if( XmlExportEngine::$is_preview && !XmlExportEngine::$exportOptions['show_cdata_in_preview']) {
+            return $v;
+        }
 
-          case 'never':
-              $is_wrap_into_cdata = false;
-              break;
-      }
-      return $is_wrap_into_cdata ? "<![CDATA[" . $v . "]]>" : $v ;
+        $cdataStrategyFactory = new CdataStrategyFactory();
+
+        if(!isset(XmlExportEngine::$exportOptions['custom_xml_cdata_logic'])) {
+            XmlExportEngine::$exportOptions['custom_xml_cdata_logic'] = 'auto';
+        }
+        $cdataStrategy = $cdataStrategyFactory->create_strategy(XmlExportEngine::$exportOptions['custom_xml_cdata_logic']);
+        $is_wrap_into_cdata = $cdataStrategy->should_cdata_be_applied($v);
+
+        if ( $is_wrap_into_cdata === false ) {
+            return $v;
+        }
+        else {
+            if(XmlExportEngine::$is_preview && XmlExportEngine::$exportOptions['show_cdata_in_preview']) {
+                return 'CDATABEGIN'.$v.'CDATACLOSE';
+            } else {
+                return "<![CDATA[a" . $v . "]]>";
+            }
+        }
     }
 
     /**

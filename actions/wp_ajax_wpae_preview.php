@@ -48,11 +48,7 @@ function pmxe_wp_ajax_wpae_preview(){
 	XmlExportEngine::$exportOptions     = $exportOptions;
 	XmlExportEngine::$is_user_export    = $exportOptions['is_user_export'];
 	XmlExportEngine::$is_comment_export = $exportOptions['is_comment_export'];
-	XmlExportEngine::$exportID 			= $export_id;
-
-	if(isset($_GET['show_cdata'])) {
-		XmlExportEngine::$exportOptions['show_cdata_in_preview'] = $_GET['show_cdata'];
-	}
+	XmlExportEngine::$exportID 			= $export_id;	
 
 	if ( in_array(XmlExportEngine::$exportOptions['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ){
 
@@ -73,6 +69,12 @@ function pmxe_wp_ajax_wpae_preview(){
 				XmlExportEngine::$exportOptions = array_merge(XmlExportEngine::$exportOptions, $result);
 			}
 		}
+	}
+
+	if(isset($_GET['show_cdata'])) {
+		XmlExportEngine::$exportOptions['show_cdata_in_preview'] = (bool)$_GET['show_cdata'];
+	} else {
+		XmlExportEngine::$exportOptions['show_cdata_in_preview'] = false;
 	}
 
 	if ( $errors->get_error_codes()) {
