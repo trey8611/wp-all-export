@@ -171,7 +171,7 @@ if ( ! class_exists('XmlExportEngine') ){
 		public static $exportID     = false;
 		public static $exportRecord = false;
 
-		public static $is_auto_generate_enabled = false;
+		public static $is_auto_generate_enabled = true;
 
 		public function __construct( $post, & $errors = false ){		
 
@@ -329,8 +329,6 @@ if ( ! class_exists('XmlExportEngine') ){
 
 				self::$is_comment_export = ( in_array('comments', self::$post_types) ) ? true : false;				
 
-				self::$is_auto_generate_enabled = (class_exists('WooCommerce') and in_array(self::$post_types[0], array('product', 'shop_coupon', 'shop_customer', 'shop_order')) or in_array(self::$post_types[0], array('users')));
-
 			}	
 			else
 			{				
@@ -472,7 +470,7 @@ if ( ! class_exists('XmlExportEngine') ){
 
 					if (strpos($obj->name, "pa_") !== 0 and strlen($obj->name) > 3)
 						$this->_existing_taxonomies[] = array(
-							'name' => $obj->label,
+							'name' => empty($obj->label) ? $obj->name : $obj->label,
 							'label' => $obj->name,
 							'type' => 'cats'
 						);
@@ -633,7 +631,7 @@ if ( ! class_exists('XmlExportEngine') ){
 
 							if ( $field_type == 'cf' && $field_name == '_thumbnail_id' ) continue;
 
-							$is_auto_field = ( ! empty($field['auto']) or self::$is_auto_generate_enabled and 'specific' == $this->post['export_type'] and ! in_array(self::$post_types[0], array('product')));
+							$is_auto_field = ( ! empty($field['auto']) or self::$is_auto_generate_enabled and ('specific' != $this->post['export_type'] or 'specific' == $this->post['export_type'] and ! in_array(self::$post_types[0], array('product'))));
 							
 							?>
 							<li class="pmxe_<?php echo $slug; ?> <?php if ( $is_auto_field ) echo 'wp_all_export_auto_generate';?>">
@@ -673,9 +671,10 @@ if ( ! class_exists('XmlExportEngine') ){
 										</li>
 										<?php
 										foreach ($sub_section['meta'] as $field) {		
+											$is_auto_field = empty($field['auto']) ? false : true;
 											$field_options = ( in_array($sub_slug, array('images', 'attachments')) ) ? esc_attr('{"is_export_featured":true,"is_export_attached":true,"image_separator":"|"}') : '0';
 											?>
-											<li class="pmxe_<?php echo $slug; ?>_<?php echo $sub_slug;?>">
+											<li class="pmxe_<?php echo $slug; ?>_<?php echo $sub_slug;?> <?php if ( $is_auto_field ) echo 'wp_all_export_auto_generate';?>">
 												<div class="custom_column" rel="<?php echo ($i + 1);?>">
 													<label class="wpallexport-xml-element"><?php echo (is_array($field)) ? $field['name'] : $field; ?></label>
 													<input type="hidden" name="ids[]" value="1"/>
@@ -981,7 +980,15 @@ if ( ! class_exists('XmlExportEngine') ){
 
 		public function parse_custom_xml_template(){
 
-			$result = array();
+			preg_match("%". self::XML_LOOP_START ."(.*)". self::XML_LOOP_END ."%", $this->post['custom_xml_template'], $matches);
+			$parts = explode(self::XML_LOOP_START, $this->post['custom_xml_template']);
+			$loopContent = $parts[1];
+			$parts = explode(self::XML_LOOP_END, $loopContent);
+			$loopContent = $parts[0];
+			$line_numbers = substr_count($loopContent, "\n") +1;
+
+			$result['original_post_loop'] = $loopContent;
+			$result['line_numbers'] = $line_numbers;
 
 			$custom_xml_template = str_replace("\n", "", $this->post['custom_xml_template']);
 

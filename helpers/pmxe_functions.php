@@ -86,7 +86,7 @@
 				foreach ($post_taxonomies as $tx) {
 					if (strpos($tx->name, "pa_") !== 0)		
 						$_existing_taxonomies[] = array(
-							'name' => $tx->label,
+							'name' => empty($tx->label) ? $tx->name : $tx->label,
 							'label' => $tx->name,
 							'type' => 'cats'
 						);

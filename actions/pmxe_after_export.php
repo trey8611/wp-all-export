@@ -30,7 +30,45 @@ function pmxe_pmxe_after_export($export_id, $export)
 		else
 		{
 			$filepath = wp_all_export_get_absolute_path($export->options['filepath']);
-		}		
+		}	
+
+		$is_export_csv_headers = apply_filters('wp_all_export_is_csv_headers_enabled', true, $export->id);
+
+        // Remove headers row from CSV file
+        if ( ! $is_export_csv_headers && @file_exists($filepath) && $export->options['export_to'] == 'csv' ){
+
+            $tmp_file = str_replace(basename($filepath), 'iteration_' . basename($filepath), $filepath);
+            copy($filepath, $tmp_file);
+            $in  = fopen($tmp_file, 'r');
+            $out = fopen($filepath, 'w');
+
+            $headers = fgetcsv($in);
+
+            if (is_resource($in)) {
+                $lineNumber = 0;
+                while ( ! feof($in) ) {
+                    $data = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter']);
+                    if ( empty($data) ) continue;
+                    $data_assoc = array_combine($headers, array_values($data));
+                    $line = array();
+                    foreach ($headers as $header) {
+                        $line[$header] = ( isset($data_assoc[$header]) ) ? $data_assoc[$header] : '';
+                    }
+                    if ( ! $lineNumber && XmlExportEngine::$exportOptions['include_bom']){
+                        fwrite($out, chr(0xEF).chr(0xBB).chr(0xBF));
+                        fputcsv($out, $line, XmlExportEngine::$exportOptions['delimiter']);
+                    }
+                    else{
+                        fputcsv($out, $line, XmlExportEngine::$exportOptions['delimiter']);
+                    }
+                    apply_filters('wp_all_export_after_csv_line', $out, XmlExportEngine::$exportID);
+                    $lineNumber++;
+                }
+                fclose($in);
+            }
+            fclose($out);
+            @unlink($tmp_file);
+        }	
 
 		// Split large exports into chunks
 		if ( $export->options['split_large_exports'] and $splitSize < $export->exported )

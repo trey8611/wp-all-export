@@ -11,7 +11,7 @@ function pmxe_wp_ajax_wpae_preview(){
 	if ( ! current_user_can( PMXE_Plugin::$capabilities ) ){
 		exit( json_encode(array('html' => __('Security check', 'wp_all_export_plugin'))) );
 	}
-	
+
 	XmlExportEngine::$is_preview = true;
 
 	$custom_xml_valid = true;
@@ -22,33 +22,28 @@ function pmxe_wp_ajax_wpae_preview(){
 	
 	parse_str($_POST['data'], $values);	
 
-	$export_id = (isset($_GET['id'])) ? stripcslashes($_GET['id']) : 0;
+	$export_id = (isset($_GET['id'])) ? stripcslashes($_GET['id']) : 0;	
 
 	$exportOptions = $values + (PMXE_Plugin::$session->has_session() ? PMXE_Plugin::$session->get_clear_session_data() : array()) + PMXE_Plugin::get_default_import_options();	
 
 	$exportOptions['custom_xml_template'] = (isset($_POST['custom_xml'])) ? stripcslashes($_POST['custom_xml']) : '';
+	$exportOptions['custom_xml_template'] = str_replace('<ID>','<id>', $exportOptions['custom_xml_template'] );
+	$exportOptions['custom_xml_template'] = str_replace('</ID>','</id>', $exportOptions['custom_xml_template'] );
 
-    if ( ! empty($exportOptions['custom_xml_template'])) {
-		$originalXmlTemplate = $exportOptions['custom_xml_template'];
-		libxml_use_internal_errors(true);
-		$custom_xml_template = simplexml_load_string($exportOptions['custom_xml_template']);
-		if ($custom_xml_template === false) {
-			$custom_xml_template_errors = libxml_get_errors();
-			$custom_xml_valid = false;
-		}
-        $exportOptions['custom_xml_template'] = str_replace("<!-- BEGIN POST LOOP -->", "<!-- BEGIN LOOP -->", $exportOptions['custom_xml_template']);
-        $exportOptions['custom_xml_template'] = str_replace("<!-- END POST LOOP -->", "<!-- END LOOP -->", $exportOptions['custom_xml_template']);
-
+	if ( ! empty($exportOptions['custom_xml_template'])) {
+		$custom_xml_template_line_count = substr_count($exportOptions['custom_xml_template'], "\n");
     }
 
-	$errors = new WP_Error();
+    $errors = new WP_Error();
 
 	$engine = new XmlExportEngine($exportOptions, $errors);
 
 	XmlExportEngine::$exportOptions     = $exportOptions;
 	XmlExportEngine::$is_user_export    = $exportOptions['is_user_export'];
 	XmlExportEngine::$is_comment_export = $exportOptions['is_comment_export'];
-	XmlExportEngine::$exportID 			= $export_id;	
+	XmlExportEngine::$exportID 			= $export_id;
+
+
 
 	if ( in_array(XmlExportEngine::$exportOptions['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ){
 
@@ -59,15 +54,35 @@ function pmxe_wp_ajax_wpae_preview(){
 
 		if ( ! empty(XmlExportEngine::$exportOptions['custom_xml_template'])){
 
-			$engine->init_additional_data();
+			$engine->init_additional_data();		
 
 			$engine->init_available_data();
 
-			$result = $engine->parse_custom_xml_template();
-
+			$result = $engine->parse_custom_xml_template();		
+			$line_numbers = $result['line_numbers'];
 			if ( ! $errors->get_error_codes()) {
 				XmlExportEngine::$exportOptions = array_merge(XmlExportEngine::$exportOptions, $result);
 			}
+
+			$originalXmlTemplate = $exportOptions['custom_xml_template'];
+			libxml_use_internal_errors(true);
+			libxml_clear_errors();
+
+			//Add root se we make sure there is a root tag
+			$result['original_post_loop'] = '<root>'.$result['original_post_loop'].'</root>';
+
+			$custom_xml_template = simplexml_load_string($result['original_post_loop']);
+
+			if ($custom_xml_template === false) {
+				$custom_xml_template_errors = libxml_get_errors();
+				libxml_clear_errors();
+				$custom_xml_valid = false;
+				// Remove one line because we added root
+				$line_difference = $custom_xml_template_line_count - $line_numbers - 1;
+			}
+			$exportOptions['custom_xml_template'] = str_replace("<!-- BEGIN POST LOOP -->", "<!-- BEGIN LOOP -->", $exportOptions['custom_xml_template']);
+			$exportOptions['custom_xml_template'] = str_replace("<!-- END POST LOOP -->", "<!-- END LOOP -->", $exportOptions['custom_xml_template']);
+
 		}
 	}
 
@@ -88,7 +103,7 @@ function pmxe_wp_ajax_wpae_preview(){
 		exit( json_encode(array('html' => ob_get_clean())) );
 	}
 
-	if ( 'advanced' == $exportOptions['export_type'] )
+	if ( 'advanced' == $exportOptions['export_type'] ) 
 	{		
 		if ( XmlExportEngine::$is_user_export )
 		{
@@ -108,12 +123,16 @@ function pmxe_wp_ajax_wpae_preview(){
 		XmlExportEngine::$post_types = $exportOptions['cpt'];
 
 		if ( in_array('users', $exportOptions['cpt']) or in_array('shop_customer', $exportOptions['cpt']))
-		{									
+		{						
+			add_action('pre_user_query', 'wp_all_export_pre_user_query', 10, 1);
 			$exportQuery = new WP_User_Query( array( 'orderby' => 'ID', 'order' => 'ASC', 'number' => 10 ));
+			remove_action('pre_user_query', 'wp_all_export_pre_user_query');
 		}
 		elseif( in_array('comments', $exportOptions['cpt']))
-		{									
-			global $wp_version;
+		{			
+			add_action('comments_clauses', 'wp_all_export_comments_clauses', 10, 1);
+			
+			global $wp_version;					
 
 			if ( version_compare($wp_version, '4.2.0', '>=') ) 
 			{
@@ -122,7 +141,8 @@ function pmxe_wp_ajax_wpae_preview(){
 			else
 			{
 				$exportQuery = get_comments( array( 'orderby' => 'comment_ID', 'order' => 'ASC', 'number' => 10 ));
-			}			
+			}
+			remove_action('comments_clauses', 'wp_all_export_comments_clauses');
 		}
 		else
 		{			
@@ -132,31 +152,31 @@ function pmxe_wp_ajax_wpae_preview(){
 			
 			add_filter('posts_join', 'wp_all_export_posts_join', 10, 1);
 			add_filter('posts_where', 'wp_all_export_posts_where', 10, 1);
-			$exportQuery = new WP_Query( array( 'post_type' => $exportOptions['cpt'], 'post_status' => 'any', 'orderby' => 'title', 'order' => 'ASC', 'posts_per_page' => 10 ));
+			$exportQuery = new WP_Query( array( 'post_type' => $exportOptions['cpt'], 'post_status' => 'any', 'orderby' => 'title', 'order' => 'ASC', 'posts_per_page' => 10 ));			
 			remove_filter('posts_where', 'wp_all_export_posts_where');
 			remove_filter('posts_join', 'wp_all_export_posts_join');					
 		}
 	}	
 
-	XmlExportEngine::$exportQuery = $exportQuery;	
+	XmlExportEngine::$exportQuery = $exportQuery;
 
     $engine->init_additional_data();
 
 	?>
 
 	<div id="post-preview" class="wpallexport-preview">
-
-		<p class="wpallexport-preview-title"><?php echo sprintf("Preview first 10 %s", wp_all_export_get_cpt_name($exportOptions['cpt'], 10)); ?></p>
 		
+		<p class="wpallexport-preview-title"><?php echo sprintf("Preview first 10 %s", wp_all_export_get_cpt_name($exportOptions['cpt'], 10)); ?></p>
+
 		<div class="wpallexport-preview-content">
 			
-		<?php		
+		<?php
 
 		if(!$custom_xml_valid) {
 			$error_msg = '<strong class="error">' . __('Invalid XML', 'wp_all_import_plugin') . '</strong><ul  class="error">';
 			foreach($custom_xml_template_errors as $error) {
 				$error_msg .= '<li>';
-				$error_msg .= __('Line', 'wp_all_import_plugin') . ' ' . $error->line . ', ';
+				$error_msg .= __('Line', 'wp_all_import_plugin') . ' ' . ($error->line + $line_difference) . ', ';
 				$error_msg .= __('Column', 'wp_all_import_plugin') . ' ' . $error->column . ', ';
 				$error_msg .= __('Code', 'wp_all_import_plugin') . ' ' . $error->code . ': ';
 				$error_msg .= '<em>' . trim(esc_html($error->message)) . '</em>';
@@ -167,8 +187,8 @@ function pmxe_wp_ajax_wpae_preview(){
 			exit( json_encode(array('html' => ob_get_clean())) );
 		}
 
-		$wp_uploads = wp_upload_dir();
-
+		$wp_uploads = wp_upload_dir();	
+		
 		$functions = $wp_uploads['basedir'] . DIRECTORY_SEPARATOR . WP_ALL_EXPORT_UPLOADS_BASE_DIRECTORY . DIRECTORY_SEPARATOR . 'functions.php';
 		if ( @file_exists($functions) )
 			require_once $functions;
@@ -180,8 +200,9 @@ function pmxe_wp_ajax_wpae_preview(){
 				$dom = new DOMDocument('1.0', $exportOptions['encoding']);
 				libxml_use_internal_errors(true);
 				try{
-				$xml = XmlCsvExport::export_xml( true );
+					$xml = XmlCsvExport::export_xml(true);
 				} catch (WpaeMethodNotFoundException $e) {
+					
 					// Find the line where the function is
 					$errorMessage = '';
 					$functionName = $e->getMessage();
@@ -197,6 +218,29 @@ function pmxe_wp_ajax_wpae_preview(){
 					$error_msg = '<span class="error">'.__($errorMessage, 'wp_all_import_plugin').'</span>';
 					echo $error_msg;
 					exit( json_encode(array('html' => ob_get_clean())) );
+				} catch (WpaeInvalidStringException $e) {
+					
+					// Find the line where the function is
+					$errorMessage = '';
+					$functionName = $e->getMessage();
+					$txtParts = explode("\n",$originalXmlTemplate);
+					for ($i=0, $length = count($txtParts);$i<$length;$i++)
+					{
+						$tmp = strstr($txtParts[$i], $functionName);
+						if ($tmp) {
+							$errorMessage .= 'Error parsing XML feed: Unterminated string on line '.($i+1);
+						}
+					}
+
+					$error_msg = '<span class="error">'.__($errorMessage, 'wp_all_import_plugin').'</span>';
+					echo $error_msg;
+					exit( json_encode(array('html' => ob_get_clean())) );
+				} catch (WpaeTooMuchRecursionException $e) {
+					$errorMessage = __('There was a problem parsing the custom XML template');
+					$error_msg = '<span class="error">'.__($errorMessage, 'wp_all_import_plugin').'</span>';
+					echo $error_msg;
+					exit( json_encode(array('html' => ob_get_clean())) );
+
 				}
 
                 $xml_errors = false;
@@ -232,12 +276,11 @@ function pmxe_wp_ajax_wpae_preview(){
                         }
 
                         libxml_clear_errors();
-				$dom->loadXML($xml);
+                        $dom->loadXML($xml);
                         $xml_errors = libxml_get_errors();
                         libxml_clear_errors();
-
                         if (! $xml_errors ){
-				$xpath = new DOMXPath($dom);
+                          $xpath = new DOMXPath($dom);
                           if (($elements = @$xpath->query('/' . $main_xml_tag)) and $elements->length){
                             pmxe_render_xml_element($elements->item( 0 ), true);
                           }
@@ -258,10 +301,10 @@ function pmxe_wp_ajax_wpae_preview(){
                         $xpath = new DOMXPath($dom);
 
                         // Determine XML root element
-				$main_xml_tag = apply_filters('wp_all_export_main_xml_tag', $exportOptions['main_xml_tag'], XmlExportEngine::$exportID);
-
-				if (($elements = @$xpath->query('/' . $main_xml_tag)) and $elements->length){
-					pmxe_render_xml_element($elements->item( 0 ), true);
+                        $main_xml_tag = apply_filters('wp_all_export_main_xml_tag', $exportOptions['main_xml_tag'], XmlExportEngine::$exportID);
+						$elements = @$xpath->query('/' . $main_xml_tag);
+                        if ($elements->length){
+                          pmxe_render_xml_element($elements->item( 0 ), true);
                           $xml_errors = false;
                         }
                         else{

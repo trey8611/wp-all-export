@@ -1,7 +1,7 @@
 === Export WordPress data to XML/CSV ===
 Contributors: soflyy, wpallimport
 Requires at least: 4.1
-Tested up to: 4.6
+Tested up to: 4.6.1
 Stable tag: 1.0.8
 Tags: wordpress csv export, wordpress xml export, xml, csv, datafeed, export, migrate, export csv from wordpress, export xml from wordpress, advanced xml export, advanced csv export, export data, bulk csv export, export custom post type, export woocommerce products, export woocommerce orders, migrate woocommerce, csv export, export csv, xml export, export xml, csv exporter, datafeed
 
@@ -79,6 +79,17 @@ Either: -
 == Changelog ==
 
 = 1.0.8 =
+* improvement: pull the parent taxonomy data when exporting variations
+* improvement: remove spaces from export filename
+* improvement: new filter wp_all_export_after_csv_line
+* improvement: date options for sale price dates from/to
+* improvement: possibility to use tab as csv delimiter
+* improvement: new filter 'wp_all_export_csv_headers'
+* bug fix: db schema on multisite
+* bug fix: import template for media items
+* bug fix: export ACF repeater in XML format
+* bug fix: export in CSV format when 'Main XML Tag' & 'Record XML Tag' option are blank
+* bug fix: export ACF date_time_picker
 
 = 1.0.7 =
 * fixed db schema for multisite

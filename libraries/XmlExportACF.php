@@ -197,7 +197,9 @@ if ( ! class_exists('XmlExportACF') )
 
 		private static $additional_articles = array();
 
-		public static function export_acf_field($field_value  = '', $exportOptions, $ID, $pid, &$article, $xmlWriter = false, &$acfs, $element_name = '', $element_name_ns = '', $fieldSnipped = '', $group_id = '', $preview = false, $return_value = false )
+        private static $fc_sub_field_names = array();
+
+		public static function export_acf_field($field_value  = '', $exportOptions, $ID, $pid, &$article, $xmlWriter = false, &$acfs, $element_name = '', $element_name_ns = '', $fieldSnipped = '', $group_id = '', $preview = false, $return_value = false, $is_sub_field = false )
 		{
 			global $acf;
 
@@ -585,7 +587,7 @@ if ( ! class_exists('XmlExportACF') )
 						    	
 						    	the_row(); 									    							    
 
-						    	$row = self::acf_get_row();							    											    	
+						    	$row = self::acf_get_row();
 
 						    	if ($is_xml_export) $xmlWriter->startElement('row');				
 
@@ -633,7 +635,8 @@ if ( ! class_exists('XmlExportACF') )
 				    					$fieldSnipped, 
 				    					'', 
 				    					$preview, 
-				    					$is_xml_export ? false : true
+				    					$is_xml_export ? false : true,
+                                        true
 				    				);
 						    		
 						    		if ( ! $is_xml_export )
@@ -643,7 +646,7 @@ if ( ! class_exists('XmlExportACF') )
 							    			case 'google_map':
 											case 'paypal_item':		
 											case 'location-field':
-							    			case 'repeater':									    								    									
+							    			case 'repeater':
 												
 												if ( ! empty($sub_field_value))
 												{
@@ -755,23 +758,24 @@ if ( ! class_exists('XmlExportACF') )
 
 					case 'flexible_content':																	
 
-						$fc_sub_field_names = array();
+						if ( ! $is_sub_field ) self::$fc_sub_field_names = array();
 
 						if ($is_xml_export) $xmlWriter->beginElement($element_name_ns, $element_name, null);	
 
 						// check if the flexible content field has rows of data
-						if( have_rows($field_name) ):						
+						if( have_rows($field_name, $pid) ):
 
 						 	// loop through the rows of data
-						    while ( have_rows($field_name) ) : the_row();				
+						    while ( have_rows($field_name, $pid) ) : the_row();
 
 								$row = self::acf_get_row();
 
-								foreach ($row['field']['layouts'] as $layout) {								
+								foreach ($row['field']['layouts'] as $layout) {
 
 									if ($layout['name'] == $row['value'][ $row['i'] ]['acf_fc_layout']){
 
-										if ($is_xml_export) $xmlWriter->startElement($row['value'][ $row['i'] ]['acf_fc_layout'] . '_' . $row['i']);											
+										if ($is_xml_export) $xmlWriter->startElement($row['value'][ $row['i'] ]['acf_fc_layout'] . '_' . $row['i']);
+
 								    	foreach ($layout['sub_fields'] as $sub_field) {				    					    		
 								    		
 								    		$layout_field_name = $element_name . '_' . $layout['name'] . '_' . $row['i'];	
@@ -782,11 +786,15 @@ if ( ! class_exists('XmlExportACF') )
 								    		{
 								    			$v = $row['value'][ $row['i'] ][ $sub_field['key'] ];
 
-								    			if ($is_xml_export) 
+								    			if ($is_xml_export)
 								    			{
-								    				$v = acf_format_value($v, $row['post_id'], $sub_field);
+                                                    // apply filters
+                                                    $v = apply_filters( "acf/format_value", $v, $pid, $sub_field );
+                                                    $v = apply_filters( "acf/format_value/type={$sub_field['type']}", $v, $pid, $sub_field );
+                                                    $v = apply_filters( "acf/format_value/name={$sub_field['_name']}", $v, $pid, $sub_field );
+                                                    $v = apply_filters( "acf/format_value/key={$sub_field['key']}", $v, $pid, $sub_field );
 								    			}
-								    		}		
+								    		}
 
 								    		if ($preview && ! $is_xml_export){
 								    			switch ($sub_field['type']) {
@@ -818,8 +826,9 @@ if ( ! class_exists('XmlExportACF') )
 							    				$fieldSnipped, 
 							    				'', 
 							    				$preview, 
-							    				$is_xml_export ? false : true
-							    			);						    		
+							    				$is_xml_export ? false : true,
+                                                true
+							    			);
 
 								    		if ( ! $is_xml_export ) 						    				
 						    				{
@@ -831,18 +840,22 @@ if ( ! class_exists('XmlExportACF') )
 														{
 															foreach ($sub_field_values as $key => $values) {
 														    	$article[$layout_field_name . '_' . $key] =  ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars(implode($implode_delimiter, $values)))) : implode($implode_delimiter, $values);				    	
-														    	if ( ! in_array($layout_field_name . '_' . $key, $fc_sub_field_names)) $fc_sub_field_names[] = $layout_field_name . '_' . $key;
+														    	if ( ! in_array($layout_field_name . '_' . $key, self::$fc_sub_field_names)) self::$fc_sub_field_names[] = $layout_field_name . '_' . $key;
 														   }					    																									
 														}
 
 									    				break;
-									    			
-									    			default:
-									    				
-									    				$article[$layout_field_name . '_' . $sub_field['name']] = $sub_field_values;						    							
+                                                    case 'flexible_content':
 
-														if ( ! in_array($layout_field_name . '_' . $sub_field['name'], $fc_sub_field_names)) 
-															$fc_sub_field_names[] = $layout_field_name . '_' . $sub_field['name'];
+
+                                                        break;
+
+									    			default:
+
+									    				$article[$layout_field_name . '_' . $sub_field['name']] = is_array($sub_field_values) ? implode($implode_delimiter, $sub_field_values) : $sub_field_values;
+
+														if ( ! in_array($layout_field_name . '_' . $sub_field['name'], self::$fc_sub_field_names))
+															self::$fc_sub_field_names[] = $layout_field_name . '_' . $sub_field['name'];
 
 									    				break;
 									    		}
@@ -862,8 +875,6 @@ if ( ! class_exists('XmlExportACF') )
 
 						if ($is_xml_export) $xmlWriter->closeElement();
 
-						if ( ! empty($fc_sub_field_names)) $acfs[$element_name] = $fc_sub_field_names;
-
 						$put_to_csv = false;
 						
 						break;											
@@ -874,7 +885,9 @@ if ( ! class_exists('XmlExportACF') )
 				}
 			}
 
-			if ($return_value) return $field_value;					
+			if ($return_value) return $field_value;
+
+            if ( ! empty(self::$fc_sub_field_names)) $acfs[$element_name] = self::$fc_sub_field_names;
 
 			if ($put_to_csv)
 			{					
@@ -1101,7 +1114,6 @@ if ( ! class_exists('XmlExportACF') )
 					$field_template = '{' . $field_tpl_key . '}';							
 					break;
 				case 'gallery':
-				case 'relationship':
 
 					if ($is_xml_template)
 					{						
@@ -1116,6 +1128,14 @@ if ( ! class_exists('XmlExportACF') )
                           'delim' => $implode_delimiter,
                           'gallery' => '{' . $field_tpl_key . '}'
                         );						
+					}
+					break;
+				case 'relationship':
+					if ($implode_delimiter == "|") {
+						$field_template = '[str_replace("|", ",",{' . $field_tpl_key . '})]';
+					}
+					else{
+						$field_template = '{' . $field_tpl_key . '}';
 					}
 					break;
 				case 'post_object':

@@ -105,7 +105,8 @@ final class XmlExportCpt
 					wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_post_type', pmxe_filter($pType, $fieldSnipped), $entry->ID) );
 					break;					
 				case 'title':								
-					wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_post_title', pmxe_filter($entry->post_title, $fieldSnipped), $entry->ID) );					
+					$val = apply_filters('pmxe_post_title', pmxe_filter($entry->post_title, $fieldSnipped));
+					wp_all_export_write_article( $article, $element_name, ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($val))) : $val, $entry->ID) ;
 					break;						
 				case 'content':
 					$val = apply_filters('pmxe_post_content', pmxe_filter($entry->post_content, $fieldSnipped), $entry->ID);					
@@ -516,10 +517,14 @@ final class XmlExportCpt
 				break;
 			case 'title':	
 			case 'content':
-			case 'author':				
-			case 'parent':				
+			case 'author':
 			case 'slug':
 				$templateOptions[$element_type] = '{'. $element_name .'[1]}';										
+				$templateOptions['is_update_' . $options['cc_type'][$ID]] = 1;
+				break;
+			case 'parent':
+				$templateOptions['is_multiple_page_parent'] = 'no';
+				$templateOptions['single_page_parent'] = '{' . $element_name . '[1]}';
 				$templateOptions['is_update_' . $options['cc_type'][$ID]] = 1;
 				break;	
 			case 'excerpt':

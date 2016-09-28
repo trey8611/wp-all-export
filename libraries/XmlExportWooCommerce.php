@@ -268,7 +268,7 @@ if ( ! class_exists('XmlExportWooCommerce') )
 						else
 						{							
 							$available_data['existing_taxonomies'][] = 	array(
-								'name'  => ($taxonomy['label'] == 'product_type') ? 'Product Type' : $tx->label,
+								'name'  => ($taxonomy['label'] == 'product_type') ? 'Product Type' : (empty($tx->label) ? $tx->name : $tx->label),
 								'label' => $taxonomy['label'],
 								'type'  => 'cats',
 								'auto'  => true
