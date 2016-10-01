@@ -4,7 +4,7 @@ require_once('CdataStrategy.php');
 
 class CdataStrategyIllegalCharacters implements CdataStrategy
 {
-    private $illegalCharacters = ['<','>','&', '\'', '"'];
+    private $illegalCharacters = array('<','>','&', '\'', '"');
 
     public function should_cdata_be_applied($field)
     {

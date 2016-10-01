@@ -395,7 +395,7 @@ class PMXE_XMLWriter extends XMLWriter
             $functionName = explode('\'', $functionName);
             $functionName = $functionName[0];
         }
-        $functionName = str_replace(['(', ')', ',', ' ', '\'', '"'], '', $functionName);
+        $functionName = str_replace(array('(', ')', ',', ' ', '\'', '"'), '', $functionName);
 
         return $functionName;
     }

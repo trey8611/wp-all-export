@@ -55,7 +55,6 @@ class WpaeXmlProcessor
                 throw new WpaeTooMuchRecursionException('Too much recursion');
             }
         }
-
         $xml = $this->postProcessXml($xml);
         $xml = $this->decodeSpecialCharacters($xml);
         $xml = $this->encodeSpecialCharsInAttributes($xml);
@@ -136,6 +135,7 @@ class WpaeXmlProcessor
                                         $elementValue = str_replace($snippet, $tagValues[$snippet][$i], $elementValue);
                                         $this->replaceSnippetInAttributes($elementClone, $snippet, $tagValues[$snippet][$i]);
 
+
                                     } else {
                                         $elementValue = str_replace($snippet, "", $elementValue);
                                         $this->replaceSnippetInAttributes($elementClone, $snippet, "");
@@ -192,7 +192,7 @@ class WpaeXmlProcessor
             $functionName = explode('\'', $functionName);
             $functionName = $functionName[0];
         }
-        $functionName = str_replace(['(', ')', ',', ' ', '\'', '"'], '', $functionName);
+        $functionName = str_replace(array('(', ')', ',', ' ', '\'', '"'), '', $functionName);
 
         return $functionName;
     }
@@ -219,7 +219,6 @@ class WpaeXmlProcessor
 
         return $results;
     }
-
 
     /**
      * @param $v
@@ -512,6 +511,8 @@ class WpaeXmlProcessor
 
         $xml = str_replace('<comment>', '<!--', $xml);
         $xml = str_replace('</comment>', '-->', $xml);
+
+        $xml = "\n  ".trim($xml);
         return $xml;
     }
 

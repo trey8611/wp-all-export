@@ -100,7 +100,7 @@ class WpaeString
             if (strpos($params, ",") !== false) {
                 $params = explode(",", $params);
             } else {
-                $params = [$params];
+                $params = array($params);
             }
 
             foreach ($params as $param) {
