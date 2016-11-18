@@ -156,7 +156,14 @@
 								<select id="wp_query_selector">
 									<option value="wp_query" <?php if ('wp_query' == $post['wp_query_selector']) echo 'selected="selected"'; ?>><?php _e('Post Type Query', 'wp_all_export_plugin'); ?></option>
 									<option value="wp_user_query" <?php if ('wp_user_query' == $post['wp_query_selector']) echo 'selected="selected"'; ?>><?php _e('User Query', 'wp_all_export_plugin'); ?></option>
+									<?php
+									global $wp_version;
+									if ( version_compare($wp_version, '4.2.0', '>=') ):
+									?>
 									<option value="wp_comment_query" <?php if ('wp_comment_query' == $post['wp_query_selector']) echo 'selected="selected"'; ?>><?php _e('Comment Query', 'wp_all_export_plugin'); ?></option>
+									<?php
+									endif;
+									?>
 								</select>
 								
 								<div class="wpallexport-free-edition-notice wpallexport-user-export-notice" style="margin-bottom: 20px;">

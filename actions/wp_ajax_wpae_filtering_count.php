@@ -141,8 +141,8 @@ function pmxe_wp_ajax_wpae_filtering_count(){
 			else{
 				?>
 				<div class="founded_records">
-					<h3><?php _e('Nothing to export.', 'wp_all_export_plugin'); ?></h3>
-					<h4><?php printf(__("To export taxonomies, please upgrade your WordPress core at least to version @4.6.0.", "wp_all_export_plugin"), wp_all_export_get_cpt_name($cpt, 2, $post)); ?></h4>
+					<h3><?php _e('Unable to Export', 'wp_all_export_plugin'); ?></h3>
+					<h4><?php printf(__("Exporting taxonomies requires WordPress 4.6 or greater", "wp_all_export_plugin"), wp_all_export_get_cpt_name($cpt, 2, $post)); ?></h4>
 				</div>
 				<?php
 				exit(json_encode(array('html' => ob_get_clean(), 'found_records' => 0, 'hasVariations' => $hasVariations))); die;
