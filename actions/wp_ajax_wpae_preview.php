@@ -41,6 +41,7 @@ function pmxe_wp_ajax_wpae_preview(){
 	XmlExportEngine::$exportOptions     = $exportOptions;
 	XmlExportEngine::$is_user_export    = $exportOptions['is_user_export'];
 	XmlExportEngine::$is_comment_export = $exportOptions['is_comment_export'];
+	XmlExportEngine::$is_taxonomy_export = $exportOptions['is_taxonomy_export'];
 	XmlExportEngine::$exportID 			= $export_id;
 
 
@@ -105,16 +106,13 @@ function pmxe_wp_ajax_wpae_preview(){
 
 	if ( 'advanced' == $exportOptions['export_type'] ) 
 	{		
-		if ( XmlExportEngine::$is_user_export )
-		{
+		if ( XmlExportEngine::$is_user_export ) {
 			$exportQuery = eval('return new WP_User_Query(array(' . $exportOptions['wp_query'] . ', \'offset\' => 0, \'number\' => 10));');
 		}
-		elseif ( XmlExportEngine::$is_comment_export )
-		{
+		elseif ( XmlExportEngine::$is_comment_export ) {
 			$exportQuery = eval('return new WP_Comment_Query(array(' . $exportOptions['wp_query'] . ', \'offset\' => 0, \'number\' => 10));');
 		}
-		else
-		{
+		else {
 			$exportQuery = eval('return new WP_Query(array(' . $exportOptions['wp_query'] . ', \'offset\' => 0, \'posts_per_page\' => 10));');
 		}		
 	}
@@ -166,7 +164,7 @@ function pmxe_wp_ajax_wpae_preview(){
 
 	<div id="post-preview" class="wpallexport-preview">
 		
-		<p class="wpallexport-preview-title"><?php echo sprintf("Preview first 10 %s", wp_all_export_get_cpt_name($exportOptions['cpt'], 10)); ?></p>
+		<p class="wpallexport-preview-title"><?php echo sprintf("Preview first 10 %s", wp_all_export_get_cpt_name($exportOptions['cpt'], 10, $exportOptions)); ?></p>
 
 		<div class="wpallexport-preview-content">
 			

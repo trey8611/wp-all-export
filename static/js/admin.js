@@ -4,10 +4,28 @@
 (function($){$(function () {
 
 	var vm = {
+		'preiviewText' :'',
 		'isWoocommerceOrderExport' : function(){
 			return $('#woo_commerce_order').length;
-		}
+		},
+		'isCSVExport': function(){
+			return $('input[name=export_to]').val() === 'csv';
+		},
+		'isProductVariationsExport' : function() {
+			return this.hasVariations;
+		},
+		'hasVariations' : false
 	};
+
+	$('.export_variations').change(function(){
+		setTimeout(liveFiltering, 200);
+	});
+
+	$('.variations_disabled').click(function(){
+		$('#updateNotice').show();
+		$('html, body').animate({scrollTop: $("#updateNotice").offset().top - 50});
+		return false;
+	});
 
 	var helpers = {
 		'sanitizeElementName' : function($elementName) {
@@ -119,6 +137,7 @@
 			$(this).parents('form').find('input.switcher:radio[name="' + $(this).attr('name') + '"]').not(this).change();
 		}
 		var $switcherID = $(this).attr('id');
+
 		var $targets = $('.switcher-target-' + $switcherID);
 
 		var is_show = $(this).is(':checked'); if ($(this).is('.switcher-reversed')) is_show = ! is_show;
@@ -179,7 +198,9 @@
 			$parent.find('hr').show();
 			$parent.removeClass('closed');
 			$parent.find('.wpallexport-collapsed-content:first').slideDown(400, function(){
-				if ($('#wp_all_export_main_code').length) main_editor.setCursor(1);
+				if ($('#wp_all_export_main_code').length) {
+					main_editor.setCursor(1);
+				}
 				if ($('#wp_all_export_custom_xml_template').length){
 					xml_editor.setCursor(1);
 				}
@@ -217,7 +238,7 @@
 
 		var missing_fields = ['id'];
 
-		if ( $('#is_product_export').length ) missing_fields = missing_fields.concat(['_sku', 'product_type']);
+		if ( $('#is_product_export').length ) missing_fields = missing_fields.concat(['_sku', 'product_type', 'parent']);
 		if ( $('#is_wp_query').length ) missing_fields.push('post_type'); 
 
 		$('#columns').find('li:not(.placeholder)').each(function(i, e){
@@ -239,6 +260,12 @@
 				var index = missing_fields.indexOf('product_type');
 				if (index > -1) {
 				    missing_fields.splice(index, 1);
+				}
+			}
+			if ($(this).find('input[name^=cc_label]').val() == 'parent'){
+				var index = missing_fields.indexOf('parent');
+				if (index > -1) {
+					missing_fields.splice(index, 1);
 				}
 			}
 			if ($(this).find('input[name^=cc_label]').val() == 'post_type'){				
@@ -279,7 +306,6 @@
 		{
 			$('.wp-all-export-warning').hide();
 		}
-		
 	}
 	
 	// Get a valid filtering rules for selected field type		
@@ -360,7 +386,7 @@
 
 		var request = {
 			action: 'wpae_filtering',	
-			data: {'cpt' : postType, 'export_type' : 'specific', 'filter_rules_hierarhy' : filter_rules_hierarhy, 'product_matching_mode' : 'strict'},				
+			data: {'cpt' : postType, 'export_type' : 'specific', 'filter_rules_hierarhy' : filter_rules_hierarhy, 'product_matching_mode' : 'strict', 'taxonomy_to_export' : $('input[name=taxonomy_to_export]').val()},
 			security: wp_all_export_security				
 	    };    
 
@@ -435,7 +461,9 @@
 				'is_confirm_screen' : $('.wpallexport-step-4').length,
 				'is_template_screen' : $('.wpallexport-step-3').length,
 				'export_only_new_stuff' : $('#export_only_new_stuff').is(':checked') ? 1 : 0,		
-				'export_type' : $('input[name=export_type]').val()				
+				'export_type' : $('input[name=export_type]').val(),
+				'taxonomy_to_export' : $('input[name=taxonomy_to_export]').val(),
+				'export_variations' : $('#export_variations').val()
 			},				
 			security: wp_all_export_security				
 	    };    
@@ -449,6 +477,20 @@
 			data: request,
 			success: function(response) {	
 
+				vm.hasVariations = response.hasVariations;
+				if(vm.hasVariations) {
+
+					if($('#export_to_sheet').val() == 'xls' || $('#export_to_sheet').val() == 'xlsx') {
+						$('.csv_delimiter').hide();
+						$('.export_to_csv').slideDown();
+					}
+
+					$('.product_variations').show();
+
+				} else {
+					$('.product_variations').hide();
+				}
+
 				$('.wp_all_export_filter_preloader').hide();				
 
 				$('#filtering_result').html(response.html);
@@ -458,7 +500,7 @@
 					{
 						$('.wpallexport-choose-file').find('.wpallexport-upload-resource-step-two').slideDown();
 						$('.wpallexport-choose-file').find('.wpallexport-upload-resource-step-two').addClass('closed');
-						$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').show();
+						if (response.found_records) $('.wpallexport-choose-file').find('.wpallexport-submit-buttons').show();
 					}
 				});
 
@@ -504,13 +546,14 @@
 		    		if (response.found_records)
 		    		{
 		    			$('.founded_records').removeClass('nothing_to_export');
+		    			$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').show();
 		    		}
 		    		else
 		    		{
 		    			$('.founded_records').addClass('nothing_to_export');
+		    			$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();
 		    		}
 		    	}
-
 			},
 			error: function( jqXHR, textStatus ) {	
 				
@@ -565,6 +608,11 @@
 						{
 							$('.wpallexport-customer-export-notice').show();
 							showImportType = false; 						
+							$('.wpallexport-choose-file').find('.wpallexport-upload-resource-step-two').slideDown();
+						}
+						else if (postType == 'taxonomies'){
+							showImportType = false; 						
+							$('.taxonomy_to_export_wrapper').slideDown();
 							$('.wpallexport-choose-file').find('.wpallexport-upload-resource-step-two').slideDown();
 						}
 						else
@@ -629,6 +677,7 @@
 				$('.wpallexport-user-export-notice').hide();
 		    	$('.wpallexport-comments-export-notice').hide();
 		    	$('.wpallexport-shop_customer-export-notice').hide();
+		    	$('.wpallexport-taxonomies-export-notice').hide();
 
 		    	if (selectedData.selectedData.value != ""){
 		    		
@@ -641,33 +690,48 @@
 						i++;
 					});
 
-					$('.wpallexport-choose-file').find('input[name=cpt]').val(postType);										
+					$('.wpallexport-choose-file').find('input[name=cpt]').val(postType);	
 
-					if (postType == 'users')
-					{
-						$('.wpallexport-user-export-notice').show();
-						$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();	
+					if (postType == 'taxonomies'){
+						$('.taxonomy_to_export_wrapper').slideDown();
+						if ($('input[name=taxonomy_to_export]').val() != ''){
+							filtering(postType);
+						}
+						else{
+							$('.wpallexport-choose-file').find('.wpallexport-filtering-wrapper').slideUp();
+							$('.wpallexport-choose-file').find('.wpallexport-upload-resource-step-two').slideUp();							
+						}
+						$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();
 					}
-					else if (postType == 'comments')
-					{
-						$('.wpallexport-comments-export-notice').show();
-						$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();	
-					}
-					else if (postType == 'shop_customer')
-					{
-						$('.wpallexport-shop_customer-export-notice').show();
-						$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();	
-					}
-					else
-					{						
-						$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').show();	
-					}					
+					else{
+						$('.taxonomy_to_export_wrapper').slideUp();
 
-					filtering(postType);					
-					
+						if (postType == 'users')
+						{
+							$('.wpallexport-user-export-notice').show();
+							$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();	
+						}
+						else if (postType == 'comments')
+						{
+							$('.wpallexport-comments-export-notice').show();
+							$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();	
+						}
+						else if (postType == 'shop_customer')
+						{
+							$('.wpallexport-shop_customer-export-notice').show();
+							$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();	
+						}					
+						else
+						{						
+							$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').show();	
+						}					
+
+						filtering(postType);
+					}																						
 		    	}
 		    	else
 		    	{		    				    		
+					$('.taxonomy_to_export_wrapper').slideUp();
 		    		$('.wpallexport-choose-file').find('input[name=cpt]').val('');	
 		    		$('#file_selector').find('.dd-selected').css({'color':'#cfceca'});
 		    		$('.wpallexport-choose-file').find('.wpallexport-upload-resource-step-two').slideUp();		
@@ -718,6 +782,7 @@
 				$('.wpallexport-user-export-notice').hide();
 		    	$('.wpallexport-comments-export-notice').hide();
 		    	$('.wpallexport-shop_customer-export-notice').hide();
+		    	$('.wpallexport-taxonomies-export-notice').hide();
 		    	
 		    	$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();
 
@@ -751,7 +816,27 @@
 		    	}
 		    } 
 		});	
+		// Taxonomies Export
+		$('#taxonomy_to_export').ddslick({
+			width: 600,
+			onSelected: function(selectedData){
 
+				if (selectedData.selectedData.value != ""){
+
+					$('#taxonomy_to_export').find('.dd-selected').css({'color':'#555'});
+					$('input[name=taxonomy_to_export]').val(selectedData.selectedData.value);
+					filtering($('input[name=cpt]').val());					
+					$('.wpallexport-taxonomies-export-notice').show();
+					$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();	
+				}
+				else{
+					$('#taxonomy_to_export').find('.dd-selected').css({'color':'#cfceca'});
+					$('.wpallexport-choose-file').find('.wpallexport-filtering-wrapper').slideUp();
+					$('.wpallexport-choose-file').find('.wpallexport-upload-resource-step-two').slideUp();
+					$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();
+				}				
+			}
+		});
 	});	
 	// [ \Step 1 ( chose & filter export data ) ]
 
@@ -1127,6 +1212,8 @@
 			{
 				// save post date field format
 				case 'date':											
+				case 'comment_date':
+				case 'user_registered':
 					var $dateType = $addAnotherForm.find('select.date_field_export_data').val();
 					if ($dateType == 'unix')
 						$clone.find('input[name^=cc_settings]').val('unix');
@@ -1152,6 +1239,19 @@
 						case 'item_data___upsell_ids':
 						case 'item_data___crosssell_ids':
 							$clone.find('input[name^=cc_settings]').val($addAnotherForm.find('select.linked_field_export_data').val());
+							break;
+					}
+					break;
+				case 'woo_order':
+					$woo_type = $clone.find('input[name^=cc_value]');
+					switch ($woo_type.val()) {
+						case 'post_date':
+						case '_completed_date':
+							var $dateType = $addAnotherForm.find('select.date_field_export_data').val();
+							if ($dateType == 'unix')
+								$clone.find('input[name^=cc_settings]').val('unix');
+							else
+								$clone.find('input[name^=cc_settings]').val($('.pmxe_date_format').val());
 							break;
 					}
 					break;
@@ -1269,8 +1369,35 @@
 							$addAnotherForm.find('.linked_field_type').show();
 							break;
 					}
+					break;
+				case 'woo_order':
+					$woo_type = $(this).find('input[name^=cc_value]');
+					switch ($woo_type.val())
+					{
+						case 'post_date':
+						case '_completed_date':
+
+							$addAnotherForm.find('select.date_field_export_data').find('option').each(function(){
+								if ($(this).val() == $settings || $settings != 'unix' && $(this).val() == 'php')
+									$(this).attr({'selected':'selected'}).click();
+								else
+									$(this).removeAttr('selected');
+							});
+
+							if ($settings != 'php' && $settings != 'unix'){
+								if ($settings != '0') $('.pmxe_date_format').val($settings); else $('.pmxe_date_format').val('');
+								$('.pmxe_date_format_wrapper').show();
+							}
+							else{
+								$('.pmxe_date_format').val('');
+							}
+							$addAnotherForm.find('.date_field_type').show();
+							break;
+					}
 					break;				
 				case 'date':
+				case 'comment_date':
+				case 'user_registered':
 					$addAnotherForm.find('select.date_field_export_data').find('option').each(function(){
 						if ($(this).val() == $settings || $settings != 'unix' && $(this).val() == 'php') 
 							$(this).attr({'selected':'selected'}).click();
@@ -1388,6 +1515,8 @@
 				error: function( jqXHR, textStatus ) {
 					// Handle an eval error
 					if(jqXHR.responseText.indexOf('[[ERROR]]') !== -1) {
+						vm.preiviewText = $('.wpallexport-preview-title').text();
+						console.log(vm.preiviewText);
 						var json = jqXHR.responseText.split('[[ERROR]]')[1];
 						json = $.parseJSON(json);
 						ths.pointer({'content' : '<div id="post-preview" class="wpallexport-preview">' +
@@ -1661,13 +1790,15 @@
 			});		
     	}   	     	   
 
-    	if ( $('input[name=export_to]').val() == 'csv' && $('#export_to_sheet').val() == 'xls'){
+    	if ( $('input[name=export_to]').val() == 'csv' && $('#export_to_sheet').val() == 'xls' && $('#export_to_sheet').val() == 'xlsx'){
     		$('.export_to_xls_upgrade_notice').show();
     		$('.wpallexport-submit-template').attr('disabled', 'disabled');
+    		$('.wpallexport-submit-buttons').hide();
     	} 
     	else{
     		$('.export_to_xls_upgrade_notice').hide();
     		$('.wpallexport-submit-template').removeAttr('disabled');
+    		$('.wpallexport-submit-buttons').show();
     	}
 
     	$('.wpallexport-import-to-format').click(function(){
@@ -1689,25 +1820,27 @@
 
     			$('input[name=export_to]').val('csv');
 
-				if($('#export_to_sheet').val() === 'csv') {
-					if(!isWooCommerceOrder){
-						$('.export_to_csv').show();
-						$('.csv_delimiter').show();
-					} else {
-						$('.export_to_csv').show();
-					}					
-					$('.export_to_xls_upgrade_notice').hide();
-					$('.wpallexport-submit-template').removeAttr('disabled');
-				} else {
-					if(isWooCommerceOrder){
+    			if ($('#export_to_sheet').val() !== 'csv') {
+					if (isWooCommerceOrder || vm.isProductVariationsExport()) {
 						$('.csv_delimiter').hide();
 						$('.export_to_csv').show();
 					} else {
 						$('.export_to_csv').hide();
 					}
-					$('.export_to_xls_upgrade_notice').show();
 					$('.wpallexport-submit-template').attr('disabled', 'disabled');
-				}			
+					$('.wpallexport-submit-buttons').hide();
+				} else {
+					/** isProductVariationsExport */
+					if (isWooCommerceOrder) {
+						$('.export_to_csv').show();
+					} else {
+						$('.export_to_csv').show();
+						$('.csv_delimiter').show();
+					}
+					$('.wpallexport-submit-template').removeAttr('disabled');
+					$('.wpallexport-submit-buttons').show();
+				}
+								
 				$('.custom_xml_upgrade_notice').hide();
     		}
     		else
@@ -1723,6 +1856,10 @@
 				if ( $xml_export_format == 'custom' || $xml_export_format == 'XmlGoogleMerchants'){
 					$('.wpallexport-submit-template').attr('disabled', 'disabled');
 					$('.custom_xml_upgrade_notice').show();
+					$('.wpallexport-submit-buttons').hide();
+				}
+				else{
+					$('.wpallexport-submit-buttons').show();
 				}
     		}
     	});
@@ -1945,9 +2082,11 @@
     			$('.pmxe_product_data').find(".wpallexport-xml-element:contains('Attributes')").parents('li:first').show();
     			$('.wpallexport-submit-template').removeAttr('disabled');
     			$('.custom_xml_upgrade_notice').hide();
+    			$('.wpallexport-submit-buttons').show();
     			break;
     		case 'custom':
             case 'XmlGoogleMerchants':
+            	$('.wpallexport-submit-buttons').hide();
     			$('.simple_xml_template_options').slideUp();
     			$('.wpallexport-simple-xml-template').slideUp();
     			if ( ! $('.wpallexport-file-options').hasClass('closed')) $('.wpallexport-file-options').find('.wpallexport-collapsed-header').click();
@@ -2048,25 +2187,28 @@
 
 	// Logic to show CSV advanced options
 	$('#export_to_sheet').change(function(){
-
-		//Todo: Cache this value in vm
+		
 		var isWooCommerceOrder = vm.isWoocommerceOrderExport();
+		var isVariationsExport = vm.isProductVariationsExport();
+
 		var value = $(this).val();
-		if(value === 'xls') {
-			if(isWooCommerceOrder) {
+		if(value === 'xls' || value === 'xlsx') {
+			if(isWooCommerceOrder || isVariationsExport) {
 				$('.csv_delimiter').hide();
 			} else {
 				$('.export_to_csv').slideUp();
 			}
 			$('.export_to_xls_upgrade_notice').show();
+			$('.wpallexport-submit-buttons').hide();
 			$('.wpallexport-submit-template').attr('disabled', 'disabled');
 		} else {
-			if(isWooCommerceOrder) {
+			if(isWooCommerceOrder || isVariationsExport) {
 				$('.csv_delimiter').show();
 			} else {
 				$('.export_to_csv').slideDown();
 			}
 			$('.export_to_xls_upgrade_notice').hide();
+			$('.wpallexport-submit-buttons').show();
 			$('.wpallexport-submit-template').removeAttr('disabled');
 		}
 	});

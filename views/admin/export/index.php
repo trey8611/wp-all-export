@@ -50,17 +50,53 @@
 										if (in_array($key, array('attachment', 'revision', 'nav_menu_item', 'import_users', 'shop_webhook', 'acf-field', 'acf-field-group'))) unset($custom_types[$key]);										
 									}									
 									$custom_types = apply_filters( 'wpallexport_custom_types', $custom_types );
-								?>								
+									global $wp_version;
+									$sorted_cpt = array();
+									foreach ($custom_types as $key => $cpt){
+
+										$sorted_cpt[$key] = $cpt;
+
+										// Put users & comments & taxonomies after Pages
+										if ( ! empty($custom_types['page']) && $key == 'page' || empty($custom_types['page']) && $key == 'post' ){
+
+											$sorted_cpt['taxonomies'] = new stdClass();
+											$sorted_cpt['taxonomies']->labels = new stdClass();
+											$sorted_cpt['taxonomies']->labels->name = __('Taxonomies','wp_all_export_plugin');
+
+											$sorted_cpt['comments'] = new stdClass();
+											$sorted_cpt['comments']->labels = new stdClass();
+											$sorted_cpt['comments']->labels->name = __('Comments','wp_all_export_plugin');
+
+											$sorted_cpt['users'] = new stdClass();
+											$sorted_cpt['users']->labels = new stdClass();
+											$sorted_cpt['users']->labels->name = __('Users','wp_all_export_plugin');
+											break;
+										}
+									}
+									$order = array('shop_order', 'shop_coupon', 'shop_customer', 'product');
+									foreach ($order as $cpt){
+										if (!empty($custom_types[$cpt])) $sorted_cpt[$cpt] = $custom_types[$cpt];
+									}
+
+									uasort($custom_types, "wp_all_export_cmp_custom_types");
+
+									foreach ($custom_types as $key => $cpt) {
+										if (empty($sorted_cpt[$key])){
+											$sorted_cpt[$key] = $cpt;
+										}
+									}
+
+								?>
 
 								<select id="file_selector">
 									<option value=""><?php _e('Choose a post type...', 'wp_all_export_plugin'); ?></option>									
-					            	<?php if (count($custom_types)): $unknown_cpt = array();?>
-										<?php foreach ($custom_types as $key => $ct):?>
+					            	<?php if (count($sorted_cpt)): $unknown_cpt = array(); ?>
+										<?php foreach ($sorted_cpt as $key => $ct):?>
 											<?php 
 												$image_src = 'dashicon-cpt';																								
 												$cpt_label = $ct->labels->name;												
 
-												if (  in_array($key, array('post', 'page', 'product', 'import_users', 'shop_order', 'shop_coupon', 'shop_customer') ) )
+												if (  in_array($key, array('post', 'page', 'product', 'import_users', 'shop_order', 'shop_coupon', 'shop_customer', 'users', 'comments', 'taxonomies') ) )
 												{
 													$image_src = 'dashicon-' . $key;	 
 												}
@@ -69,12 +105,11 @@
 													$unknown_cpt[$key] = $ct;
 													continue;
 												}																				
+
 											?>
 											<option value="<?php echo $key;?>" data-imagesrc="dashicon <?php echo $image_src; ?>" <?php if ($key == $post['cpt']) echo 'selected="selected"'; ?>><?php echo $cpt_label; ?></option>
 										<?php endforeach ?>
-									<?php endif ?>	
-									<option value="users" data-imagesrc="dashicon dashicon-import_users" <?php if ('users' == $post['cpt']) echo 'selected="selected"'; ?>><?php _e("Users", "wp_all_export_plugin"); ?></option>
-									<option value="comments" data-imagesrc="dashicon dashicon-comments" <?php if ('comments' == $post['cpt']) echo 'selected="selected"'; ?>><?php _e("Comments", "wp_all_export_plugin"); ?></option>
+									<?php endif ?>
 									<?php if ( ! empty($unknown_cpt)):  ?>
 										<?php foreach ($unknown_cpt as $key => $ct):?>
 											<?php
@@ -86,20 +121,32 @@
 									<?php endif;?>
 								</select>								
 								<input type="hidden" name="cpt" value="<?php echo $post['cpt']; ?>"/>								
-								
-							</div>
-
-							<div class="wpallexport-free-edition-notice wpallexport-user-export-notice">
-								<a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=export-users&utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to Export Users','wp_all_export_plugin');?></a>
-								<p><?php _e('If you already own it, remove the free edition and install the Pro edition.', 'wp_all_export_plugin'); ?></p>
-							</div>
-							<div class="wpallexport-free-edition-notice wpallexport-shop_customer-export-notice">
-								<a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=export-users&utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to Export Customers','wp_all_export_plugin');?></a>
-								<p><?php _e('If you already own it, remove the free edition and install the Pro edition.', 'wp_all_export_plugin'); ?></p>
-							</div>
-							<div class="wpallexport-free-edition-notice wpallexport-comments-export-notice">
-								<a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=export-users&utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to Export Comments','wp_all_export_plugin');?></a>
-								<p><?php _e('If you already own it, remove the free edition and install the Pro edition.', 'wp_all_export_plugin'); ?></p>
+								<div class="taxonomy_to_export_wrapper">
+									<input type="hidden" name="taxonomy_to_export" value="<?php echo $post['taxonomy_to_export'];?>">
+									<select id="taxonomy_to_export">
+										<option value=""><?php _e('Select taxonomy', 'wp_all_export_plugin'); ?></option>
+										<?php $options = wp_all_export_get_taxonomies(); ?>
+										<?php foreach ($options as $slug => $name):?>
+											<option value="<?php echo $slug;?>" <?php if ($post['taxonomy_to_export'] == $slug):?>selected="selected"<?php endif;?>><?php echo $name;?></option>
+										<?php endforeach;?>
+									</select>
+								</div>
+								<div class="wpallexport-free-edition-notice wpallexport-user-export-notice">
+									<a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=export-users&utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to Export Users','wp_all_export_plugin');?></a>
+									<p><?php _e('If you already own it, remove the free edition and install the Pro edition.', 'wp_all_export_plugin'); ?></p>
+								</div>
+								<div class="wpallexport-free-edition-notice wpallexport-shop_customer-export-notice">
+									<a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=export-users&utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to Export Customers','wp_all_export_plugin');?></a>
+									<p><?php _e('If you already own it, remove the free edition and install the Pro edition.', 'wp_all_export_plugin'); ?></p>
+								</div>
+								<div class="wpallexport-free-edition-notice wpallexport-comments-export-notice">
+									<a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=export-users&utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to Export Comments','wp_all_export_plugin');?></a>
+									<p><?php _e('If you already own it, remove the free edition and install the Pro edition.', 'wp_all_export_plugin'); ?></p>
+								</div>
+								<div class="wpallexport-free-edition-notice wpallexport-taxonomies-export-notice">
+									<a class="upgrade_link" target="_blank" href="http://www.wpallimport.com/order-now/export/?utm_source=wordpress.org&utm_campaign=free%2Bwp%2Ball%2Bexport%2Bplugin&utm_medium=taxonomies"><?php _e('Upgrade to the Pro edition of WP All Export to Export Taxonomies','wp_all_export_plugin');?></a>
+									<p><?php _e('If you already own it, remove the free edition and install the Pro edition.', 'wp_all_export_plugin'); ?></p>
+								</div>						
 							</div>
 						</div>	
 
@@ -158,9 +205,9 @@
 					
 					<table><tr><td class="wpallexport-note"></td></tr></table>
 				</form>
-				
+					
 				<a href="http://soflyy.com/" target="_blank" class="wpallexport-created-by"><?php _e('Created by', 'wp_all_export_plugin'); ?> <span></span></a>
-				
+					
 			</div>
 		</td>		
 	</tr>

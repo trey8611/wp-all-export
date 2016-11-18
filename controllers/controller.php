@@ -54,6 +54,7 @@ abstract class PMXE_Controller {
 	 * Method returning resolved template content
 	 * 
 	 * @param string[optional] $viewPath Template path to render
+	 * @throws Exception
 	 */
 	protected function render($viewPath = null) {
 		
@@ -144,7 +145,21 @@ abstract class PMXE_Controller {
 							PMXE_download::xml($filepath);		
 							break;
 						case 'csv':
+							if (empty($export->options['export_to_sheet']) or $export->options['export_to_sheet'] == 'csv')
+							{
 							PMXE_download::csv($filepath);		
+							}							
+							else 
+							{
+                                switch ($export->options['export_to_sheet']){
+                                    case 'xls':
+                                        PMXE_download::xls($filepath);
+                                        break;
+                                    case 'xlsx':
+                                        PMXE_download::xlsx($filepath);
+                                        break;
+                                }
+							}							
 							break;
 						
 						default:

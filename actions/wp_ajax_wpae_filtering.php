@@ -45,7 +45,7 @@ function pmxe_wp_ajax_wpae_filtering(){
 
 	$response['html'] = ob_get_clean();
 
-	if ( XmlExportEngine::$is_user_export || XmlExportEngine::$is_comment_export )
+	if ( XmlExportEngine::$is_user_export || XmlExportEngine::$is_comment_export || XmlExportEngine::$is_taxonomy_export )
 	{
 		$response['btns'] = '';
 		exit(json_encode($response)); die;

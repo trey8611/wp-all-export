@@ -3,6 +3,8 @@
 
 class WpaeString
 {
+    const MIDDLE_COMMA = "*middlecomma*";
+
     public function isBetween($haystack, $search, $start, $end)
     {
         if($haystack == $search) {
@@ -53,12 +55,14 @@ class WpaeString
             return $sanitizedSnippet;
         }
 
-        if(strpos($sanitizedSnippet, '"') === false && strpos($sanitizedSnippet, "'") === false ) {
+        if(strpos($sanitizedSnippet, WpaeXmlProcessor::SNIPPET_DELIMITER) === false && strpos($sanitizedSnippet, '"') === false && strpos($sanitizedSnippet, "'") === false ) {
             $sanitizedSnippet = str_replace("(","(\"",$sanitizedSnippet);
             $sanitizedSnippet = str_replace(")","\")",$sanitizedSnippet);
 
             return $sanitizedSnippet;
         }
+
+        $sanitizedSnippet = str_replace(WpaeXmlProcessor::SNIPPET_DELIMITER, '"', $sanitizedSnippet);
 
         $sanitizedString = "";
 
@@ -75,7 +79,7 @@ class WpaeString
             }
 
             if($sanitizedSnippet[$i] === "," && $isInString) {
-                $sanitizedString.="*middlecomma*";
+                $sanitizedString.= self::MIDDLE_COMMA;
             } else {
                 $sanitizedString .= $sanitizedSnippet[$i];
             }
@@ -113,7 +117,7 @@ class WpaeString
             $sanitizedSnippet = str_replace($originalParameterPart, $parameterPart, $sanitizedSnippet);
         }
 
-        $sanitizedSnippet = str_replace('*middlecomma*', ',', $sanitizedSnippet);
+        $sanitizedSnippet = str_replace(self::MIDDLE_COMMA, ',', $sanitizedSnippet);
 
         return $sanitizedSnippet;
     }

@@ -175,6 +175,7 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 											if ((in_array('product', $item['options']['cpt']) or $item['options']['export_type'] == 'advanced') and class_exists('WooCommerce') and (empty($item['options']['wp_query_selector']) or $item['options']['wp_query_selector'] == 'wp_query')) {	
 												$required_fields['woo']  = '_sku';
 												$required_fields['cats'] = 'product_type';
+												$required_fields['parent'] = 'parent';
 											}
 											if ((in_array('users', $item['options']['cpt']) or $item['options']['export_type'] == 'advanced') and (!empty($item['options']['wp_query_selector']) and $item['options']['wp_query_selector'] == 'wp_user_query')) {	
 												$required_fields['user_email']  = 'user_email';
@@ -241,7 +242,7 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 							case 'format':
 								?>
 								<td>
-									<strong><?php echo $item['options']['export_to']; ?></strong>
+									<strong><?php echo ($item['options']['export_to'] == 'csv' && ! empty($item['options']['export_to_sheet'])) ? $item['options']['export_to_sheet'] : $item['options']['export_to']; ?></strong>
 								</td>
 								<?php
 								break;	
@@ -310,7 +311,8 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 									else{										
 										printf(__('Last run: %s', 'wp_all_export_plugin'), ($item['registered_on'] == '0000-00-00 00:00:00') ? __('never', 'wp_all_export_plugin') : get_date_from_gmt($item['registered_on'], "m/d/Y g:i a")); echo '<br/>';
 										printf(__('%d Records Exported', 'wp_all_export_plugin'), $item['exported']); echo '<br/>';										
-										printf(__('Format: %s', 'wp_all_export_plugin'), $item['options']['export_to']); echo '<br/>';																				
+										$export_to = ($item['options']['export_to'] == 'csv' && ! empty($item['options']['export_to_sheet'])) ? $item['options']['export_to_sheet'] : $item['options']['export_to'];									
+										printf(__('Format: %s', 'wp_all_export_plugin'), $export_to); echo '<br/>';																				
 										//printf(__('%d records', 'wp_all_export_plugin'), $item['post_count']);
 									}
 

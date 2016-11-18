@@ -1285,7 +1285,8 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 				'tax_amount' 				=> __('Amount (per tax)', 'wp_all_export_plugin'),
 				'_order_tax' 				=> __('Total Tax Amount', 'wp_all_export_plugin'),
 				'shipping_order_item_name' 	=> __('Shipping Method', 'wp_all_export_plugin'),
-				'_order_shipping' 			=> __('Shipping Cost', 'wp_all_export_plugin')
+				'_order_shipping' 			=> __('Shipping Cost', 'wp_all_export_plugin'),
+                '_order_shipping_taxes' 	=> __('Shipping Taxes', 'wp_all_export_plugin')
 			);
 
 			return apply_filters('wp_all_export_available_order_default_taxes_data_filter', $data);
@@ -1298,7 +1299,8 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 				'__coupons_used' 		=> __('Coupons Used', 'wp_all_export_plugin'),
 				'_cart_discount' 		=> __('Total Discount Amount', 'wp_all_export_plugin'),
 				'fee_line_total' 		=> __('Fee Amount (per surcharge)', 'wp_all_export_plugin'),
-				'__total_fee_amount' 	=> __('Total Fee Amount', 'wp_all_export_plugin')				
+				'__total_fee_amount' 	=> __('Total Fee Amount', 'wp_all_export_plugin'),
+                '__fee_tax_data'    	=> __('Fee Taxes', 'wp_all_export_plugin'),
 			);
 
 			return apply_filters('wp_all_export_available_order_fees_data_filter', $data);
@@ -1325,7 +1327,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 				'_billing_first_name',  '_billing_last_name', '_billing_company',
 				'_billing_address_1', '_billing_address_2', '_billing_city',
 				'_billing_postcode', '_billing_country', '_billing_state', 
-				'_billing_email', '_billing_phone'
+				'_billing_email', '_customer_user_email', '_billing_phone'
 			);
 
 			$data = $this->generate_friendly_titles($keys, 'billing');
@@ -1362,7 +1364,10 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 							$key2 = ' ('.__($keyword, 'wp_all_export_plugin').')';
 						}
 				
-				$data[$key] = __(trim($key1), 'woocommerce').$key2;	
+				$data[$key] = __(trim($key1), 'wp_all_export_plugin').$key2;
+
+				if ( '_billing_email' == $key ) $data[$key] = __('Billing Email Address', 'wp_all_export_plugin');
+				if ( '_customer_user_email' == $key)  $data[$key] = __('Customer Account Email Address', 'wp_all_export_plugin');
 										
 			}
 			return $data;
@@ -1381,7 +1386,20 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 
             $implode_delimiter = XmlExportEngine::$implode;
 
-			switch ($element_type) 
+			$billing_keys = array(
+				'_billing_first_name',  '_billing_last_name', '_billing_company',
+				'_billing_address_1', '_billing_address_2', '_billing_city',
+				'_billing_postcode', '_billing_country', '_billing_state',
+				'_billing_email', '_billing_phone'
+			);
+
+			$shipping_keys = array(
+				'_shipping_first_name', '_shipping_last_name', '_shipping_company',
+				'_shipping_address_1', '_shipping_address_2', '_shipping_city',
+				'_shipping_postcode', '_shipping_country', '_shipping_state'
+			);
+
+			switch ($element_type)
 			{
 				case 'ID':
 					$templateOptions['unique_key'] = '{'. $element_name .'[1]}';
@@ -1404,11 +1422,12 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					$templateOptions['pmwi_order']['date'] = '{'. $element_name .'[1]}';						
 					break;
 
-				case '_billing_email':
+				case '_customer_user_email':
 					$templateOptions['pmwi_order']['billing_source_match_by'] = 'email';
 					$templateOptions['pmwi_order']['billing_source_email'] = '{'. $element_name .'[1]}';	
 					$templateOptions['pmwi_order']['is_update_billing_details'] = 1;
 					$templateOptions['pmwi_order']['is_update_shipping_details'] = 1;
+					//$templateOptions['pmwi_order']['guest' . $element_type] = '{'. $element_name .'[1]}';
 					break;
 
 				case 'post_excerpt':
@@ -1601,7 +1620,14 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 						$templateOptions['pmwi_order']['order_refund_issued_email'] = '{'. $element_name .'[1]}';
 					}
 					break;
-				
+				default:
+					if ( in_array($element_type, $billing_keys)){
+						$templateOptions['pmwi_order']['guest' . $element_type] = '{'. $element_name .'[1]}';
+					}
+					if ( in_array($element_type, $shipping_keys)){
+						$templateOptions['pmwi_order'][ltrim($element_type, '_')] = '{'. $element_name .'[1]}';
+					}
+					break;
 			}
 
 		}

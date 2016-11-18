@@ -41,12 +41,8 @@
 										
 				<div class="wpallexport-content-section" style="padding: 0 30px 0 0; overflow: hidden; margin-bottom: 0;">
 
-					<div id="filtering_result" class="wpallexport-ready-to-go <?php if (empty(PMXE_Plugin::$session->found_posts)):?>nothing_to_export<?php endif;?>">																		
-						<?php if (empty(PMXE_Plugin::$session->found_posts)):?>
-						<h3><?php _e('Nothing to export.', 'wp_all_export_plugin'); ?></h3>						
-						<?php else: ?>
-						<h3><?php _e('Your export is ready to run.', 'wp_all_export_plugin'); ?></h3>													
-						<?php endif; ?>				
+					<div id="filtering_result" class="wpallexport-ready-to-go">
+						<h3> &nbsp; </h3>
 						<div class="wp_all_export_preloader"></div>
 					</div>	
 					<?php if ($this->isWizard): ?>	
@@ -80,6 +76,8 @@
 
 					<input type="hidden" name="selected_post_type" value="<?php echo $selected_post_type; ?>"/>	
 					<input type="hidden" name="export_type" value="<?php echo $post['export_type']; ?>"/>							
+					<input type="hidden" name="taxonomy_to_export" value="<?php echo $post['taxonomy_to_export'];?>">
+					<input type="hidden" id="export_variations" name="export_variations" value="<?php echo XmlExportEngine::getProductVariationMode();?>" />
 
 					<?php XmlExportFiltering::render_filtering_block( $engine, $this->isWizard, $post ); ?>																						
 

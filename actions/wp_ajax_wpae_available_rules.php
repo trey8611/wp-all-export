@@ -32,7 +32,7 @@ function pmxe_wp_ajax_wpae_available_rules(){
 			
 			<?php
 		}
-		elseif( in_array($post['selected'], array('post_date', 'user_registered', 'comment_date')) )
+		elseif( in_array($post['selected'], array('post_date', 'user_registered', 'comment_date', 'cf__completed_date')) )
 		{
 			?>
 			<option value="equals"><?php _e('equals', 'wp_all_export_plugin'); ?></option>
@@ -64,6 +64,19 @@ function pmxe_wp_ajax_wpae_available_rules(){
 			<option value="not_equals"><?php _e("doesn't equal", 'wp_all_export_plugin'); ?></option>
 			<option value="contains"><?php _e('contains', 'wp_all_export_plugin'); ?></option>
 			<option value="not_contains"><?php _e("doesn't contain", 'wp_all_export_plugin'); ?></option>
+			<option value="is_empty"><?php _e('is empty', 'wp_all_export_plugin'); ?></option>
+			<option value="is_not_empty"><?php _e('is not empty', 'wp_all_export_plugin'); ?></option>
+			<?php
+		}
+		elseif ( in_array($post['selected'], array('term_parent_slug') ) )
+		{
+			?>
+			<option value="equals"><?php _e('equals', 'wp_all_export_plugin'); ?></option>
+			<option value="not_equals"><?php _e("doesn't equal", 'wp_all_export_plugin'); ?></option>
+			<option value="greater"><?php _e('greater than', 'wp_all_export_plugin');?></option>
+			<option value="equals_or_greater"><?php _e('equal to or greater than', 'wp_all_export_plugin'); ?></option>
+			<option value="less"><?php _e('less than', 'wp_all_export_plugin'); ?></option>
+			<option value="equals_or_less"><?php _e('equal to or less than', 'wp_all_export_plugin'); ?></option>
 			<option value="is_empty"><?php _e('is empty', 'wp_all_export_plugin'); ?></option>
 			<option value="is_not_empty"><?php _e('is not empty', 'wp_all_export_plugin'); ?></option>
 			<?php

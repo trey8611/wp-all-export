@@ -243,10 +243,12 @@ final class PMXE_Wpallimport
 				self::$templateOptions['pmwi_order']['is_update_taxes'] = 0;
 				self::$templateOptions['pmwi_order']['is_update_refunds'] = 0;
 				self::$templateOptions['pmwi_order']['is_update_total'] = 0;		
+                self::$templateOptions['pmwi_order']['is_guest_matching'] = 1;
 				self::$templateOptions['pmwi_order']['status'] = 'wc-pending';
 				self::$templateOptions['pmwi_order']['billing_source'] = 'existing';
 				self::$templateOptions['pmwi_order']['billing_source_match_by'] = 'username';
-				self::$templateOptions['pmwi_order']['shipping_source'] = 'copy';
+				self::$templateOptions['pmwi_order']['shipping_source'] = 'guest';
+                self::$templateOptions['pmwi_order']['copy_from_billing'] = 1;
 				self::$templateOptions['pmwi_order']['products_repeater_mode'] = 'csv';
 				self::$templateOptions['pmwi_order']['products_repeater_mode_separator'] = '|';
 				self::$templateOptions['pmwi_order']['products_source'] = 'existing';
@@ -283,6 +285,20 @@ final class PMXE_Wpallimport
 			}
 
 			self::prepare_import_template( $exportOptions );												
+
+            if ( in_array('product', $exportOptions['cpt']) )
+            {
+                self::$templateOptions['single_page_parent'] = '';
+                if ( ! empty($exportOptions['export_variations']) && $exportOptions['export_variations'] == XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_VARIATION ){
+                    if ( $exportOptions['export_variations_title'] == XmlExportEngine::VARIATION_USE_PARENT_TITLE ){
+                        self::$templateOptions['matching_parent'] = 'first_is_variation';
+                    }
+                    if ( $exportOptions['export_variations_title'] == XmlExportEngine::VARIATION_USE_DEFAULT_TITLE ) {
+                        self::$templateOptions['matching_parent'] = 'first_is_parent_id';
+                        //self::$templateOptions['single_product_id_first_is_parent_id'] = '{parent_id[1]}';
+                    }
+                }
+            }
 
 			$tpl_options = self::$templateOptions;
 

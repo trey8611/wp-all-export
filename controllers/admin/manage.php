@@ -168,6 +168,12 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 
 		$default = PMXE_Plugin::get_default_import_options();
 		$DefaultOptions = $item->options + $default;
+		if (empty($item->options['export_variations'])){
+			$DefaultOptions['export_variations'] = XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION;
+		}
+		if (empty($item->options['export_variations_title'])){
+			$DefaultOptions['export_variations_title'] = XmlExportEngine::VARIATION_USE_DEFAULT_TITLE;
+		}
 		$this->data['post'] = $post = $this->input->post($DefaultOptions);	
 		$this->data['iteration'] = $item->iteration;
 
@@ -428,7 +434,14 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 							PMXE_download::xml($filepath);		
 							break;
 						case 'csv':
-							PMXE_download::csv($filepath);		
+							if (empty($export->options['export_to_sheet']) or $export->options['export_to_sheet'] == 'csv')
+							{
+							    PMXE_download::csv($filepath);		
+							}							
+							else 
+							{													
+								PMXE_download::xls($filepath);		
+							}
 							break;
 						
 						default:

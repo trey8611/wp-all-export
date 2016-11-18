@@ -241,8 +241,8 @@ if ( ! class_exists('XmlExportUser') ){
 			if ( ! self::$is_active ) return;
 
 			global $wpdb;
-			$table_prefix = $wpdb->prefix;
-			self::$meta_keys = $wpdb->get_results("SELECT DISTINCT {$table_prefix}usermeta.meta_key FROM {$table_prefix}usermeta, {$table_prefix}users WHERE {$table_prefix}usermeta.user_id = {$table_prefix}users.ID LIMIT 500");			
+			//$table_prefix = $wpdb->prefix;
+			self::$meta_keys = $wpdb->get_results("SELECT DISTINCT ".$wpdb->usermeta .".meta_key FROM $wpdb->usermeta, $wpdb->users WHERE ".$wpdb->usermeta.".user_id = ".$wpdb->users.".ID LIMIT 500");
 
 			$user_ids = array();
 			if ( ! empty(XmlExportEngine::$exportQuery->results)) {
@@ -255,7 +255,7 @@ if ( ! class_exists('XmlExportUser') ){
 
 				$address_fields = $this->available_customer_data();
 
-				$customer_users = $wpdb->get_results($wpdb->prepare("SELECT DISTINCT meta_value FROM $wpdb->postmeta, $wpdb->users WHERE meta_key = %s AND meta_value != %s ", '_customer_user', '0'));
+				$customer_users = $wpdb->get_results($wpdb->prepare("SELECT DISTINCT meta_value FROM $wpdb->postmeta WHERE meta_key = %s AND meta_value != %s ", '_customer_user', '0'));
 
 				// detect if at least one filtered user is a WooCommerce customer
 				if ( ! empty($customer_users) ) {					

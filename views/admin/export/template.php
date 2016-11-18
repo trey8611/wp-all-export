@@ -8,7 +8,10 @@
 			<h2><?php _e('Export to XML / CSV', 'wp_all_export_plugin'); ?></h2>					
 		</div>
 		<div class="wpallexport-links">
-			<a href="http://www.wpallimport.com/support/" target="_blank"><?php _e('Support', 'wp_all_export_plugin'); ?></a> | <a href="http://www.wpallimport.com/documentation/" target="_blank"><?php _e('Documentation', 'wp_all_export_plugin'); ?></a>
+            <a href="http://www.wpallimport.com/support/"
+               target="_blank"><?php _e('Support', 'wp_all_export_plugin'); ?></a> | <a
+                href="http://www.wpallimport.com/documentation/"
+                target="_blank"><?php _e('Documentation', 'wp_all_export_plugin'); ?></a>
 		</div>
 	</div>	
 	<div class="clear"></div>
@@ -40,6 +43,7 @@
 			<form class="wpallexport-template <?php echo ! $this->isWizard ? 'edit' : '' ?> wpallexport-step-3" method="post" style="display:none;">		
 				
 				<input type="hidden" class="hierarhy-output" name="filter_rules_hierarhy" value="<?php echo esc_html($post['filter_rules_hierarhy']);?>"/>
+				<input type="hidden" name="taxonomy_to_export" value="<?php echo $post['taxonomy_to_export'];?>">
 
 				<?php 
 				$selected_post_type = '';
@@ -57,7 +61,13 @@
 
 				<input type="hidden" name="selected_post_type" value="<?php echo $selected_post_type; ?>"/>		
 				<input type="hidden" name="export_type" value="<?php echo $post['export_type']; ?>"/>																			
-
+				<div class="error inline" id="updateNotice" style="display:none; margin-top: 0;">
+                    <p>
+                        <a target="_blank" href='https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=variations&utm_campaign=free+wp+all+export+plugin'>
+                            <?php _e("Upgrade to the Pro edition of WP All Export to Select Product Variation Options", 'wp_all_export_plugin'); ?>
+                        </a>
+                    </p>
+                </div>
 				<div class="wpallexport-collapsed wpallexport-section wpallexport-simple-xml-template">
 					<div class="wpallexport-content-section" style="margin-bottom: 10px;">
 						<div class="wpallexport-collapsed-content">
@@ -91,7 +101,7 @@
 																	<input type="hidden" name="cc_type[]" value="<?php echo $field_type; ?>"/>
 																	<input type="hidden" name="cc_options[]" value="<?php echo (!empty($field_options)) ? $field_options : 0; ?>"/>
 																	<input type="hidden" name="cc_value[]" value="<?php echo esc_attr($post['cc_value'][$ID]); ?>"/>
-																	<input type="hidden" name="cc_name[]" value="<?php echo (strtoupper($field_name) == "ID") ? "id" : $field_name; ?>"/>																	
+																	<input type="hidden" name="cc_name[]" value="<?php echo (strtoupper($field_name) == "ID") ? "id" : esc_attr($field_name); ?>"/>
 																	<input type="hidden" name="cc_settings[]" value="<?php echo (!empty($post['cc_settings'][$ID])) ? esc_attr($post['cc_settings'][$ID]) : 0; ?>"/>
 																</div>
 															</li>
@@ -155,7 +165,7 @@
 								</div>
 
 								<!-- Warning Messages -->
-								<?php if ( ! XmlExportWooCommerceOrder::$is_active &&  ! XmlExportComment::$is_active ) : ?>
+								<?php if ( ! XmlExportWooCommerceOrder::$is_active && ! XmlExportComment::$is_active && ! XmlExportTaxonomy::$is_active ) : ?>
 								<div class="wp-all-export-warning" <?php if ( empty($post['ids']) or count($post['ids']) > 1 ) echo 'style="display:none;"'; ?>>
 									<p></p>
 									<input type="hidden" id="warning_template" value="<?php _e("Warning: without %s you won't be able to re-import this data back to this site using WP All Import.", "wp_all_export_plugin"); ?>"/>
@@ -167,7 +177,7 @@
 								<input type="hidden" id="is_product_export" value="1"/>													
 								<?php endif; ?>
 
-								<?php if ( empty($post['cpt']) and ! XmlExportWooCommerceOrder::$is_active and ! XmlExportUser::$is_active and ! XmlExportComment::$is_active ) : ?>
+								<?php if ( empty($post['cpt']) and ! XmlExportWooCommerceOrder::$is_active and ! XmlExportUser::$is_active and ! XmlExportComment::$is_active and ! XmlExportTaxonomy::$is_active ) : ?>
 								<input type="hidden" id="is_wp_query" value="1"/>								
 								<?php endif; ?>
 																									
@@ -175,16 +185,23 @@
 
 							<!-- Add New Field Button -->
 							<div class="input" style="display:inline-block; margin: 20px 0 10px 20px;">
-								<input type="button" value="<?php _e('Add Field', 'wp_all_export_plugin');?>" class="add_column" style="float:left;">								
-								<input type="button" value="<?php _e('Add All', 'wp_all_export_plugin'); ?>" class="wp_all_export_auto_generate_data">								
-								<input type="button" value="<?php _e('Clear All', 'wp_all_export_plugin'); ?>" class="wp_all_export_clear_all_data">								
+                                <input type="button" value="<?php _e('Add Field', 'wp_all_export_plugin'); ?>"
+                                       class="add_column" style="float:left;">
+                                <input type="button" value="<?php _e('Add All', 'wp_all_export_plugin'); ?>"
+                                       class="wp_all_export_auto_generate_data">
+                                <input type="button" value="<?php _e('Clear All', 'wp_all_export_plugin'); ?>"
+                                       class="wp_all_export_clear_all_data">
 							</div>
 
 							<!-- Preview a Row Button -->
 							<div class="input" style="float:right; margin: 20px 20px 10px 0;">								
-								<input type="button" value="<?php _e('Preview', 'wp_all_export_plugin');?>" class="preview_a_row">	
+                                <input type="button" value="<?php _e('Preview', 'wp_all_export_plugin'); ?>"
+                                       class="preview_a_row">
 							</div>
 						</div>
+
+						<?php include('variation_options_common.php');?>
+
 						<div class="wpallexport-collapsed closed wpallexport-section wpallexport-xml-advanced-options"  <?php if ($post['export_to'] !== 'xml') { ?> style="display: none;" <?php }?> >
 							<div class="wpallexport-content-section rad0" style="margin:0; border-top:1px solid #ddd; border-bottom: none; border-right: none; border-left: none; background: #f1f2f2; padding-bottom: 15px; margin-top: 5px;">
 								<div class="wpallexport-collapsed-header">
@@ -212,6 +229,7 @@
 										</div>
 										<input type="hidden" id="custom_xml_cdata_logic" value="<?php echo $post['custom_xml_cdata_logic']; ?>" name="custom_xml_cdata_logic" />
 										<input type="hidden" id="show_cdata_in_preview" value="<?php echo $post['show_cdata_in_preview']; ?>" name="show_cdata_in_preview" />
+										<div><?php include('variation_options.php'); ?></div>
 										<div class="input">
 											<h4>CDATA</h4>
 											<p style="font-style: italic;"><?php echo sprintf(__("There are certain characters that cannot be included in an XML file unless they are wrapped in CDATA tags.<br/><a target='_blank' href='%s'>Click here to read more about CDATA tags.</a>", 'wp_all_export_plugin'), 'https://en.wikipedia.org/wiki/CDATA'); ?></p>
@@ -255,6 +273,11 @@
 												<label style="width: 80px; margin-left: 20px;"><?php _e('Separator:','wp_all_export_plugin');?></label>
 												<input type="text" name="delimiter" value="<?php echo esc_attr($post['delimiter']) ?>" style="width: 40px; height: 30px; top: 0px; text-align: center;"/>
 											</div>
+										</div>
+										<div style="margin-left:20px;">
+                                            <?php
+                                                include('variation_options.php');
+                                            ?>
 										</div>
 										<!-- Display each product in its own row -->
 										<?php if ( XmlExportWooCommerceOrder::$is_active ): ?>
@@ -310,7 +333,8 @@
 											<div class="input" style="width:83%; margin: 0 auto 5px;">
 												<select name="export_to_sheet" id="export_to_sheet">
 													<option value="csv" <?php if ($post['export_to_sheet'] == 'csv') echo 'selected="selected"';?>><?php _e('CSV File', 'wp_all_export_plugin'); ?></option>
-													<option value="xls" <?php if ($post['export_to_sheet'] == 'xls') echo 'selected="selected"';?>><?php _e('Excel File', 'wp_all_export_plugin'); ?></option>
+													<option value="xls" <?php if ($post['export_to_sheet'] == 'xls') echo 'selected="selected"';?>><?php _e('Excel File (XLS)', 'wp_all_export_plugin'); ?></option>
+													<option value="xlsx" <?php if ($post['export_to_sheet'] == 'xlsx') echo 'selected="selected"';?>><?php _e('Excel File (XLSX)', 'wp_all_export_plugin'); ?></option>
 												</select>
 											</div>
 											<div class="clear"></div>
@@ -328,9 +352,6 @@
 											<div class="input" style="width:83%; margin: 0 auto 5px;">
 												<select name="xml_template_type" class="xml_template_type">
 													<option value="simple" <?php if ($post['xml_template_type'] == 'simple') echo 'selected="selected"';?>><?php _e('Simple XML Feed', 'wp_all_export_plugin'); ?></option>
-													<?php if ( XmlExportWooCommerce::$is_active ): ?>
-													<option value="XmlGoogleMerchants" <?php if ($post['xml_template_type'] == 'XmlGoogleMerchants') echo 'selected="selected"';?>><?php _e('Google Merchants Feed', 'wp_all_export_plugin'); ?></option>
-													<?php endif; ?>
 													<option value="custom" <?php if ($post['xml_template_type'] == 'custom') echo 'selected="selected"';?>><?php _e('Custom XML Feed', 'wp_all_export_plugin'); ?></option>
 												</select>												
 											</div>
@@ -363,16 +384,19 @@
 								<div class="input" style="overflow: hidden; margin-top: 10px; margin-bottom: -20px;">
 									<!-- Help Button -->
                                     <div class="input" style="float: left;">
-                                        <input type="button" value="<?php _e('Help', 'wp_all_export_plugin');?>" class="help_custom_xml">
+                                        <input type="button" value="<?php _e('Help', 'wp_all_export_plugin'); ?>"
+                                               class="help_custom_xml">
                                     </div>
                                     <!-- Preview a Row Button -->
 									<div class="input" style="float: right;">
-										<input type="button" value="<?php _e('Preview', 'wp_all_export_plugin');?>" class="preview_a_custom_xml_row">	
+                                        <input type="button" value="<?php _e('Preview', 'wp_all_export_plugin'); ?>"
+                                               class="preview_a_custom_xml_row">
 									</div>
 								</div>
 							</div>
                             <div class="wpallexport-collapsed closed wpallexport-section">
-                                <div class="wpallexport-content-section rad0" style="margin:0; border-top:1px solid #ddd; border-bottom: none; border-right: none; border-left: none; background: #f1f2f2; padding-bottom: 15px; margin-top: 5px;">
+                                <div class="wpallexport-content-section rad0"
+                                     style="margin:0; border-top:1px solid #ddd; border-bottom: none; border-right: none; border-left: none; background: #f1f2f2; padding-bottom: 15px; margin-top: 5px;">
                                     <div class="wpallexport-collapsed-header">
                                         <h3 style="color:#40acad;"><?php _e('Advanced Options','wp_all_export_plugin');?></h3>
 										<hr style="display: none; margin-right: 25px;"/>
@@ -383,23 +407,39 @@
                                                 <h4>CDATA</h4>
                                                 <p style="font-style: italic;"><?php echo sprintf(__("There are certain characters that cannot be included in an XML file unless they are wrapped in CDATA tags.<br/><a target='_blank' href='%s'>Click here to read more about CDATA tags.</a>", 'wp_all_export_plugin'), 'https://en.wikipedia.org/wiki/CDATA'); ?></p>
                                                 <div class="input" style="margin: 3px 0;">
-                                                    <input type="radio" id="custom_xml_cdata_logic_auto" name="custom_custom_xml_cdata_logic" value="auto" <?php echo ( "auto" == $post['custom_xml_cdata_logic'] ) ? 'checked="checked"': '' ?> class="switcher"/>
-                                                    <label for="custom_xml_cdata_logic_auto"><?php _e('Automatically wrap data in CDATA tags when it contains illegal characters', 'wp_all_export_plugin') ?></label>
+                                                    <input type="radio" id="custom_xml_cdata_logic_auto"
+                                                           name="custom_custom_xml_cdata_logic"
+                                                           value="auto" <?php echo ("auto" == $post['custom_xml_cdata_logic']) ? 'checked="checked"' : '' ?>
+                                                           class="switcher"/>
+                                                    <label
+                                                        for="custom_xml_cdata_logic_auto"><?php _e('Automatically wrap data in CDATA tags when it contains illegal characters', 'wp_all_export_plugin') ?></label>
                                                 </div>
                                                 <div class="input" style="margin: 3px 0;">
-                                                    <input type="radio" id="custom_custom_xml_cdata_logic_all" name="custom_custom_xml_cdata_logic" value="all" <?php echo ( "all" == $post['custom_xml_cdata_logic'] ) ? 'checked="checked"': '' ?> class="switcher cdata"/>
-                                                    <label for="custom_custom_xml_cdata_logic_all"><?php _e('Always wrap data in CDATA tags', 'wp_all_export_plugin') ?></label>
+                                                    <input type="radio" id="custom_custom_xml_cdata_logic_all"
+                                                           name="custom_custom_xml_cdata_logic"
+                                                           value="all" <?php echo ("all" == $post['custom_xml_cdata_logic']) ? 'checked="checked"' : '' ?>
+                                                           class="switcher cdata"/>
+                                                    <label
+                                                        for="custom_custom_xml_cdata_logic_all"><?php _e('Always wrap data in CDATA tags', 'wp_all_export_plugin') ?></label>
                                                 </div>
                                                 <div class="input" style="margin: 3px 0;">
-                                                    <input type="radio" id="custom_custom_xml_cdata_logic_never" name="custom_custom_xml_cdata_logic" value="never" <?php echo ( "never" == $post['custom_xml_cdata_logic'] ) ? 'checked="checked"': '' ?> class="switcher cdata"/>
-                                                    <label for="custom_custom_xml_cdata_logic_never"><?php _e('Never wrap data in CDATA tags', 'wp_all_export_plugin') ?></label>
-                                                    <div class="switcher-target-simple_custom_xml_cdata_logic_never" style="padding-left:17px;">
+                                                    <input type="radio" id="custom_custom_xml_cdata_logic_never"
+                                                           name="custom_custom_xml_cdata_logic"
+                                                           value="never" <?php echo ("never" == $post['custom_xml_cdata_logic']) ? 'checked="checked"' : '' ?>
+                                                           class="switcher cdata"/>
+                                                    <label
+                                                        for="custom_custom_xml_cdata_logic_never"><?php _e('Never wrap data in CDATA tags', 'wp_all_export_plugin') ?></label>
+                                                    <div class="switcher-target-simple_custom_xml_cdata_logic_never"
+                                                         style="padding-left:17px;">
                                                         <p style="font-style: italic;"><?php _e('Warning: This may result in an invalid XML file', 'wp_all_export_plugin');?></p>
                                                     </div>
                                                 </div>
 												<div class="input" style="margin: 10px 3px;">
-													<input type="checkbox" value="1" name="custom_show_cdata_in_preview" id="custom_show_cdata_in_preview" <?php echo ( 1 == $post['show_cdata_in_preview'] ) ? 'checked="checked"': '' ?> class="show_cdata_in_preview"  />
-													<label for="custom_show_cdata_in_preview">Show CDATA tags in XML preview</label>
+                                                    <input type="checkbox" value="1" name="custom_show_cdata_in_preview"
+                                                           id="custom_show_cdata_in_preview" <?php echo (1 == $post['show_cdata_in_preview']) ? 'checked="checked"' : '' ?>
+                                                           class="show_cdata_in_preview"/>
+                                                    <label for="custom_show_cdata_in_preview">Show CDATA tags in XML
+                                                        preview</label>
 												</div>
                                             </div>
                                         </div>
@@ -450,11 +490,17 @@
 										
 					<p style="margin: 11px; float: left;">
 						<input type="hidden" name="save_template_as" value="0" />
-						<input type="checkbox" id="save_template_as" name="save_template_as" class="switcher-horizontal fix_checkbox" value="1" <?php echo ( ! empty($post['save_template_as'])) ? 'checked="checked"' : '' ?> /> 
-						<label for="save_template_as"><?php _e('Save settings as a template','wp_all_export_plugin');?></label>
+                        <input type="checkbox" id="save_template_as" name="save_template_as"
+                               class="switcher-horizontal fix_checkbox"
+                               value="1" <?php echo (!empty($post['save_template_as'])) ? 'checked="checked"' : '' ?> />
+                        <label
+                            for="save_template_as"><?php _e('Save settings as a template', 'wp_all_export_plugin'); ?></label>
 					</p>
 					<div class="switcher-target-save_template_as" style="float: left; overflow: hidden;">
-						<input type="text" name="name" placeholder="<?php _e('Template name...', 'wp_all_export_plugin') ?>" style="vertical-align:middle; line-height: 26px;" value="<?php echo esc_attr($post['name']) ?>" />		
+                        <input type="text" name="name"
+                               placeholder="<?php _e('Template name...', 'wp_all_export_plugin') ?>"
+                               style="vertical-align:middle; line-height: 26px;"
+                               value="<?php echo esc_attr($post['name']) ?>"/>
 					</div>				
 					<?php $templates = new PMXE_Template_List(); ?>
 					<div class="load-template">				
@@ -488,16 +534,21 @@
 						<input type="hidden" name="is_submitted" value="1" />
                         <input type="hidden" id="dismiss_warnings" value="<?php echo esc_attr($dismiss_warnings); ?>"/>
 						<?php if ( ! $this->isWizard ): ?>
-							<a href="<?php echo remove_query_arg('id', remove_query_arg('action', $this->baseUrl)); ?>" class="back rad3" style="float:none;"><?php _e('Back to Manage Exports', 'wp_all_export_plugin') ?></a>
+                            <a href="<?php echo remove_query_arg('id', remove_query_arg('action', $this->baseUrl)); ?>"
+                               class="back rad3"
+                               style="float:none;"><?php _e('Back to Manage Exports', 'wp_all_export_plugin') ?></a>
 						<?php else: ?>						
-							<a href="<?php echo add_query_arg('action', 'index', $this->baseUrl); ?>" class="back rad3"><?php _e('Back', 'wp_all_export_plugin') ?></a>							
+                            <a href="<?php echo add_query_arg('action', 'index', $this->baseUrl); ?>"
+                               class="back rad3"><?php _e('Back', 'wp_all_export_plugin') ?></a>
 						<?php endif; ?>					
-						<input type="submit" class="button button-primary button-hero wpallexport-large-button wpallexport-submit-template" value="<?php _e( ($this->isWizard) ? 'Continue' : 'Update Template', 'wp_all_export_plugin') ?>" />
+                        <input type="submit" class="button button-primary button-hero wpallexport-large-button"
+                               value="<?php _e(($this->isWizard) ? 'Continue' : 'Update Template', 'wp_all_export_plugin') ?>"/>
 					</div>
 
 				</div>
 
-				<a href="http://soflyy.com/" target="_blank" class="wpallexport-created-by"><?php _e('Created by', 'wp_all_export_plugin'); ?> <span></span></a>
+                <a href="http://soflyy.com/" target="_blank"
+                   class="wpallexport-created-by"><?php _e('Created by', 'wp_all_export_plugin'); ?> <span></span></a>
 
 			</form>			
 			
@@ -527,7 +578,9 @@
 
 <fieldset class="optionsset column rad4 wp-all-export-edit-column">
 				
-	<div class="title"><span class="wpallexport-add-row-title"><?php _e('Add Field To Export','wp_all_export_plugin');?></span><span class="wpallexport-edit-row-title"><?php _e('Edit Export Field','wp_all_export_plugin');?></span></div>
+    <div class="title"><span
+            class="wpallexport-add-row-title"><?php _e('Add Field To Export', 'wp_all_export_plugin'); ?></span><span
+            class="wpallexport-edit-row-title"><?php _e('Edit Export Field', 'wp_all_export_plugin'); ?></span></div>
 
 	<?php include_once 'template/add_new_field.php'; ?>
 	
@@ -535,7 +588,9 @@
 
 <fieldset class="optionsset column rad4 wp-all-export-custom-xml-help">
 
-    <div class="title"><span style="font-size:1.5em;" class="wpallexport-add-row-title"><?php _e('Custom XML Feeds','wp_all_export_plugin');?></span><span class="wpallexport-edit-row-title"><?php _e('Edit Export Field','wp_all_export_plugin');?></span></div>
+    <div class="title"><span style="font-size:1.5em;"
+                             class="wpallexport-add-row-title"><?php _e('Custom XML Feeds', 'wp_all_export_plugin'); ?></span><span
+            class="wpallexport-edit-row-title"><?php _e('Edit Export Field', 'wp_all_export_plugin'); ?></span></div>
 
     <?php include_once 'template/custom_xml_help.php'; ?>
 

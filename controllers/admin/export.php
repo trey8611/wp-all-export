@@ -85,7 +85,9 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 			'filter_rules_hierarhy' => '',
 			'product_matching_mode' => 'strict',
 			'wp_query_selector' => 'wp_query',
-			'auto_generate' => 0
+			'auto_generate' => 0,
+            'taxonomy_to_export' => '',
+            'created_at_version' => PMXE_VERSION
 		);
 
 		if ( ! in_array($action, array('index')))
@@ -129,6 +131,8 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 			PMXE_Plugin::$session->set('filter_rules_hierarhy', $post['filter_rules_hierarhy']);
 			PMXE_Plugin::$session->set('product_matching_mode', $post['product_matching_mode']);
 			PMXE_Plugin::$session->set('wp_query_selector', $post['wp_query_selector']);						
+            PMXE_Plugin::$session->set('taxonomy_to_export', $post['taxonomy_to_export']);
+            PMXE_Plugin::$session->set('created_at_version', $post['created_at_version']);
 
 			if ( ! empty($post['auto_generate']) )
 			{
@@ -185,6 +189,12 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 		}
 		else{
 			$DefaultOptions = $this->data['export']->options + $default;
+            if (empty($this->data['export']->options['export_variations'])){
+                $DefaultOptions['export_variations'] = XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION;
+            }
+            if (empty($this->data['export']->options['export_variations_title'])){
+                $DefaultOptions['export_variations_title'] = XmlExportEngine::VARIATION_USE_DEFAULT_TITLE;
+            }
 			$post = $this->input->post($DefaultOptions);			
 			$post['scheduled'] = $this->data['export']->scheduled;
 
@@ -207,6 +217,10 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 
 		PMXE_Plugin::$session->set('is_loaded_template', '');						
 		
+		$this->data['engine'] = null;
+
+        XmlExportEngine::$exportQuery = PMXE_Plugin::$session->get('exportQuery');
+
 		if (($load_template = $this->input->post('load_template'))) { // init form with template selected
 			if ( ! $template->getById($load_template)->isEmpty()) {										
 				$template_options = $template->options;
@@ -226,7 +240,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 
 			check_admin_referer('template', '_wpnonce_template');
 
-			if ( empty($post['cc_type'][0]) ){
+			if ( empty($post['cc_type'][0]) && ! in_array($post['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ){
 				$this->errors->add('form-validation', __('You haven\'t selected any columns for export.', 'wp_all_export_plugin'));
 			}	
 
@@ -234,7 +248,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 				$this->errors->add('form-validation', __('CSV delimiter must be specified.', 'wp_all_export_plugin'));
 			}
 
-			if ( 'xml' == $post['export_to'] )
+			if ( 'xml' == $post['export_to'] && ! in_array($post['xml_template_type'], array('custom', 'XmlGoogleMerchants')) )
 			{
 				$post['main_xml_tag'] = preg_replace('/[^a-z0-9]/i', '', $post['main_xml_tag']);
 				if ( empty($post['main_xml_tag']) ){
@@ -280,11 +294,14 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 			
 		}		
 
-		$this->data['engine'] = new XmlExportEngine($post, $this->errors);
-		
-		$this->data['engine']->init_additional_data();		
+		if ( empty($this->data['engine']) ){
 
-		$this->data = array_merge($this->data, $this->data['engine']->init_available_data());			
+		    $this->data['engine'] = new XmlExportEngine($post, $this->errors);
+		
+		    $this->data['engine']->init_additional_data();		
+
+		    $this->data = array_merge($this->data, $this->data['engine']->init_available_data());			
+		}
 
 		$this->data['available_data_view'] = $this->data['engine']->render();
 
@@ -307,8 +324,15 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 		}
 		else{
 			$DefaultOptions = $this->data['export']->options + $default;
+            if (empty($this->data['export']->options['export_variations'])){
+                $DefaultOptions['export_variations'] = XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION;
+            }
+            if (empty($this->data['export']->options['export_variations_title'])){
+                $DefaultOptions['export_variations_title'] = XmlExportEngine::VARIATION_USE_DEFAULT_TITLE;
+            }
 			$post = $this->input->post($DefaultOptions);			
 			$post['scheduled'] = $this->data['export']->scheduled;
+
 			foreach ($post as $key => $value) {
 				PMXE_Plugin::$session->set($key, $value);
 			}						
@@ -330,13 +354,28 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 				$post_types = PMXE_Plugin::$session->get('cpt');
 				if ( ! empty($post_types) )
 				{					
-					if ( ! in_array('users', $post_types)){		
-						$post_type_details = get_post_type_object( array_shift($post_types) );					
-						$friendly_name = $post_type_details->labels->name . ' Export - ' . date("Y F d H:i");
-					}
+				    if ( in_array('users', $post_types) ){
+                        $friendly_name = 'Users Export - ' . date("Y F d H:i");
+                    }
+                    elseif ( in_array('shop_customer', $post_types)){
+                        $friendly_name = 'Customers Export - ' . date("Y F d H:i");
+                    }
+                    elseif ( in_array('comments', $post_types) ){
+                        $friendly_name = 'Comments Export - ' . date("Y F d H:i");
+                    }
+                    elseif ( in_array('taxonomies', $post_types) ){
+                        $tx = get_taxonomy( $post['taxonomy_to_export'] );
+                        if (!empty($tx->labels->name)){
+                            $friendly_name = $tx->labels->name . ' Export - ' . date("Y F d H:i");
+                        }
+                        else{
+                            $friendly_name = 'Taxonomy Terms Export - ' . date("Y F d H:i");
+                        }
+                    }
 					else
 					{
-						$friendly_name = 'Users Export - ' . date("Y F d H:i");
+						$post_type_details = get_post_type_object( array_shift($post_types) );					
+						$friendly_name = $post_type_details->labels->name . ' Export - ' . date("Y F d H:i");
 					}
 				}
 				else

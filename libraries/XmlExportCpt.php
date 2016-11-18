@@ -24,7 +24,11 @@ final class XmlExportCpt
 
 	public static function prepare_data( $entry, $xmlWriter = false, &$acfs, &$woo, &$woo_order, $implode_delimiter, $preview, $is_item_data = false, $subID = false )
 	{
-		$article = array();	
+		$variationOptionsFactory = new \Wpae\VariationOptions\VariationOptionsFactory();
+		$variationOptions = $variationOptionsFactory->createVariationOptions(PMXE_EDITION);
+		$entry = $variationOptions->preprocessPost($entry);
+
+		$article = array();
 
 		// associate exported post with import
 		if ( ! $is_item_data and wp_all_export_is_compatible() and XmlExportEngine::$exportOptions['is_generate_import'] and XmlExportEngine::$exportOptions['import_id'])
@@ -62,7 +66,7 @@ final class XmlExportCpt
 			// skip shop order items data
 			if ( $pType == "shop_order" and strpos(XmlExportEngine::$exportOptions['cc_label'][$ID], "item_data__") !== false and ! $is_item_data ) continue;
 
-			$fieldName    = XmlExportEngine::$exportOptions['cc_name'][$ID];
+			$fieldName    = apply_filters('wp_all_export_field_name', wp_all_export_parse_field_name(XmlExportEngine::$exportOptions['cc_name'][$ID]), XmlExportEngine::$exportID);
 			$fieldValue   = str_replace("item_data__", "", XmlExportEngine::$exportOptions['cc_value'][$ID]);
 			$fieldLabel   = str_replace("item_data__", "", XmlExportEngine::$exportOptions['cc_label'][$ID]);
 			$fieldSql     = XmlExportEngine::$exportOptions['cc_sql'][$ID];
@@ -81,8 +85,7 @@ final class XmlExportCpt
 			{				
 				$element_name = ( ! empty($fieldName) ) ? preg_replace('/[^a-z0-9_:-]/i', '', $fieldName) : 'untitled_' . $ID;				
 
-				if (strpos($element_name, ":") !== false)
-				{
+				if (strpos($element_name, ":") !== false) {
 					$element_name_parts = explode(":", $element_name);
 					$element_name_ns = (empty($element_name_parts[0])) ? '' : $element_name_parts[0];
 					$element_name = (empty($element_name_parts[1])) ? 'untitled_' . $ID : preg_replace('/[^a-z0-9_-]/i', '', $element_name_parts[1]);							
@@ -157,26 +160,10 @@ final class XmlExportCpt
 
 				case 'date':
 					
-					if ( ! empty($fieldSettings))
-					{
-						switch ($fieldSettings) 
-						{
-							case 'unix':
-								$post_date = get_post_time('U', true, $entry->ID);
-								break;									
-							default:
-								$post_date = date($fieldSettings, get_post_time('U', true, $entry->ID));
-								break;
-						}														
-					}
-					else
-					{
-						$post_date = date("Ymd", get_post_time('U', true, $entry->ID));
-					}
+                    $post_date = prepare_date_field_value($fieldSettings, get_post_time('U', true, $entry->ID), "Ymd");
 					
 					wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_post_date', pmxe_filter($post_date, $fieldSnipped), $entry->ID) );
-					break;		
-
+					break;
 				case 'parent':
 					wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_post_parent', pmxe_filter($entry->post_parent, $fieldSnipped), $entry->ID) );
 					break;
@@ -209,32 +196,25 @@ final class XmlExportCpt
 					wp_all_export_write_article( $article, $element_name, ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($val))) : $val );
 					break;
 				case 'cf':
-					if ( ! empty($fieldValue) )
-					{																		
-						$val = "";
+					if ( ! empty($fieldValue) ) {
 
+						$val = "";
 						$cur_meta_values = get_post_meta($entry->ID, $fieldValue);	
 
-						if ( ! empty($cur_meta_values) and is_array($cur_meta_values))
-						{
-							foreach ($cur_meta_values as $key => $cur_meta_value) 
-							{
-								if (empty($val))
-								{
+						if ( ! empty($cur_meta_values) and is_array($cur_meta_values)) {
+							foreach ($cur_meta_values as $key => $cur_meta_value) {
+								if (empty($val)) {
 									$val = apply_filters('pmxe_custom_field', pmxe_filter(maybe_serialize($cur_meta_value), $fieldSnipped), $fieldValue, $entry->ID);																	
 								}
-								else
-								{
+								else {
 									$val = apply_filters('pmxe_custom_field', pmxe_filter($val . $implode_delimiter . maybe_serialize($cur_meta_value), $fieldSnipped), $fieldValue, $entry->ID);
 								}
 							}
 							wp_all_export_write_article( $article, $element_name, $val );
 						}		
 
-						if ( empty($cur_meta_values))
-						{
-							if ( empty($article[$element_name]))
-							{								
+						if ( empty($cur_meta_values)) {
+							if ( empty($article[$element_name])) {
 								wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_custom_field', pmxe_filter('', $fieldSnipped), $fieldValue, $entry->ID) );
 							}					
 						}																																																																
@@ -270,8 +250,7 @@ final class XmlExportCpt
 									break;
 							}
 						}		
-						else
-						{
+						else {
 							$field_value = get_field($fieldLabel, $entry->ID);	
 						}				
 						
@@ -289,19 +268,16 @@ final class XmlExportCpt
 							$field_options['group_id'], 
 							$preview
 						);
-																																																																					
 					}				
 								
 				break;
 
 				case 'woo':
 
-					if ( $is_xml_export )
-					{
+					if ( $is_xml_export ) {
 						XmlExportEngine::$woo_export->export_xml($xmlWriter, $entry, XmlExportEngine::$exportOptions, $ID); 
 					}
-					else
-					{
+					else {
 						XmlExportEngine::$woo_export->export_csv($article, $woo, $entry, XmlExportEngine::$exportOptions, $ID); 	
 					}										
 													
@@ -309,12 +285,10 @@ final class XmlExportCpt
 				
 				case 'woo_order':								
 
-					if ( $is_xml_export )
-					{
+					if ( $is_xml_export ) {
 						XmlExportEngine::$woo_order_export->export_xml($xmlWriter, $entry, XmlExportEngine::$exportOptions, $ID, $preview); 																		
 					}
-					else
-					{
+					else {
 						XmlExportEngine::$woo_order_export->export_csv($article, $woo_order, $entry, XmlExportEngine::$exportOptions, $ID, $preview); 					
 					}									
 
@@ -322,27 +296,21 @@ final class XmlExportCpt
 
 				case 'attr':
 					
-					if ( ! empty($fieldValue))
-					{
-						if ( $entry->post_parent == 0 )
-						{
+					if ( ! empty($fieldValue)) {
+						if ( $entry->post_parent == 0 ) {
 							$txes_list = get_the_terms($entry->ID, $fieldValue);
-							if ( ! is_wp_error($txes_list) and ! empty($txes_list)) 
-							{
+							if ( ! is_wp_error($txes_list) and ! empty($txes_list)) {
 								$attr_new = array();										
-								foreach ($txes_list as $t) 
-								{
+								foreach ($txes_list as $t) {
 									$attr_new[] = $t->name;
 								}																		
 								wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_woo_attribute', pmxe_filter(implode($implode_delimiter, $attr_new), $fieldSnipped), $entry->ID, $fieldValue) );
 							}																		
 						}
-						else
-						{
+						else {
 							$attribute_pa = apply_filters('pmxe_woo_attribute', get_post_meta($entry->ID, 'attribute_' . $fieldValue, true), $entry->ID, $fieldValue);
 							
 							wp_all_export_write_article( $article, $element_name, $attribute_pa );
-							
 						}								
 
 						// if ( ! in_array($element_name, $attributes)) $attributes[] = $element_name;						
@@ -355,7 +323,13 @@ final class XmlExportCpt
 					{	
 						
 						// get categories from parent product in case when variation exported
-						$entry_id = ( $entry->post_type == 'product_variation' ) ? $entry->post_parent : $entry->ID;
+                        if ($fieldLabel != 'product_shipping_class'){
+						    // get categories from parent product in case when variation exported
+						    $entry_id = ( $entry->post_type == 'product_variation' ) ? $entry->post_parent : $entry->ID;
+                        }
+                        else{
+                            $entry_id = $entry->ID;
+                        }
 
 						$txes_list = get_the_terms($entry_id, $fieldValue);
 
@@ -401,14 +375,6 @@ final class XmlExportCpt
 							
 							if ( $entry->post_type == 'product_variation' ) $article[$element_name] = 'variable';																			
 
-							$article['parent_id']  = $entry->post_parent;	
-
-							if ( $is_xml_export )
-							{
-								$xmlWriter->beginElement($element_name_ns, 'parent_id', null);
-									$xmlWriter->writeData($article['parent_id'], 'parent_id');
-								$xmlWriter->closeElement();
-							}
 						}							
 					}							
 
@@ -423,12 +389,10 @@ final class XmlExportCpt
 						if ( ! empty($fieldPhp) and !empty($fieldCode) )
 						{
 							// if shortcode defined
-							if (strpos($fieldCode, '[') === 0)
-							{
+							if (strpos($fieldCode, '[') === 0) {
 								$val = do_shortcode(str_replace("%%VALUE%%", $val, $fieldCode));
 							}	
-							else
-							{
+							else {
 								$val = eval('return ' . stripcslashes(str_replace("%%VALUE%%", $val, $fieldCode)) . ';');
 							}										
 						}						
@@ -481,8 +445,7 @@ final class XmlExportCpt
 					break;
 			}
 
-			if ( $is_xml_export and isset($article[$element_name]) )
-			{								
+			if ( $is_xml_export and isset($article[$element_name]) ) {
 				$element_name_in_file = XmlCsvExport::_get_valid_header_name( $element_name );
 				
 				$xmlWriter = apply_filters('wp_all_export_add_before_element', $xmlWriter, $element_name_in_file, XmlExportEngine::$exportID, $entry->ID);
@@ -494,6 +457,7 @@ final class XmlExportCpt
 				$xmlWriter = apply_filters('wp_all_export_add_after_element', $xmlWriter, $element_name_in_file, XmlExportEngine::$exportID, $entry->ID);
 			}
 		}
+
 		return $article;
 	}	
 
@@ -516,6 +480,10 @@ final class XmlExportCpt
 				$templateOptions['single_product_id'] = '{'. $element_name .'[1]}';
 				break;
 			case 'title':	
+                $templateOptions[$element_type] = '{'. $element_name .'[1]}';
+                $templateOptions['is_update_' . $options['cc_type'][$ID]] = 1;
+                $templateOptions['single_product_id_first_is_variation'] = '{'. $element_name .'[1]}';
+                break;
 			case 'content':
 			case 'author':
 			case 'slug':
@@ -526,7 +494,9 @@ final class XmlExportCpt
 				$templateOptions['is_multiple_page_parent'] = 'no';
 				$templateOptions['single_page_parent'] = '{' . $element_name . '[1]}';
 				$templateOptions['is_update_' . $options['cc_type'][$ID]] = 1;
-				break;	
+                $templateOptions['single_product_parent_id'] = '{' . $element_name . '[1]}';
+                $templateOptions['single_product_id_first_is_parent_id'] = '{' . $element_name . '[1]}';
+				break;
 			case 'excerpt':
 				$templateOptions['post_excerpt'] = '{'. $element_name .'[1]}';										
 				$templateOptions['is_update_' . $options['cc_type'][$ID]] = 1;
@@ -539,6 +509,11 @@ final class XmlExportCpt
 				$templateOptions[$element_type] = '{'. $element_name .'[1]}';										
 				$templateOptions['is_update_dates'] = 1;
 				break;																						
+            case 'order':
+                $templateOptions[$element_type] = '{'. $element_name .'[1]}';
+                $templateOptions['is_update_menu_order'] = 1;
+                $templateOptions['single_product_menu_order'] = '{'. $element_name .'[1]}';
+                break;
 			case 'post_type':
 
 				if ( empty($options['cpt']) )

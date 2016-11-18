@@ -473,6 +473,34 @@ else {
 					}
 				}
 			}
+
+			if(strpos($className, '\\') !== false){
+				// project-specific namespace prefix
+				$prefix = 'Wpae\\';
+
+				// base directory for the namespace prefix
+				$base_dir = __DIR__ . '/src/';
+
+				// does the class use the namespace prefix?
+				$len = strlen($prefix);
+				if (strncmp($prefix, $className, $len) !== 0) {
+					// no, move to the next registered autoloader
+					return;
+				}
+
+				// get the relative class name
+				$relative_class = substr($className, $len);
+
+				// replace the namespace prefix with the base directory, replace namespace
+				// separators with directory separators in the relative class name, append
+				// with .php
+				$file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+
+				// if the file exists, require it
+				if (file_exists($file)) {
+					require $file;
+				}
+			}
 			
 			return FALSE;
 		}
@@ -612,6 +640,30 @@ else {
 		}
 
 		/**
+		 * Determine is current export was created before current version
+		 */
+		public static function isExistingExport( $checkVersion = false ){
+
+			$input  = new PMXE_Input();
+			$export_id = $input->get('id', 0);
+
+			if (empty($export_id)) $export_id = $input->get('export_id', 0);
+
+			// ID not found means this is new export
+			if (empty($export_id)) return false;
+
+			if ( ! $checkVersion ) $checkVersion = PMXE_VERSION;
+
+			$export = new PMXE_Export_Record();
+			$export->getById($export_id);
+			if ( ! $export->isEmpty() && (empty($export->options['created_at_version']) || version_compare($export->options['created_at_version'], $checkVersion) < 0 )){
+				return true;
+			}
+
+			return false;
+		}
+
+		/**
 		 * Method returns default import options, main utility of the method is to avoid warnings when new
 		 * option is introduced but already registered imports don't have it
 		 */
@@ -683,7 +735,11 @@ else {
 				'custom_xml_template_footer' => '',				
 				'custom_xml_template_options' => array(),
                 'custom_xml_cdata_logic' => 'auto',
-				'show_cdata_in_preview' => 0	
+				'taxonomy_to_export' => '',
+				'created_at_version' => '',
+                'export_variations' => XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_VARIATION,
+				'export_variations_title' => XmlExportEngine::VARIATION_USE_PARENT_TITLE,
+				'show_cdata_in_preview' => 0
 			);
 		}		
 
