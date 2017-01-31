@@ -124,7 +124,7 @@
 		}
 
 		var then = $('#then');
-		start_date = moment().sod();		
+		start_date = moment().startOf('day');
 		update = function(){
 			var duration = moment.duration({'seconds' : 1});
 			start_date.add(duration); 
