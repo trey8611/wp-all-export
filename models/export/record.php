@@ -290,6 +290,11 @@ class PMXE_Export_Record extends PMXE_Model_Record {
     	// custom XML template do not support import bundle
     	if ( $options['export_to'] == 'xml' && ! empty($options['xml_template_type']) && in_array($options['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ) return false;
 
+        // Export only parent product do not support import bundle
+        if ( ! empty($options['cpt']) and in_array($options['cpt'][0], array('product', 'product_variation')) and class_exists('WooCommerce') and $options['export_variations'] == XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT){
+            return false;
+        }
+
     	$unsupported_post_types = array('comments');
     	return ( empty($options['cpt']) and ! in_array($options['wp_query_selector'], array('wp_comment_query')) or ! empty($options['cpt']) and ! in_array($options['cpt'][0], $unsupported_post_types) ) ? true : false;
     }

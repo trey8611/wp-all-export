@@ -2,8 +2,8 @@
 
 namespace Wpae\VariationOptions;
 
-
-use Wpae\Pro\VariationOptions\VariationOptions as ProVariationOptions;
+use Wpae\Pro\VariationOptions\VariationOptions;
+use Wpae\VariationOptions\VariationOptions as BasicVariationOptions;
 
 class VariationOptionsFactory
 {
@@ -11,10 +11,8 @@ class VariationOptionsFactory
     {
         switch ($pmxeEdition){
             case 'free':
-                return new VariationOptions();
-                break;
             case 'paid':
-                return new ProVariationOptions();
+                return new VariationOptions();
                 break;
             default:
                 throw new \Exception('Unknown PMXE edition');

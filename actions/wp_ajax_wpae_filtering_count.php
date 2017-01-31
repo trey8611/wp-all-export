@@ -149,17 +149,17 @@ function pmxe_wp_ajax_wpae_filtering_count(){
 			}
 		}
 		else
-		{									
+		{
 			remove_all_actions('parse_query');
-			remove_all_actions('pre_get_posts');			
-			remove_all_filters('posts_clauses');			
+			remove_all_actions('pre_get_posts');
+			remove_all_filters('posts_clauses');
 
 			$cpt = ($is_products_export) ? array('product', 'product_variation') : array($post['cpt']);
 
 			// get total custom post type records
 			$totalQuery = new WP_Query( array( 'post_type' => $cpt, 'post_status' => 'any', 'orderby' => 'ID', 'order' => 'ASC', 'posts_per_page' => 10 ));
 			if ( ! empty($totalQuery->found_posts)){
-				$total_records = $totalQuery->found_posts;			
+				$total_records = $totalQuery->found_posts;
 			}
 
 			wp_reset_postdata();
@@ -167,12 +167,12 @@ function pmxe_wp_ajax_wpae_filtering_count(){
 			ob_start();
 			// get custom post type records depends on filters			
 			add_filter('posts_where', 'wp_all_export_posts_where', 10, 1);
-			add_filter('posts_join', 'wp_all_export_posts_join', 10, 1);										
-				
+			add_filter('posts_join', 'wp_all_export_posts_join', 10, 1);
+
 			$exportQuery = new WP_Query( array( 'post_type' => $cpt, 'post_status' => 'any', 'orderby' => 'ID', 'order' => 'ASC', 'posts_per_page' => 10 ));
-			if ( ! empty($exportQuery->found_posts)) 
+			if ( ! empty($exportQuery->found_posts))
 			{
-				$found_records = $exportQuery->found_posts;	
+				$found_records = $exportQuery->found_posts;
 			}
 
 			if($is_products_export) {
@@ -183,9 +183,9 @@ function pmxe_wp_ajax_wpae_filtering_count(){
 				}
 			}
 
-			remove_filter('posts_join', 'wp_all_export_posts_join');			
-			remove_filter('posts_where', 'wp_all_export_posts_where');			
-			ob_end_clean();													
+			remove_filter('posts_join', 'wp_all_export_posts_join');
+			remove_filter('posts_where', 'wp_all_export_posts_where');
+			ob_end_clean();
 		}
 	}		
 

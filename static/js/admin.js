@@ -19,12 +19,12 @@
 
 	$('.export_variations').change(function(){
 		setTimeout(liveFiltering, 200);
-	});
-
-	$('.variations_disabled').click(function(){
-		$('#updateNotice').show();
-		$('html, body').animate({scrollTop: $("#updateNotice").offset().top - 50});
-		return false;
+		if ($(this).val() == 3){
+			$('.wp-all-export-product-bundle-warning').show();
+		}
+		else{
+			$('.wp-all-export-product-bundle-warning').hide();
+		}
 	});
 
 	var helpers = {

@@ -287,6 +287,7 @@
 	cursor: pointer;
 }
 .wpallexport-plugin .wp-all-export-warning,
+.wpallexport-plugin .wp-all-export-product-bundle-warning,
 .wpallexport-plugin .wp-all-export-sku-warning,
 .wpallexport-plugin .wp-all-export-advanced-query-warning,
 .wpallexport-plugin .wp-all-export-product-type-warning{
@@ -298,6 +299,7 @@
 	margin: 0;
 	padding: 1px 12px;
 }
+.wpallexport-plugin .wp-all-export-product-bundle-warning,
 .wpallexport-plugin .wp-all-export-warning{
 	margin-top: 20px;
 }

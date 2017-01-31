@@ -60,14 +60,7 @@
 				?>				
 
 				<input type="hidden" name="selected_post_type" value="<?php echo $selected_post_type; ?>"/>		
-				<input type="hidden" name="export_type" value="<?php echo $post['export_type']; ?>"/>																			
-				<div class="error inline" id="updateNotice" style="display:none; margin-top: 0;">
-                    <p>
-                        <a target="_blank" href='https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=variations&utm_campaign=free+wp+all+export+plugin'>
-                            <?php _e("Upgrade to the Pro edition of WP All Export to Select Product Variation Options", 'wp_all_export_plugin'); ?>
-                        </a>
-                    </p>
-                </div>
+				<input type="hidden" name="export_type" value="<?php echo $post['export_type']; ?>"/>
 				<div class="wpallexport-collapsed wpallexport-section wpallexport-simple-xml-template">
 					<div class="wpallexport-content-section" style="margin-bottom: 10px;">
 						<div class="wpallexport-collapsed-content">
@@ -230,6 +223,9 @@
 										<input type="hidden" id="custom_xml_cdata_logic" value="<?php echo $post['custom_xml_cdata_logic']; ?>" name="custom_xml_cdata_logic" />
 										<input type="hidden" id="show_cdata_in_preview" value="<?php echo $post['show_cdata_in_preview']; ?>" name="show_cdata_in_preview" />
 										<div><?php include('variation_options.php'); ?></div>
+										<div class="wp-all-export-product-bundle-warning" style="display:none;">
+											<p><?php _e("You will not be able to reimport data to the product variations, and you will not be able to import these products to another site.", 'wp_all_export_plugin'); ?></p>
+										</div>
 										<div class="input">
 											<h4>CDATA</h4>
 											<p style="font-style: italic;"><?php echo sprintf(__("There are certain characters that cannot be included in an XML file unless they are wrapped in CDATA tags.<br/><a target='_blank' href='%s'>Click here to read more about CDATA tags.</a>", 'wp_all_export_plugin'), 'https://en.wikipedia.org/wiki/CDATA'); ?></p>
@@ -278,6 +274,9 @@
                                             <?php
                                                 include('variation_options.php');
                                             ?>
+										</div>
+										<div class="wp-all-export-product-bundle-warning" style="display:none;">
+											<p><?php _e("You will not be able to reimport data to the product variations, and you will not be able to import these products to another site.", 'wp_all_export_plugin'); ?></p>
 										</div>
 										<!-- Display each product in its own row -->
 										<?php if ( XmlExportWooCommerceOrder::$is_active ): ?>
