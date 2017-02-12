@@ -30,7 +30,7 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 		extract($get);
 		$this->data += $get;
 
-		if ( ! in_array($order_by, array('registered_on', 'id', 'name'))){
+		if ( ! in_array($order_by, array('registered_on', 'id', 'friendly_name'))){
 			$order_by = 'registered_on';
 		}
 
@@ -42,7 +42,7 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 		$by = array('parent_id' => 0);
 		if ('' != $s) {
 			$like = '%' . preg_replace('%\s+%', '%', preg_replace('/[%?]/', '\\\\$0', $s)) . '%';
-			$by[] = array(array('name LIKE' => $like, 'type LIKE' => $like, 'path LIKE' => $like), 'OR');
+			$by[] = array(array('friendly_name LIKE' => $like, 'registered_on LIKE' => $like), 'OR');
 		}
 		
 		$this->data['list'] = $list->setColumns(
@@ -105,7 +105,7 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 
 		if ( ! empty($item['options']['bundlepath']) )
 		{			
-			$this->data['bundle_url'] = site_url() . '/wp-cron.php?export_hash=' . substr(md5($this->data['cron_job_key'] . $item['id']), 0, 16) . '&export_id=' . $item['id'] . '&action=get_bundle'; 				
+			$this->data['bundle_url'] = site_url() . '/wp-cron.php?export_hash=' . substr(md5($this->data['cron_job_key'] . $item['id']), 0, 16) . '&export_id=' . $item['id'] . '&action=get_bundle&t=zip';
 		}		
 
 		$this->render();

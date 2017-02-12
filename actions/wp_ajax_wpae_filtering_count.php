@@ -37,6 +37,14 @@ function pmxe_wp_ajax_wpae_filtering_count(){
 	{
 		XmlExportEngine::$exportOptions  = $export->options + PMXE_Plugin::get_default_import_options();	
 		XmlExportEngine::$exportOptions['export_only_new_stuff'] = $post['export_only_new_stuff'];
+		if (!empty($post['wpml_lang'])) XmlExportEngine::$exportOptions['wpml_lang'] = $post['wpml_lang'];
+	}
+	else{
+		XmlExportEngine::$exportOptions['wpml_lang'] = empty($post['wpml_lang']) ? 'all' : $post['wpml_lang'];
+	}
+
+	if (class_exists('SitePress') && !empty(XmlExportEngine::$exportOptions['wpml_lang'])){
+		do_action( 'wpml_switch_language', XmlExportEngine::$exportOptions['wpml_lang'] );
 	}
 	
 	XmlExportEngine::$is_user_export = ( 'users' == $post['cpt'] or 'shop_customer' == $post['cpt'] ) ? true : false;

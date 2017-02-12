@@ -39,6 +39,10 @@ function pmxe_wp_ajax_wpallexport(){
 	XmlExportEngine::$exportID 			= $export_id;
 	XmlExportEngine::$exportRecord 		= $export;
 
+  if ( class_exists('SitePress') && ! empty(XmlExportEngine::$exportOptions['wpml_lang'])){
+    do_action( 'wpml_switch_language', XmlExportEngine::$exportOptions['wpml_lang'] );
+  }
+
 	$errors = new WP_Error();
 	$engine = new XmlExportEngine($exportOptions, $errors);	
 

@@ -7,7 +7,7 @@
 
 class PMXE_Admin_Export extends PMXE_Controller_Admin {
 	
-	protected $isWizard = true; // indicates whether controller is in wizard mode (otherwize it called to be deligated an edit action)	
+	protected $isWizard = true; // indicates whether controller is in wizard mode (otherwise it called to be delegated an edit action)
 
 	protected function init() {		
 
@@ -43,6 +43,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 	/**
 	 * Checks whether corresponding step of wizard is complete
 	 * @param string $action
+	 * @return bool
 	 */
 	protected function _step_ready($action) {		
 
@@ -184,11 +185,14 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 
         $this->data['dismiss_warnings'] = 0;
 		if ($this->isWizard) {
+			// New export
 			$DefaultOptions = (PMXE_Plugin::$session->has_session() ? PMXE_Plugin::$session->get_clear_session_data() : array()) + $default;
 			$post = $this->input->post($DefaultOptions);					
 		}
 		else{
+			// Edit export
 			$DefaultOptions = $this->data['export']->options + $default;
+			
             if (empty($this->data['export']->options['export_variations'])){
                 $DefaultOptions['export_variations'] = XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION;
             }
@@ -233,11 +237,9 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 				unset($template_options['wp_query_selector']);
 				$this->data['post'] = array_merge($post, $template_options);
 				PMXE_Plugin::$session->set('is_loaded_template', $load_template);
-				//PMXE_Plugin::$session->set('options', $template_options);
 			}
 
 		} elseif ($this->input->post('is_submitted')) {
-
 			check_admin_referer('template', '_wpnonce_template');
 
 			if ( empty($post['cc_type'][0]) && ! in_array($post['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ){
@@ -289,9 +291,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 					}
 					wp_redirect(add_query_arg(array('page' => 'pmxe-admin-manage', 'pmxe_nt' => urlencode(__('Options updated', 'pmxi_plugin'))) + array_intersect_key($_GET, array_flip($this->baseUrlParamNames)), admin_url('admin.php'))); die();
 				}
-									
 			}
-			
 		}		
 
 		if ( empty($this->data['engine']) ){
@@ -307,6 +307,20 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 
 		$this->data['available_fields_view'] = $this->data['engine']->render_new_field();
 				
+        if (class_exists('SitePress')){
+          global $sitepress;
+          $langs = $sitepress->get_active_languages();
+          if ( ! empty($langs) ){
+            // prepare active languages list
+            $language_list = array('all' => 'All');
+            foreach ($langs as $code => $langInfo){
+              $language_list[$code] = "<img width='18' height='12' src='" . $sitepress->get_flag_url($code) . "' style='position:relative; top: 2px;'/> " . $langInfo['display_name'];
+              if ($code == $this->default_language) $language_list[$code] .= ' ( <strong>default</strong> )';
+            }
+          }
+          $this->data['wpml_options'] = $language_list;
+        }
+
 		$this->render();		
 	}
 
@@ -315,7 +329,6 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin {
 	 */ 
 	public function options()
 	{
-
 		$default = PMXE_Plugin::get_default_import_options();
 
 		if ($this->isWizard) {	

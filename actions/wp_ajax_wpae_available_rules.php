@@ -20,12 +20,12 @@ function pmxe_wp_ajax_wpae_available_rules(){
 	<select id="wp_all_export_rule">
 		<option value=""><?php _e('Select Rule', 'wp_all_export_plugin'); ?></option>
 		<?php
-		if (strpos($post['selected'], 'tx_') === 0){
+		if (strpos($post['selected'], 'tx_') === 0 || strpos($post['selected'], 'product_tx') === 0){
 			?>										
 
 				<!-- Taxonomies -->
-				<option value="in"><?php echo __('In', 'wp_all_export_plugin') . ' ' . ucwords(str_replace(array("tx_", "_"), array("", " "), $post['selected'])); ?></option>
-				<option value="not_in"><?php echo __('Not In', 'wp_all_export_plugin') . ' ' . ucwords(str_replace(array("tx_", "_"), array("", " "), $post['selected'])); ?></option>
+				<option value="in"><?php echo __('In', 'wp_all_export_plugin') . ' ' . ucwords(str_replace(array("product_tx", "tx_", "_"), array("", "", " "), $post['selected'])); ?></option>
+				<option value="not_in"><?php echo __('Not In', 'wp_all_export_plugin') . ' ' . ucwords(str_replace(array("product_tx", "tx_", "_"), array("", "", " "), $post['selected'])); ?></option>
 
 				<!-- Custom Fields -->
 				<!--option value="between">BETWEEN</option-->

@@ -1,10 +1,11 @@
 /**
  * plugin admin area javascript
  */
-(function($){$(function () {
+(function($, EventService ){$(function () {
 
 	var vm = {
 		'preiviewText' :'',
+		'isGoogleMerchantsExport' : false,
 		'isWoocommerceOrderExport' : function(){
 			return $('#woo_commerce_order').length;
 		},
@@ -16,6 +17,115 @@
 		},
 		'hasVariations' : false
 	};
+
+	function processElementName($element, $elementName){
+		if ( $element.find('input[name^=cc_type]').val().indexOf('image_') !== -1 )
+		{
+			$elementName = 'Image ' + $elementName;
+		}
+		if ( $element.find('input[name^=cc_type]').val().indexOf('attachment_') !== -1 )
+		{
+			$elementName = 'Attachment ' + $elementName;
+		}
+		return $elementName;
+	}
+
+	var currentLine = -1;
+
+	var dragHelper = function(e, ui) {
+
+		if(!vm.isGoogleMerchantsExport) {
+			return $(this).clone();
+		}
+		if(!$(this).find('.custom_column').length) {
+			return $(this).clone();
+		}
+
+		var elementName = $(this).find('.custom_column').find('input[name^=cc_name]').val();
+		elementName = helpers.sanitizeElementName(elementName);
+		elementName = processElementName($(this), elementName);
+
+		return $('<div>{' + elementName + '}</div>');
+
+	};
+
+	var onDrag = function(e, ui)
+	{
+		if ( $('select.xml_template_type').val() == 'custom' && isDraggingOverTextEditor(e))
+		{
+			xml_editor.focus();
+
+			if ( ui.helper.find('.custom_column').length )
+			{
+				var $elementName = ui.helper.find('.custom_column').find('input[name^=cc_name]').val();
+
+				var $elementValue = $elementName;
+				$elementName = helpers.sanitizeElementName($elementName);
+
+				if ( ! ui.helper.find('.custom_column').hasClass('wp-all-export-custom-xml-drag-over') ) ui.helper.find('.custom_column').addClass('wp-all-export-custom-xml-drag-over');
+				ui.helper.find('.custom_column').find('.wpallexport-xml-element').html("&lt;" + $elementName.replace(/ /g,'') + "&gt;<span>{" + $elementValue + "}</span>&lt;/" + $elementName.replace(/ /g,'') + "&gt;");
+			}
+			if ( ui.helper.find('.default_column').length )
+			{
+				var $elementName = ui.helper.find('.default_column').find('.wpallexport-element-label').html();
+				if ( ! ui.helper.find('.default_column').hasClass('wp-all-export-custom-xml-drag-over') ) ui.helper.find('.default_column').addClass('wp-all-export-custom-xml-drag-over');
+			}
+
+			var line = xml_editor.lineAtHeight(ui.position.top, 'page');
+			var ch   = xml_editor.coordsChar(ui.position, 'page');
+
+			if( line == currentLine ) {
+				return;
+			}
+
+			if (currentLine != -1) {
+				removeLine(currentLine);
+			}
+
+			currentLine = line;
+
+			addLine("\n", line);
+
+			xml_editor_doc.setCursor({line:line, ch:ch.ch});
+		}
+	};
+
+	function isDraggingOverTextEditor(event) {
+		var e = event.originalEvent.originalEvent.target;
+		return $.contains(xml_editor.display.scroller, e)
+	}
+
+	function addLine(str, line, ch) {
+		if(typeof ch === 'undefined') {
+			ch = 0;
+		}
+		xml_editor.replaceRange(str, {line: line, ch:0}, {line:line, ch:0});
+	}
+
+	function removeLine(line) {
+		xml_editor.removeLine(line);
+	}
+
+	var initDraggable = function() {
+		$( "#available_data li:not(.available_sub_section)").draggable({
+			appendTo: "body",
+			helper: dragHelper,
+			drag: onDrag
+		});
+	};
+
+	var resetDraggable = function() {
+
+		var $draggableSelector = $("#available_data li:not(.available_sub_section)");
+
+		if($draggableSelector.data('ui-draggable')){
+			$draggableSelector.draggable('destroy');
+		}
+
+		initDraggable();
+	};
+
+	initDraggable();
 
 	$('.export_variations').change(function(){
 		setTimeout(liveFiltering, 200);
@@ -192,7 +302,7 @@
 
 	});
 
-	$('.wpallexport-collapsed').find('.wpallexport-collapsed-header').live('click', function(){
+	$('.wpallexport-collapsed').find('.wpallexport-collapsed-header:not(.disable-jquery)').live('click', function(){
 		var $parent = $(this).parents('.wpallexport-collapsed:first');
 		if ($parent.hasClass('closed')){			
 			$parent.find('hr').show();
@@ -326,7 +436,7 @@
 
 		    		$('#wp_all_export_available_rules').html('<div class="wp_all_export_preloader" style="display:block;"></div>');
 
-		    		var date_fields = ['post_date', 'comment_date', 'user_registered'];
+		    		var date_fields = ['post_date', 'comment_date', 'user_registered', 'cf__completed_date', 'product_date'];
 
 	    			if ( date_fields.indexOf(params.selected) > -1 )
 		    		{
@@ -437,7 +547,7 @@
 			dataType: "json"
 		});
 
-	}	
+	};
 
 	var liveFiltering = function(first_load, after_filtering){
 
@@ -463,6 +573,7 @@
 				'export_only_new_stuff' : $('#export_only_new_stuff').is(':checked') ? 1 : 0,		
 				'export_type' : $('input[name=export_type]').val(),
 				'taxonomy_to_export' : $('input[name=taxonomy_to_export]').val(),
+				'wpml_lang' : $('input[name=wpml_lang]:checked').val(),
 				'export_variations' : $('#export_variations').val()
 			},				
 			security: wp_all_export_security				
@@ -1516,7 +1627,7 @@
 					// Handle an eval error
 					if(jqXHR.responseText.indexOf('[[ERROR]]') !== -1) {
 						vm.preiviewText = $('.wpallexport-preview-title').text();
-						console.log(vm.preiviewText);
+
 						var json = jqXHR.responseText.split('[[ERROR]]')[1];
 						json = $.parseJSON(json);
 						ths.pointer({'content' : '<div id="post-preview" class="wpallexport-preview">' +
@@ -1727,6 +1838,7 @@
 
 				var submitButton = $(this);
 
+				if(!vm.isGoogleMerchantsExport) {
 				// Validate the form by sending it to preview before submitting it
 				var request = {
 					action: 'wpae_preview',
@@ -1734,6 +1846,7 @@
 					custom_xml: xml_editor.getValue(),
 					security: wp_all_export_security
 				};
+
 
 				$.ajax({
 					type: 'POST',
@@ -1783,10 +1896,12 @@
 							$('#validationError').fadeIn();
 							$('html, body').animate({scrollTop: $("#validationError").offset().top - 50});
 						}
-
 					},
 					dataType: "json"
 				});
+				} else {
+					submitButton.parents('form:first').submit();
+				}
 			});		
     	}   	     	   
 
@@ -1810,6 +1925,9 @@
 
     		if ($(this).hasClass('wpallexport-csv-type'))
     		{
+				vm.isGoogleMerchantsExport = false;
+				//resetDraggable();
+				angular.element(document.getElementById('googleMerchants')).injector().get('$rootScope').$broadcast('googleMerchantsDeselected');
     			$('.wpallexport-custom-xml-template').slideUp();
     			$('.wpallexport-simple-xml-template').slideDown();
     			$('.wpallexport-csv-options').show();
@@ -1866,7 +1984,15 @@
 
     	// template form: auto submit when `load template` list value is picked
 		$(this).find('select[name="load_template"]').live('change', function () {
-			$(this).parents('form').submit();
+
+			var template = $(this).find('option:selected').val();
+			var exportMode = $('.xml_template_type').find('option:selected').val();
+
+			if( exportMode == 'XmlGoogleMerchants') {
+				angular.element(document.getElementById('googleMerchants')).injector().get('$rootScope').$broadcast('selectedTemplate', template);
+			} else {
+			    $(this).parents('form').submit();
+			}
 		});
 
 		var height = $(window).height();
@@ -2017,6 +2143,9 @@
 	$('input[name^=rule]').live('click', function(){
 		liveFiltering();
 	});
+	$('input[name=wpml_lang]').live('click', function(){
+		liveFiltering();
+	});
 	// Re-count posts when changing product matching mode in filtering section
 	$('select[name^=product_matching_mode]').live('change', function(){
 		liveFiltering();
@@ -2083,10 +2212,20 @@
     			$('.wpallexport-submit-template').removeAttr('disabled');
     			$('.custom_xml_upgrade_notice').hide();
     			$('.wpallexport-submit-buttons').show();
+    			if(angular.element(document.getElementById('googleMerchants')).injector()){
+					resetDraggable();
+					angular.element(document.getElementById('googleMerchants')).injector().get('$rootScope').$broadcast('googleMerchantsDeselected');
+                }
+                vm.isGoogleMerchantsExport = false;
     			break;
     		case 'custom':
-            case 'XmlGoogleMerchants':
-            	$('.wpallexport-submit-buttons').hide();
+    			if(angular.element(document.getElementById('googleMerchants')).injector()){
+					resetDraggable();
+					angular.element(document.getElementById('googleMerchants')).injector().get('$rootScope').$broadcast('googleMerchantsDeselected');
+                }
+                vm.isGoogleMerchantsExport = false;
+				$('.custom_xml_upgrade_notice').hide();
+                $('.wpallexport-submit-buttons').hide();
     			$('.simple_xml_template_options').slideUp();
     			$('.wpallexport-simple-xml-template').slideUp();
     			if ( ! $('.wpallexport-file-options').hasClass('closed')) $('.wpallexport-file-options').find('.wpallexport-collapsed-header').click();
@@ -2128,9 +2267,36 @@
                     }
                 }
                 $('.wpallexport-submit-template').attr('disabled', 'disabled');
-                $('.custom_xml_upgrade_notice').show();
+                $('.wpallexport-custom-xml-template').show();
+                break;
+            case 'XmlGoogleMerchants':
+            	$('.wpallexport-submit-buttons').hide();
+				$('.simple_xml_template_options').slideUp();
+				$('.wpallexport-simple-xml-template').slideUp();
+				$('.wpallexport-custom-xml-template').slideUp();
+				if(!vm.isCSVExport()) {
+					$('.wpallexport-google-merchants-template').slideUp();
+				}
+				$('.wpallexport-google-merchants-template').slideUp();
+
+				if ( ! $('.wpallexport-file-options').hasClass('closed')) {
+					$('.wpallexport-file-options').find('.wpallexport-collapsed-header').click();
+				}
+
+				$('.pmxe_product_data').find(".wpallexport-xml-element:contains('Attributes')").parents('li:first').show();
+
+				if(angular.element(document.getElementById('googleMerchants')).injector()){
+					resetDraggable();
+					angular.element(document.getElementById('googleMerchants')).injector().get('$rootScope').$broadcast('googleMerchantsSelected', vm.isProductVariationsExport());
+				}
+				vm.isGoogleMerchantsExport = true;
+                $('.wpallexport-submit-template').attr('disabled', 'disabled');
+                $('.wpallexport-google-merchants-template').show();
     			break;
     		default:
+    			resetDraggable();
+				angular.element(document.getElementById('googleMerchants')).injector().get('$rootScope').$broadcast('googleMerchantsDeselected');
+    			vm.isGoogleMerchantsExport = false;
     			$('.simple_xml_template_options').slideUp();
     			$('.wpallexport-simple-xml-template').slideDown();
     			$('.wpallexport-custom-xml-template').slideUp();
@@ -2211,6 +2377,17 @@
 			$('.wpallexport-submit-buttons').show();
 			$('.wpallexport-submit-template').removeAttr('disabled');
 		}
+	});
+
+	$('#templateForm').submit(function(event){
+
+		if(vm.isGoogleMerchantsExport) {
+			event.stopImmediatePropagation();
+			var templateName = $('.switcher-target-save_template_as input').val();
+			angular.element(document.getElementById('googleMerchants')).injector().get('$rootScope').$broadcast('googleMerchantsSubmitted', {templateName: templateName});
+			return false;
+		}
+
 	});
 
 	$('select[name=column_value_type]').change(function(){

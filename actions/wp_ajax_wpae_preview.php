@@ -44,7 +44,9 @@ function pmxe_wp_ajax_wpae_preview(){
 	XmlExportEngine::$is_taxonomy_export = $exportOptions['is_taxonomy_export'];
 	XmlExportEngine::$exportID 			= $export_id;
 
-
+	if ( class_exists('SitePress') && ! empty(XmlExportEngine::$exportOptions['wpml_lang'])){
+		do_action( 'wpml_switch_language', XmlExportEngine::$exportOptions['wpml_lang'] );
+	}
 
 	if ( in_array(XmlExportEngine::$exportOptions['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ){
 

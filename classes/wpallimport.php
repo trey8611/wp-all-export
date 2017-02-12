@@ -297,6 +297,8 @@ final class PMXE_Wpallimport
                         self::$templateOptions['matching_parent'] = 'first_is_parent_id';
                         //self::$templateOptions['single_product_id_first_is_parent_id'] = '{parent_id[1]}';
                     }
+                    self::$templateOptions['create_new_records'] = 0;
+                    self::$templateOptions['is_update_product_type'] = 0;
                 }
             }
 

@@ -1,6 +1,6 @@
 <?php
 
-use Wpae\VariationOptions\VariationOptionsFactory;
+use Wpae\App\Service\VariationOptions\VariationOptionsFactory;
 
 if ( ! class_exists('XmlExportFiltering') )
 {

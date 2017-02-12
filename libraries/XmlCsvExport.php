@@ -88,6 +88,7 @@ final Class XmlCsvExport
                 $articles = apply_filters('wp_all_export_csv_rows', $articles, XmlExportEngine::$exportOptions, XmlExportEngine::$exportID);
                 if (!$preview) do_action('pmxe_exported_post', $record->ID, XmlExportEngine::$exportRecord);
             }
+
 			wp_reset_postdata();									
         }
 		// [ \Exporting requested data ]		
@@ -616,7 +617,11 @@ final Class XmlCsvExport
 		}		
 		
 		if ($is_update_headers) {
-			$headers = $old_headers + $headers;
+            $tmp_headers = $headers;
+            $headers = $old_headers;
+            foreach ($tmp_headers as $theader){
+                if (!in_array($theader, $headers)) $headers[] = $theader;
+            }
 			$tmp_file = str_replace(basename($file), 'iteration_' . basename($file), $file);
 			copy($file, $tmp_file);
 			$in  = fopen($tmp_file, 'r');
@@ -624,7 +629,8 @@ final Class XmlCsvExport
 			$headers = apply_filters('wp_all_export_csv_headers', $headers, XmlExportEngine::$exportID);
 
 			if ( XmlExportEngine::$exportOptions['include_bom'] ) {
-				fputcsv($out, chr(0xEF).chr(0xBB).chr(0xBF) . array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers), XmlExportEngine::$exportOptions['delimiter']);
+                fwrite($out, chr(0xEF).chr(0xBB).chr(0xBF));
+				fputcsv($out, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers), XmlExportEngine::$exportOptions['delimiter']);
 			}
 			else {
 				fputcsv($out, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers), XmlExportEngine::$exportOptions['delimiter']);

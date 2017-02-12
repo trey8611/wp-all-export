@@ -104,7 +104,7 @@
             $r = array();
             // populate $r
             foreach ($taxonomies as $taxonomy) {
-                if (in_array($taxonomy->name, $ignore) || $taxonomy->show_in_nav_menus === false ) {
+                if (in_array($taxonomy->name, $ignore)) {
                     continue;
                 }
                 if ( ! empty($taxonomy->labels->name) && strpos($taxonomy->labels->name, "_") === false){

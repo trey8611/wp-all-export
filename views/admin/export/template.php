@@ -40,7 +40,7 @@
 				<?php $this->error(); ?>
 			<?php endif ?>			
 
-			<form class="wpallexport-template <?php echo ! $this->isWizard ? 'edit' : '' ?> wpallexport-step-3" method="post" style="display:none;">		
+			<form class="wpallexport-template <?php echo ! $this->isWizard ? 'edit' : '' ?> wpallexport-step-3" method="post" style="display:none;" id="templateForm">
 				
 				<input type="hidden" class="hierarhy-output" name="filter_rules_hierarhy" value="<?php echo esc_html($post['filter_rules_hierarhy']);?>"/>
 				<input type="hidden" name="taxonomy_to_export" value="<?php echo $post['taxonomy_to_export'];?>">
@@ -255,8 +255,7 @@
 						</div>
 
 						<!-- ExportToCsvBegin -->
-						<div class="wpallexport-collapsed closed wpallexport-section wpallexport-csv-advanced-options export_to_csv"  <?php if ($post['export_to'] != 'csv' || ($post['export_to'] == 'csv' && $post['export_to_sheet'] ==='xls')) { ?> style="display: none;" <?php }?> >
-
+						<div class="wpallexport-collapsed closed wpallexport-section wpallexport-csv-advanced-options export_to_csv"  <?php if ($post['export_to'] == 'xml') : ?> style="display: none;" <?php endif; ?> >
 							<div class="wpallexport-content-section rad0" style="margin:0; border-top:1px solid #ddd; border-bottom: none; border-right: none; border-left: none; background: #f1f2f2; padding-bottom: 15px; margin-top: 5px;">
 								<div class="wpallexport-collapsed-header">
 									<h3 style="color:#40acad;"><?php _e('Advanced Options','wp_all_export_plugin');?></h3>
@@ -270,6 +269,19 @@
 												<input type="text" name="delimiter" value="<?php echo esc_attr($post['delimiter']) ?>" style="width: 40px; height: 30px; top: 0px; text-align: center;"/>
 											</div>
 										</div>
+										<?php if (class_exists('SitePress')): ?>
+											<div class="wp-all-export-wpml-options" style="margin-left:20px;">
+												<h4><?php _e('Language', 'wp_all_export_plugin'); ?></h4>
+												<div class="input">
+													<?php foreach ($wpml_options as $key => $value):?>
+														<div class="input">
+															<input type="radio" id="wpml_lang_<?php echo $key;?>" name="wpml_lang" value="<?php echo $key; ?>" <?php if ($post['wpml_lang'] == $key):?>checked="checked"<?php endif; ?> class="switcher"/>
+															<label for="wpml_lang_<?php echo $key;?>"><?php echo $value; ?></label>
+														</div>
+													<?php endforeach; ?>
+												</div>
+											</div>
+										<?php endif; ?>
 										<div style="margin-left:20px;">
                                             <?php
                                                 include('variation_options.php');
@@ -289,7 +301,8 @@
 													<input type="hidden" name="order_item_fill_empty_columns" value="0"/>
 													<input type="checkbox" id="order_item_fill_empty_columns" name="order_item_fill_empty_columns" value="1" <?php if ($post['order_item_fill_empty_columns']):?>checked="checked"<?php endif; ?>/>
 													<label for="order_item_fill_empty_columns"><?php _e("Fill in empty columns", "wp_all_export_plugin"); ?></label>
-													<a href="#help" class="wpallexport-help" style="position: relative; top: 0px;" title="<?php _e('If enabled, each order item will appear as its own row with all order info filled in for every column. If disabled, order info will only display on one row with only the order item info displaying in additional rows.', 'wp_all_export_plugin'); ?>">?</a>
+													<a href="#help" class="wpallexport-help" style="position: relative; top: 0px;"
+													   title="<?php _e('If enabled, each order item will appear as its own row with all order info filled in for every column. If disabled, order info will only display on one row with only the order item info displaying in additional rows.', 'wp_all_export_plugin'); ?>">?</a>
 												</div>
 											</div>
 											<div class="clear"></div>
@@ -305,18 +318,18 @@
 				<div class="wpallexport-collapsed wpallexport-section wpallexport-file-options closed" style="margin-top: 0px;">
 					<div class="wpallexport-content-section" style="padding-bottom: 15px; margin-bottom: 10px;">
 						<div class="wpallexport-collapsed-header" style="padding-left: 25px;">
-							<h3><?php _e('Export File Type','wp_all_export_plugin');?></h3>	
+							<h3><?php _e('Export Type','wp_all_export_plugin');?></h3>
 						</div>
 						<div class="wpallexport-collapsed-content" style="padding: 0; overflow: hidden;">
 							<div class="wpallexport-collapsed-content-inner">								
 								<div class="wpallexport-choose-data-type">
-									<h3 style="margin-top: 10px; margin-bottom: 40px;"><?php _e('Choose your export file type', 'wp_all_export_plugin'); ?></h3>
-									<a href="javascript:void(0);" class="wpallexport-import-to-format rad4 wpallexport-csv-type <?php if ($post['export_to'] != 'xml') echo 'selected'; ?>">										
+									<h3 style="margin-top: 10px; margin-bottom: 40px;"><?php _e('Choose your export type', 'wp_all_export_plugin'); ?></h3>
+									<a href="javascript:void(0);" class="wpallexport-import-to-format rad4 wpallexport-csv-type <?php if ($post['export_to'] != XmlExportEngine::EXPORT_TYPE_XML) echo 'selected'; ?>">
 										<span class="wpallexport-import-to-title"><?php _e('Spreadsheet', 'wp_all_export_plugin'); ?></span>
 										<span class="wpallexport-import-to-arrow"></span>
 									</a>
-									<a href="javascript:void(0);" class="wpallexport-import-to-format rad4 wpallexport-xml-type <?php if ($post['export_to'] == 'xml') echo 'selected'; ?>" style="margin-right:0;">										
-										<span class="wpallexport-import-to-title"><?php _e('XML Feed', 'wp_all_export_plugin'); ?></span>
+									<a href="javascript:void(0);" class="wpallexport-import-to-format rad4 wpallexport-xml-type <?php if ($post['export_to'] == XmlExportEngine::EXPORT_TYPE_XML) echo 'selected'; ?>" style="margin-right:0;">
+										<span class="wpallexport-import-to-title"><?php _e('Feed', 'wp_all_export_plugin'); ?></span>
 										<span class="wpallexport-import-to-arrow"></span>
 									</a>
 								</div>
@@ -325,11 +338,11 @@
 
 									<input type="hidden" name="export_to" value="<?php echo $post['export_to']; ?>"/>									
 
-									<div class="wpallexport-file-format-options" style="width:100%;">
+									<div class="wpallexport-file-format-options">
 
-										<div class="wpallexport-csv-options" style="<?php if ($post['export_to'] == 'xml') echo 'display:none;'; ?> width:100%;">
+										<div class="wpallexport-csv-options" style="<?php if ($post['export_to'] == XmlExportEngine::EXPORT_TYPE_XML || $post['export_to'] == XmlExportEngine::EXPORT_TYPE_GOOLE_MERCHANTS) echo 'display:none;'; ?>">
 											<!-- Export File Format -->
-											<div class="input" style="width:83%; margin: 0 auto 5px;">
+											<div class="input">
 												<select name="export_to_sheet" id="export_to_sheet">
 													<option value="csv" <?php if ($post['export_to_sheet'] == 'csv') echo 'selected="selected"';?>><?php _e('CSV File', 'wp_all_export_plugin'); ?></option>
 													<option value="xls" <?php if ($post['export_to_sheet'] == 'xls') echo 'selected="selected"';?>><?php _e('Excel File (XLS)', 'wp_all_export_plugin'); ?></option>
@@ -346,12 +359,18 @@
 											</div>
 										</div>
 
-										<div class="wpallexport-xml-options" <?php if ($post['export_to'] != 'xml') echo 'style="display:none;"'; ?>>
-
-											<div class="input" style="width:83%; margin: 0 auto 5px;">
+										<div class="wpallexport-xml-options" <?php if ($post['export_to'] != XmlExportEngine::EXPORT_TYPE_XML) echo 'style="display:none;"'; ?>>
+											<div class="input">
 												<select name="xml_template_type" class="xml_template_type">
 													<option value="simple" <?php if ($post['xml_template_type'] == 'simple') echo 'selected="selected"';?>><?php _e('Simple XML Feed', 'wp_all_export_plugin'); ?></option>
 													<option value="custom" <?php if ($post['xml_template_type'] == 'custom') echo 'selected="selected"';?>><?php _e('Custom XML Feed', 'wp_all_export_plugin'); ?></option>
+													<?php
+													if(in_array('product', $post['cpt'])) {
+														?>
+														<option value="<?php echo XmlExportEngine::EXPORT_TYPE_GOOLE_MERCHANTS; ?>" <?php if ($post['xml_template_type'] == XmlExportEngine::EXPORT_TYPE_GOOLE_MERCHANTS) echo 'selected="selected"';?>><?php _e('Google Merchant Center Product Feed', 'wp_all_export_plugin'); ?></option>
+													<?php
+													}
+													?>
 												</select>												
 											</div>
 										</div>
@@ -361,6 +380,9 @@
 						</div>
 					</div>
 				</div>
+
+				<!-- Google Merchants -->
+				<?php include(__DIR__.'/google.php'); ?>
 
 				<div class="error inline" id="validationError" style="display: none;">
 					<p>
@@ -522,6 +544,13 @@
 				<div class="input custom_xml_upgrade_notice wpallexport-custom-xml-template" style="vertical-align:middle; position: relative; top: -5px;">
 					<span class="wpallexport-free-edition-notice" style="margin: 0 0 10px;">									
 						<a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=wooco+orders&utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to Export Custom XML','wp_all_export_plugin');?></a>
+						<p><?php _e('If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></p>
+					</span>
+				</div>
+
+				<div class="input custom_xml_upgrade_notice wpallexport-google-merchants-template" style="vertical-align:middle; position: relative; top: -5px;">
+					<span class="wpallexport-free-edition-notice" style="margin: 0 0 10px;">
+						<a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=google+merchant+center&utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to Export To Google Merchant Center','wp_all_export_plugin');?></a>
 						<p><?php _e('If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></p>
 					</span>
 				</div>

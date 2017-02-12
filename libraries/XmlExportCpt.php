@@ -24,7 +24,7 @@ final class XmlExportCpt
 
 	public static function prepare_data( $entry, $xmlWriter = false, &$acfs, &$woo, &$woo_order, $implode_delimiter, $preview, $is_item_data = false, $subID = false )
 	{
-		$variationOptionsFactory = new \Wpae\VariationOptions\VariationOptionsFactory();
+		$variationOptionsFactory = new Wpae\App\Service\VariationOptions\VariationOptionsFactory();
 		$variationOptions = $variationOptionsFactory->createVariationOptions(PMXE_EDITION);
 		$entry = $variationOptions->preprocessPost($entry);
 
@@ -167,6 +167,27 @@ final class XmlExportCpt
 				case 'parent':
 					wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_post_parent', pmxe_filter($entry->post_parent, $fieldSnipped), $entry->ID) );
 					break;
+                case 'parent_slug':
+                    $val = '';
+                    if ( $entry->post_parent != 0 ) {
+                        $pages = get_post_ancestors( $entry->ID );
+                        $slugs = array();
+                        if ( !empty( $pages ) ) {
+                            foreach( $pages as $page ) {
+                                $the_post = get_post( $page );
+                                $slugs[] = $the_post->post_name;
+                            }
+                            $val = implode( "/", array_reverse( $slugs ) );
+                        } else {
+                            $the_post = get_post( $entry->ID );
+                            $val = $the_post->post_name;
+                        }
+                    }
+                    else{
+                        $val = $entry->post_parent;
+                    }
+                    wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_post_parent_slug', pmxe_filter($val, $fieldSnipped), $entry->ID) );
+                    break;
 				case 'comment_status':					
 					wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_comment_status', pmxe_filter($entry->comment_status, $fieldSnipped), $entry->ID) );
 					break;
@@ -204,13 +225,13 @@ final class XmlExportCpt
 						if ( ! empty($cur_meta_values) and is_array($cur_meta_values)) {
 							foreach ($cur_meta_values as $key => $cur_meta_value) {
 								if (empty($val)) {
-									$val = apply_filters('pmxe_custom_field', pmxe_filter(maybe_serialize($cur_meta_value), $fieldSnipped), $fieldValue, $entry->ID);																	
+									$val = maybe_serialize($cur_meta_value);
 								}
 								else {
-									$val = apply_filters('pmxe_custom_field', pmxe_filter($val . $implode_delimiter . maybe_serialize($cur_meta_value), $fieldSnipped), $fieldValue, $entry->ID);
+									$val = $val . $implode_delimiter . maybe_serialize($cur_meta_value);
 								}
 							}
-							wp_all_export_write_article( $article, $element_name, $val );
+							wp_all_export_write_article( $article, $element_name, pmxe_filter($val, $fieldSnipped) );
 						}		
 
 						if ( empty($cur_meta_values)) {
@@ -309,7 +330,10 @@ final class XmlExportCpt
 						}
 						else {
 							$attribute_pa = apply_filters('pmxe_woo_attribute', get_post_meta($entry->ID, 'attribute_' . $fieldValue, true), $entry->ID, $fieldValue);
-							
+                            $term = get_term_by('slug', $attribute_pa, $fieldValue);
+                            if ($term and !is_wp_error($term)){
+                                $attribute_pa = $term->name;
+                            }
 							wp_all_export_write_article( $article, $element_name, $attribute_pa );
 						}								
 

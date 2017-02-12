@@ -32,6 +32,10 @@ if ( ! class_exists('XmlExportEngine') ){
 		 */
 		const XML_LOOP_END = '<!-- END LOOP -->';
 
+		const EXPORT_TYPE_GOOLE_MERCHANTS = 'XmlGoogleMerchants';
+		const EXPORT_TYPE_XML = 'xml';
+		const EXPORT_TYPE_CSV = 'csv';
+
 		public static $acf_export;
 		public static $woo_export;	
 		public static $woo_order_export;
@@ -137,6 +141,11 @@ if ( ! class_exists('XmlExportEngine') ){
 				'type'  => 'parent'
 			),
 			array(
+				'label' => 'parent_slug',
+				'name'  => 'Parent Slug',
+				'type'  => 'parent_slug'
+			),
+			array(
 				'label' => 'order', 
 				'name'  => 'Order',
 				'type'  => 'order'
@@ -180,6 +189,7 @@ if ( ! class_exists('XmlExportEngine') ){
 		public static $exportQuery;
 		public static $exportID     = false;
 		public static $exportRecord = false;
+		public static $globalAvailableSections;
 
 		public static $is_auto_generate_enabled = true;
 
@@ -642,6 +652,7 @@ if ( ! class_exists('XmlExportEngine') ){
 			ob_start();
 
 			$available_sections = apply_filters("wp_all_export_available_sections", $this->available_sections);
+			self::$globalAvailableSections = $available_sections;
 
 			// Render Available WooCommerce Orders Data
 			self::$woo_order_export->render($i);			

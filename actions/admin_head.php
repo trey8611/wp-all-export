@@ -15,6 +15,10 @@ function pmxe_admin_head(){
 
 	?>
 		<script type="text/javascript">
+			if(typeof GoogleMerchants != 'undefined') {
+				GoogleMerchants.constant('NONCE', '<?php echo $wp_all_export_ajax_nonce; ?>');
+			}
+
 			var export_action = '<?php echo $export_action; ?>';
 			var wp_all_export_security = '<?php echo $wp_all_export_ajax_nonce; ?>';
 		</script>

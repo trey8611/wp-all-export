@@ -128,7 +128,7 @@ final class XmlExportMediaGallery
 
 						foreach ($images as $image) 
 						{
-							if ( wp_attachment_is_image( $image->ID ) and ( empty(self::$featured_image) or self::$featured_image->ID != $image->ID ) ) 
+							if ( wp_attachment_is_image( $image->ID ) and ! in_array($image->ID, self::$images_ids) and ( empty(self::$featured_image) or self::$featured_image->ID != $image->ID ) )
 							{
 								self::$images[]     = $image;	
 								self::$images_ids[] = $image->ID;						
