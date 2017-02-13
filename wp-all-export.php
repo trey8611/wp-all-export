@@ -747,5 +747,8 @@ else {
 	}
 
 	PMXE_Plugin::getInstance();	
+
+	// Include the api front controller
+	include_once('wpae_api.php');
 	
 }
