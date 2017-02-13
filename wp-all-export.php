@@ -610,6 +610,13 @@ else {
 				PRIMARY KEY  (id)	
 			) $charset_collate;");
 
+			$googleCatsTableExists = $wpdb->query("SHOW TABLES LIKE '{$table_prefix}google_cats'");
+			if(!$googleCatsTableExists) {
+				require_once self::ROOT_DIR . '/schema.php';
+				$wpdb->query($googleCatsQueryCreate);
+				$wpdb->query($googleCatsQueryData);
+			}
+
 			$table = $this->getTablePrefix() . 'exports';
 			$tablefields = $wpdb->get_results("DESCRIBE {$table};");
 			$iteration = false;
