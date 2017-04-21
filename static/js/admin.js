@@ -99,10 +99,11 @@
 		if ( exportType == 'custom' && isDraggingOverTextEditor(e))
 		{
 			xml_editor.focus();
+			var $elementName;
 
 			if ( ui.helper.find('.custom_column').length )
 			{
-				var $elementName = ui.helper.find('.custom_column').find('input[name^=cc_name]').val();
+				$elementName = ui.helper.find('.custom_column').find('input[name^=cc_name]').val();
 
 				var $elementValue = $elementName;
 				$elementName = helpers.sanitizeElementName($elementName);
@@ -112,7 +113,7 @@
 			}
 			if ( ui.helper.find('.default_column').length )
 			{
-				var $elementName = ui.helper.find('.default_column').find('.wpallexport-element-label').html();
+				$elementName = ui.helper.find('.default_column').find('.wpallexport-element-label').html();
 				if ( ! ui.helper.find('.default_column').hasClass('wp-all-export-custom-xml-drag-over') ) ui.helper.find('.default_column').addClass('wp-all-export-custom-xml-drag-over');
 			}
 
@@ -126,7 +127,6 @@
 			if (currentLine != -1) {
 				removeLine(currentLine);
 			}
-			console.log("Dragging current line", currentLine);
 
 			currentLine = line;
 
