@@ -410,7 +410,317 @@ if ( ! class_exists('XmlExportUser') ){
 					$uc_title = ucwords(trim(str_replace("-", " ", str_replace("_", " ", $title))));
 
 					return stripos($uc_title, "width") === false ? str_ireplace(array('id', 'url', 'sku', 'wp', 'ssl'), array('ID', 'URL', 'SKU', 'WP', 'SSL'), $uc_title) : $uc_title;
-				}			
+				}
+
+		public static function prepare_data( $user, $xmlWriter = false, &$acfs, $implode_delimiter, $preview )
+		{
+			$article = array();	
+
+			// associate exported user with import
+			if ( wp_all_export_is_compatible() and XmlExportEngine::$exportOptions['is_generate_import'] and XmlExportEngine::$exportOptions['import_id'])
+			{	
+				$postRecord = new PMXI_Post_Record();
+				$postRecord->clear();
+				$postRecord->getBy(array(
+					'post_id' => $user->ID,
+					'import_id' => XmlExportEngine::$exportOptions['import_id'],
+				));
+
+				if ($postRecord->isEmpty()){
+					$postRecord->set(array(
+						'post_id' => $user->ID,
+						'import_id' => XmlExportEngine::$exportOptions['import_id'],
+						'unique_key' => $user->ID						
+					))->save();
+				}
+				unset($postRecord);
+			}
+
+			$is_xml_export = false;
+
+			if ( ! empty($xmlWriter) and XmlExportEngine::$exportOptions['export_to'] == 'xml' and ! in_array(XmlExportEngine::$exportOptions['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ){
+				$is_xml_export = true;
+			}
+
+			foreach (XmlExportEngine::$exportOptions['ids'] as $ID => $value) 
+			{								
+				$fieldName    = apply_filters('wp_all_export_field_name', wp_all_export_parse_field_name(XmlExportEngine::$exportOptions['cc_name'][$ID]), XmlExportEngine::$exportID);
+				$fieldValue   = XmlExportEngine::$exportOptions['cc_value'][$ID];
+				$fieldLabel   = XmlExportEngine::$exportOptions['cc_label'][$ID];
+				$fieldSql     = XmlExportEngine::$exportOptions['cc_sql'][$ID];
+				$fieldPhp     = XmlExportEngine::$exportOptions['cc_php'][$ID];
+				$fieldCode    = XmlExportEngine::$exportOptions['cc_code'][$ID];
+				$fieldType    = XmlExportEngine::$exportOptions['cc_type'][$ID];
+				$fieldOptions = XmlExportEngine::$exportOptions['cc_options'][$ID];
+                $fieldSettings = empty(XmlExportEngine::$exportOptions['cc_settings'][$ID]) ? $fieldOptions : XmlExportEngine::$exportOptions['cc_settings'][$ID];
+
+				if ( empty($fieldName) or empty($fieldType) or ! is_numeric($ID) ) continue;
+				
+				$element_name = ( ! empty($fieldName) ) ? $fieldName : 'untitled_' . $ID;
+				$element_name_ns = '';
+				
+				if ( $is_xml_export )
+				{					
+					$element_name = ( ! empty($fieldName) ) ? preg_replace('/[^a-z0-9_:-]/i', '', $fieldName) : 'untitled_' . $ID;				
+
+					if (strpos($element_name, ":") !== false)
+					{
+						$element_name_parts = explode(":", $element_name);
+						$element_name_ns = (empty($element_name_parts[0])) ? '' : $element_name_parts[0];
+						$element_name = (empty($element_name_parts[1])) ? 'untitled_' . $ID : preg_replace('/[^a-z0-9_-]/i', '', $element_name_parts[1]);							
+					}
+				} 
+
+				$fieldSnipped = ( ! empty($fieldPhp ) and ! empty($fieldCode)) ? $fieldCode : false;
+
+				switch ($fieldType)
+				{						
+					case 'id':
+                        // For ID columns make first element in lowercase for Excel export
+                        if ($element_name == 'ID' && !$ID && isset(XmlExportEngine::$exportOptions['export_to']) && XmlExportEngine::$exportOptions['export_to'] == 'csv' && isset(XmlExportEngine::$exportOptions['export_to_sheet']) && XmlExportEngine::$exportOptions['export_to_sheet'] != 'csv'){
+                            $element_name = 'id';
+                        }
+                        wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_id', pmxe_filter($user->ID, $fieldSnipped), $user->ID) );
+						break;
+					case 'user_login':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_login', pmxe_filter($user->user_login, $fieldSnipped), $user->ID) );
+						break;
+					case 'user_pass':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_pass', pmxe_filter($user->user_pass, $fieldSnipped), $user->ID) );
+						break;							
+					case 'user_email':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_email', pmxe_filter($user->user_email, $fieldSnipped), $user->ID) );
+						break;
+					case 'user_nicename':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_nicename', pmxe_filter($user->user_nicename, $fieldSnipped), $user->ID) );
+						break;
+					case 'user_url':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_url', pmxe_filter($user->user_url, $fieldSnipped), $user->ID) );
+						break;
+					case 'user_activation_key':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_activation_key', pmxe_filter($user->user_activation_key, $fieldSnipped), $user->ID) );
+						break;
+					case 'user_status':													
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_status', pmxe_filter($user->user_status, $fieldSnipped), $user->ID) );
+						break;
+					case 'display_name':									
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_display_name', pmxe_filter($user->display_name, $fieldSnipped), $user->ID) );
+						break;	
+					case 'nickname':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_nickname', pmxe_filter($user->nickname, $fieldSnipped), $user->ID) );
+						break;	
+					case 'first_name':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_first_name', pmxe_filter($user->first_name, $fieldSnipped), $user->ID) );
+						break;	
+					case 'last_name':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_last_name', pmxe_filter($user->last_name, $fieldSnipped), $user->ID) );
+						break;													
+					case 'wp_capabilities':													
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_wp_capabilities', pmxe_filter(implode($implode_delimiter, $user->roles), $fieldSnipped), $user->ID) );
+						break;
+					case 'description':
+						$val = apply_filters('pmxe_user_description', pmxe_filter($user->description, $fieldSnipped), $user->ID);						
+						wp_all_export_write_article( $article, $element_name, ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($val))) : $val );
+						break;		
+					case 'user_registered':
+
+					    $post_date = prepare_date_field_value($fieldSettings, strtotime($user->user_registered));
+
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_registered', pmxe_filter($post_date, $fieldSnipped), $user->ID) );
+
+						break;																	
+					case 'cf':						
+
+						if ( ! empty($fieldValue) )
+						{
+							$val = "";
+
+							$cur_meta_values = get_user_meta($user->ID, $fieldValue);
+
+							if ( ! empty($cur_meta_values) and is_array($cur_meta_values) )
+							{
+								foreach ($cur_meta_values as $key => $cur_meta_value) 
+								{									
+									if (empty($val))
+									{
+										$val = apply_filters('pmxe_custom_field', pmxe_filter(maybe_serialize($cur_meta_value), $fieldSnipped), $fieldValue, $user->ID);																					
+									}
+									else
+									{
+										$val = apply_filters('pmxe_custom_field', pmxe_filter($val . $implode_delimiter . maybe_serialize($cur_meta_value), $fieldSnipped), $fieldValue, $user->ID);
+									}
+								}
+								wp_all_export_write_article( $article, $element_name, $val );
+							}		
+
+							if ( empty($cur_meta_values) )
+							{
+								if ( empty($article[$element_name]) )
+								{									
+									wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_custom_field', pmxe_filter('', $fieldSnipped), $fieldValue, $user->ID) );
+								}									
+							}																																																																
+						}	
+						break;
+					case 'acf':							
+
+						if ( ! empty($fieldLabel) and class_exists( 'acf' ) )
+						{		
+							global $acf;
+
+							$field_options = unserialize($fieldOptions);
+
+							if ( ! $is_xml_export )
+							{
+								switch ($field_options['type']) {
+									case 'textarea':
+									case 'oembed':
+									case 'wysiwyg':
+									case 'wp_wysiwyg':
+									case 'date_time_picker':
+									case 'date_picker':
+										
+										$field_value = get_field($fieldLabel, 'user_' . $user->ID, false);
+
+										break;
+									
+									default:
+										
+										$field_value = get_field($fieldLabel, 'user_' . $user->ID);								
+
+										break;
+								}
+							}		
+							else
+							{
+								$field_value = get_field($fieldLabel, 'user_' . $user->ID);	
+							}
+														
+							XmlExportACF::export_acf_field(
+								$field_value, 
+								XmlExportEngine::$exportOptions, 
+								$ID, 
+								'user_' . $user->ID, 
+								$article, 
+								$xmlWriter, 
+								$acfs, 
+								$element_name, 
+								$element_name_ns, 
+								$fieldSnipped, 
+								$field_options['group_id'], 
+								$preview
+							);
+																																																																									
+						}				
+									
+						break;												
+					case 'sql':							
+						
+						if ( ! empty($fieldSql) ) 
+						{
+							global $wpdb;											
+							$val = $wpdb->get_var( $wpdb->prepare( stripcslashes(str_replace("%%ID%%", "%d", $fieldSql)), $user->ID ));
+							if ( ! empty($fieldPhp) and !empty($fieldCode) )
+							{
+								// if shortcode defined
+								if (strpos($fieldCode, '[') === 0)
+								{									
+									$val = do_shortcode(str_replace("%%VALUE%%", $val, $fieldCode));
+								}	
+								else
+								{
+									$val = eval('return ' . stripcslashes(str_replace("%%VALUE%%", $val, $fieldCode)) . ';');
+								}										
+							}							
+							wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_sql_field', $val, $element_name, $user->ID) );
+						}
+						break;					
+					default:
+						# code...
+						break;
+				}	
+
+				if ( $is_xml_export and isset($article[$element_name]) )
+				{
+					$element_name_in_file = XmlCsvExport::_get_valid_header_name( $element_name );
+
+					$xmlWriter = apply_filters('wp_all_export_add_before_element', $xmlWriter, $element_name_in_file, XmlExportEngine::$exportID, $user->ID);
+
+					$xmlWriter->beginElement($element_name_ns, $element_name_in_file, null);
+						$xmlWriter->writeData($article[$element_name], $element_name_in_file);
+					$xmlWriter->closeElement();
+
+					$xmlWriter = apply_filters('wp_all_export_add_after_element', $xmlWriter, $element_name_in_file, XmlExportEngine::$exportID, $user->ID);
+				}
+			}
+			return $article;
+		}
+
+		public static function prepare_import_template( $exportOptions, &$templateOptions, $element_name, $ID)
+		{			
+
+			$options = $exportOptions;
+
+			$element_type = $options['cc_type'][$ID];
+
+			$is_xml_template = $options['export_to'] == 'xml';
+
+			$implode_delimiter = XmlExportEngine::$implode;
+
+			switch ($element_type) 
+			{
+				// Export Users
+				case 'user_login':
+					$templateOptions['pmui']['login'] = '{'. $element_name .'[1]}';
+					$templateOptions['is_update_login'] = 1;
+					break;				
+				case 'user_pass':
+					$templateOptions['pmui']['pass'] = '{'. $element_name .'[1]}';
+					$templateOptions['is_update_password'] = 1;
+					break;
+				case 'user_nicename':
+					$templateOptions['pmui']['nicename'] = '{'. $element_name .'[1]}';
+					$templateOptions['is_update_nicename'] = 1;
+					break;
+				case 'user_email':
+					$templateOptions['pmui']['email'] = '{'. $element_name .'[1]}';
+					$templateOptions['is_update_email'] = 1;
+					break;
+				case 'user_registered':
+					$templateOptions['pmui']['registered'] = '{'. $element_name .'[1]}';
+					$templateOptions['is_update_registered'] = 1;
+					break;
+				case 'display_name':
+					$templateOptions['pmui']['display_name'] = '{'. $element_name .'[1]}';
+					$templateOptions['is_update_display_name'] = 1;
+					break;
+				case 'user_url':
+					$templateOptions['pmui']['url'] = '{'. $element_name .'[1]}';
+					$templateOptions['is_update_url'] = 1;
+					break;
+
+				case 'first_name':
+					$templateOptions['pmui']['first_name'] = '{'. $element_name .'[1]}';
+					$templateOptions['is_update_first_name'] = 1;
+					break;
+				case 'last_name':
+					$templateOptions['pmui']['last_name'] = '{'. $element_name .'[1]}';
+					$templateOptions['is_update_last_name'] = 1;
+					break;
+				case 'wp_capabilities':
+					$templateOptions['pmui']['role'] = '{'. $element_name .'[1]}';
+					$templateOptions['is_update_role'] = 1;
+					break;
+				case 'nickname':
+					$templateOptions['pmui']['nickname'] = '{'. $element_name .'[1]}';
+					$templateOptions['is_update_nickname'] = 1;
+					break;
+				case 'description':
+					$templateOptions['pmui']['description'] = '{'. $element_name .'[1]}';
+					$templateOptions['is_update_description'] = 1;
+					break;
+			}
+		}		
 
 		/**
 	     * __get function.

@@ -47,8 +47,8 @@
 								<?php
 									$custom_types = get_post_types(array('_builtin' => true), 'objects') + get_post_types(array('_builtin' => false, 'show_ui' => true), 'objects') + get_post_types(array('_builtin' => false, 'show_ui' => false), 'objects'); 
 									foreach ($custom_types as $key => $ct) {
-										if (in_array($key, array('attachment', 'revision', 'nav_menu_item', 'import_users', 'shop_webhook', 'acf-field', 'acf-field-group'))) unset($custom_types[$key]);										
-									}									
+										if (in_array($key, array('attachment', 'revision', 'nav_menu_item', 'import_users', 'shop_webhook', 'acf-field', 'acf-field-group'))) unset($custom_types[$key]);
+									}
 									$custom_types = apply_filters( 'wpallexport_custom_types', $custom_types );
 									global $wp_version;
 									$sorted_cpt = array();
@@ -86,7 +86,7 @@
 										}
 									}
 
-								?>
+								?>								
 
 								<select id="file_selector">
 									<option value=""><?php _e('Choose a post type...', 'wp_all_export_plugin'); ?></option>									
@@ -104,8 +104,8 @@
 												{
 													$unknown_cpt[$key] = $ct;
 													continue;
-												}																				
-
+												}
+																				
 											?>
 											<option value="<?php echo $key;?>" data-imagesrc="dashicon <?php echo $image_src; ?>" <?php if ($key == $post['cpt']) echo 'selected="selected"'; ?>><?php echo $cpt_label; ?></option>
 										<?php endforeach ?>
@@ -120,7 +120,7 @@
 										<?php endforeach ?>
 									<?php endif;?>
 								</select>								
-								<input type="hidden" name="cpt" value="<?php echo $post['cpt']; ?>"/>								
+								<input type="hidden" name="cpt" value="<?php echo $post['cpt']; ?>"/>									
 								<div class="taxonomy_to_export_wrapper">
 									<input type="hidden" name="taxonomy_to_export" value="<?php echo $post['taxonomy_to_export'];?>">
 									<select id="taxonomy_to_export">
@@ -156,12 +156,12 @@
 								<select id="wp_query_selector">
 									<option value="wp_query" <?php if ('wp_query' == $post['wp_query_selector']) echo 'selected="selected"'; ?>><?php _e('Post Type Query', 'wp_all_export_plugin'); ?></option>
 									<option value="wp_user_query" <?php if ('wp_user_query' == $post['wp_query_selector']) echo 'selected="selected"'; ?>><?php _e('User Query', 'wp_all_export_plugin'); ?></option>
-									<?php
-									global $wp_version;
-									if ( version_compare($wp_version, '4.2.0', '>=') ):
+									<?php 
+									global $wp_version;					
+									if ( version_compare($wp_version, '4.2.0', '>=') ):										
 									?>
 									<option value="wp_comment_query" <?php if ('wp_comment_query' == $post['wp_query_selector']) echo 'selected="selected"'; ?>><?php _e('Comment Query', 'wp_all_export_plugin'); ?></option>
-									<?php
+									<?php 
 									endif;
 									?>
 								</select>
@@ -179,7 +179,7 @@
 								<input type="hidden" name="wp_query_selector" value="<?php echo $post['wp_query_selector'];?>">
 								<textarea class="wp_query" rows="10" cols="80" name="wp_query" placeholder="'post_type' => 'post', 'post_status' => array( 'pending', 'draft', 'future' )" style="width: 600px;"><?php echo esc_html($post['wp_query']); ?></textarea>						
 								
-							</div>							
+							</div>
 							
 						</div>																			
 
@@ -187,16 +187,16 @@
 
 						<input type="hidden" class="hierarhy-output" name="filter_rules_hierarhy" value="<?php echo esc_html($post['filter_rules_hierarhy']);?>"/>
 						<input type="hidden" class="wpallexport-preload-post-data" value="<?php echo $preload;?>">
-					</div>	
+					</div>			
 
 					<div class="wpallexport-filtering-wrapper rad4">
 						<div class="ajax-console" id="filtering_result">
 							
 						</div>
-					</div>									
+					</div>						
 
 					<div class="wpallexport-upload-resource-step-two rad4 wpallexport-collapsed closed">
-								
+							
 					</div>
 
 					<p class="wpallexport-submit-buttons" <?php if ('advanced' == $post['export_type']) echo 'style="display:block;"';?>>
@@ -212,9 +212,9 @@
 					
 					<table><tr><td class="wpallexport-note"></td></tr></table>
 				</form>
-					
+				
 				<a href="http://soflyy.com/" target="_blank" class="wpallexport-created-by"><?php _e('Created by', 'wp_all_export_plugin'); ?> <span></span></a>
-					
+				
 			</div>
 		</td>		
 	</tr>

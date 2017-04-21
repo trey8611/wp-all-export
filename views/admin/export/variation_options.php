@@ -11,8 +11,41 @@ $random = uniqid();
     <div class="input" style="display: inline-block; width: 100%;">
         <div>
             <label>
+                <input type="radio" class="export_variations <?php if (PMXE_EDITION != 'paid') {
+                    echo "variations_disabled";
+                } ?>"
+                       value="<?php echo XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION; ?>" <?php if ($post['export_variations'] == XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION && PMXE_EDITION == 'paid') { ?> checked="checked"  <?php } ?>
+                       name="<?php echo $random?>_export_variations"/><?php _e("Export product variations and their parent products", 'wp_all_export_plugin'); ?>
+            </label>
+            <div class="sub-options sub-options-<?php echo XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION;?>">
+                <label>
+                    <input type="radio"
+                           name="<?php echo $random; ?>_export_variations_title_1"
+                           value="<?php echo XmlExportEngine::VARIATION_USE_PARENT_TITLE; ?>"
+                        <?php if($post['export_variations_title'] == XmlExportEngine::VARIATION_USE_PARENT_TITLE) {?>
+                            checked="checked"
+                        <?php }?>
+                           class="export_variations_title">
+                    <?php _e("Product variations use the parent product title", 'wp_all_export_plugin');?>
+                </label>
+                <div class="clear"></div>
+                <label>
+                    <input type="radio"
+                           name="<?php echo $random; ?>_export_variations_title_1"
+                           value="<?php echo XmlExportEngine::VARIATION_USE_DEFAULT_TITLE; ?>"
+                        <?php if($post['export_variations_title'] == XmlExportEngine::VARIATION_USE_DEFAULT_TITLE) { ?>
+                            checked="checked"
+                        <?php } ?>
+                           class="export_variations_title">
+                    <?php _e("Product variations use the default variation product title", 'wp_all_export_plugin'); ?>
+                </label>
+            </div>
+        </div>
+        <div class="clear"></div>
+        <div>
+            <label>
                 <input type="radio" class="export_variations"
-                          value="<?php echo XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_VARIATION; ?>" <?php if ($post['export_variations'] == XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_VARIATION) { ?> checked="checked" <?php } ?>
+                          value="<?php echo XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_VARIATION; ?>" <?php if ($post['export_variations'] == XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_VARIATION || PMXE_EDITION == 'free') { ?> checked="checked" <?php } ?>
                           name="<?php echo $random; ?>_export_variations"/><?php _e("Only export product variations", 'wp_all_export_plugin'); ?>
             </label>
             <div class="sub-options sub-options-<?php echo XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_VARIATION; ?>">
@@ -40,41 +73,12 @@ $random = uniqid();
             </div>
         </div>
         <div class="clear"></div>
-        <div class="clear"></div>
         <div>
             <label>
-                <input type="radio" class="export_variations"
-                          value="<?php echo XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION; ?>" <?php if ($post['export_variations'] == XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION) { ?> checked="checked"  <?php } ?>
-                          name="<?php echo $random?>_export_variations"/><?php _e("Export product variations and their parent products", 'wp_all_export_plugin'); ?>
-            </label>
-            <div class="sub-options sub-options-<?php echo XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION;?>">
-                <label>
-                    <input type="radio"
-                              name="<?php echo $random; ?>_export_variations_title_1"
-                              value="<?php echo XmlExportEngine::VARIATION_USE_PARENT_TITLE; ?>"
-                              <?php if($post['export_variations_title'] == XmlExportEngine::VARIATION_USE_PARENT_TITLE) {?>
-                                  checked="checked"
-                              <?php }?>
-                              class="export_variations_title">
-                    <?php _e("Product variations use the parent product title", 'wp_all_export_plugin');?>
-                </label>
-                <div class="clear"></div>
-                <label>
-                    <input type="radio"
-                              name="<?php echo $random; ?>_export_variations_title_1"
-                              value="<?php echo XmlExportEngine::VARIATION_USE_DEFAULT_TITLE; ?>"
-                              <?php if($post['export_variations_title'] == XmlExportEngine::VARIATION_USE_DEFAULT_TITLE) { ?>
-                                  checked="checked"
-                              <?php } ?>
-                              class="export_variations_title">
-                    <?php _e("Product variations use the default variation product title", 'wp_all_export_plugin'); ?>
-                </label>
-            </div>
-        </div>
-        <div>
-            <label>
-                <input type="radio" class="export_variations"
-                          value="<?php echo XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT; ?>" <?php if ($post['export_variations'] == XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT) { ?> checked="checked" <?php } ?>
+                <input type="radio" class="export_variations <?php if (PMXE_EDITION != 'paid') {
+                    echo "variations_disabled";
+                } ?>"
+                          value="<?php echo XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT; ?>" <?php if ($post['export_variations'] == XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT && PMXE_EDITION == 'paid') { ?> checked="checked" <?php } ?>
                           name="<?php echo $random?>_export_variations"/><?php _e("Only export parent products", 'wp_all_export_plugin'); ?>
             </label>
         </div>

@@ -11,6 +11,8 @@ class VariationOptionsFactory
     {
         switch ($pmxeEdition){
             case 'free':
+                return new BasicVariationOptions();
+                break;
             case 'paid':
                 return new VariationOptions();
                 break;

@@ -37,8 +37,8 @@ class PMXE_XMLWriter extends XMLWriter
                             array_push($article[$key], $value);
                         }
                         else{
-                        $article[$key] = array($article[$key], $value);
-                    }
+                            $article[$key] = array($article[$key], $value);
+                        }
                     }
 
                     if (!in_array($key, $keys)) $keys[] = $key;
@@ -150,7 +150,6 @@ class PMXE_XMLWriter extends XMLWriter
             $node_tpl = XmlExportEngine::$exportOptions['custom_xml_template_loop'];
 
             // clean up XPaths for not found values
-            $node_tpl = str_replace('{ID}', '{id}', $node_tpl);
             preg_match_all("%(\{[^\}\{]*\})%", $node_tpl, $matches);
             $xpaths = array_unique($matches[0]);
 
@@ -165,7 +164,7 @@ class PMXE_XMLWriter extends XMLWriter
             foreach ($article as $key => $value) {
                 switch ($key) {
                     case 'id':
-                        $node_tpl = str_replace('{id}', '{' . $value . '}', $node_tpl);
+                        $node_tpl = str_replace('{'.$key.'}', '{' . $value . '}', $node_tpl);
                         break;
                     default:
                         // replace [ and ]
@@ -179,6 +178,7 @@ class PMXE_XMLWriter extends XMLWriter
 
                         if (is_array($v)) {
                             $delimiter = uniqid();
+                            $node_tpl = preg_replace('%\[(.*)\{'.$key.'\}([^\[]*)\]%', "[$1explode('" . $delimiter . "', '" . implode($delimiter, $v) . "')$2]", $node_tpl);
                             $v = "[explode('" . $delimiter . "', '" . implode($delimiter, $v) . "')]";
                         } else {
                             $v = '{' . $v . '}';
@@ -191,15 +191,17 @@ class PMXE_XMLWriter extends XMLWriter
                         // We have an empty array, which is transformed into {}
                         if(in_array($key, $arrayTypes) && $v == "{}") {
                             $delimiter = uniqid();
+                            $node_tpl = preg_replace('%\[(.*)\{'.$key.'\}([^\[]*)\]%', "[$1explode('" . $delimiter . "', '" . implode($delimiter, array()) . "')$2]", $node_tpl);
                             $v = "[explode('" . $delimiter . "', '" . implode($delimiter, array()) . "')]";
                         }
 
                         // We have an array with just one value (Which is transformed into a string)
                         if(in_array($key, $arrayTypes) && count($originalValue) == 1) {
                             $delimiter = uniqid();
+                            $node_tpl = preg_replace('%\[(.*)\{'.$key.'\}([^\[]*)\]%', "[$1explode('" . $delimiter . "', '" . implode($delimiter, array($originalValue)) . "')$2]", $node_tpl);
                             $v = "[explode('" . $delimiter . "', '" . implode($delimiter, array($originalValue)) . "')]";
                         }
-
+                        
                         $node_tpl = str_replace('{' . $key . '}', $v, $node_tpl);
 
                         break;
@@ -211,7 +213,6 @@ class PMXE_XMLWriter extends XMLWriter
         }
 
         $this->articles = array();
-
         $wpaeString = new WpaeString();
         $xmlPrepreocesor = new WpaeXmlProcessor($wpaeString);
         return $xmlPrepreocesor->process($xml);

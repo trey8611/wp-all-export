@@ -23,7 +23,7 @@
 				</select>
 			</td>
 			<td style="width: 25%;">
-				<input id="wp_all_export_value" type="text" placeholder="value" value="" disabled="disabled"/>
+				<input id="wp_all_export_value" type="text" placeholder="value" value=""/>
 			</td>
 			<td style="width: 15%;">
 				<a id="wp_all_export_add_rule" href="javascript:void(0);"><?php _e('Add Rule', 'wp_all_export_plugin');?></a>
@@ -111,23 +111,7 @@
 					endif;
 				?>
 			</ol>	
-			<div class="clear"></div>				
-			
+			<div class="clear"></div>
 		</fieldset>
-
-		<?php if ( @in_array("product", $post["cpt"]) and class_exists('WooCommerce')) : ?>
-
-		<div class="input wp_all_export_product_matching_mode">
-			<?php $product_matching_mode = $post['product_matching_mode']; ?>
-			<label><?php _e("Variable product matching rules: ", "wp_all_export_plugin"); ?></label>
-			<select name="product_matching_mode" style="width: 100px; border-radius:0; height: auto;">
-				<option value="strict" <?php echo ( $product_matching_mode == 'strict' ) ? 'selected="selected"' : ''; ?>><?php _e("Strict", "wp_all_export_plugin"); ?></option>
-				<option value="permissive" <?php echo ( $product_matching_mode == 'permissive' ) ? 'selected="selected"' : ''; ?>><?php _e("Permissive", "wp_all_export_plugin"); ?></option>												
-			</select>
-			<a href="#help" class="wpallexport-help" style="position: relative; top: 0px;" title="<?php _e('Strict matching requires all variations to pass in order for the product to be exported. Permissive matching allows the product to be exported if any of the variations pass.', 'wp_all_export_plugin'); ?>">?</a>							
-		</div>
-
-		<?php endif; ?>
-
-	</div>	
+ 	</div>	
 </div>

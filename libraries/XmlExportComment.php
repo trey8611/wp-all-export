@@ -168,8 +168,8 @@ if ( ! class_exists('XmlExportComment') )
 		{
 			if ( ! self::$is_active ) return;
 
-			global $wp_version;
-					
+			global $wp_version;							
+
 			if ( ! empty(XmlExportEngine::$exportQuery)){
 				if ( version_compare($wp_version, '4.2.0', '>=') ) 
 				{
@@ -179,7 +179,7 @@ if ( ! class_exists('XmlExportComment') )
 				{
 					$comments = XmlExportEngine::$exportQuery;
 				}
-			}
+			}			
 
 			if ( ! empty( $comments ) ) {
 				foreach ( $comments as $comment ) {
@@ -208,7 +208,181 @@ if ( ! class_exists('XmlExportComment') )
 					}		
 				}
 			}	
-		}		
+		}
+
+		public static function prepare_data( $comment, $xmlWriter = false, $implode_delimiter, $preview )
+		{
+			$article = array();					
+
+			// associate exported comment with import
+			if ( wp_all_export_is_compatible() and XmlExportEngine::$exportOptions['is_generate_import'] and XmlExportEngine::$exportOptions['import_id'])
+			{	
+				$postRecord = new PMXI_Post_Record();
+				$postRecord->clear();
+				$postRecord->getBy(array(
+					'post_id' => $comment->comment_ID,
+					'import_id' => XmlExportEngine::$exportOptions['import_id'],
+				));
+
+				if ($postRecord->isEmpty()){
+					$postRecord->set(array(
+						'post_id' => $comment->comment_ID,
+						'import_id' => XmlExportEngine::$exportOptions['import_id'],
+						'unique_key' => $comment->comment_ID						
+					))->save();
+				}
+				unset($postRecord);
+			}	
+
+			$is_xml_export = false;
+
+			if ( ! empty($xmlWriter) and XmlExportEngine::$exportOptions['export_to'] == 'xml' and ! in_array(XmlExportEngine::$exportOptions['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ){
+				$is_xml_export = true;
+			}		
+
+			foreach (XmlExportEngine::$exportOptions['ids'] as $ID => $value) 
+			{								
+				$fieldName    = apply_filters('wp_all_export_field_name', wp_all_export_parse_field_name(XmlExportEngine::$exportOptions['cc_name'][$ID]), XmlExportEngine::$exportID);
+				$fieldValue   = XmlExportEngine::$exportOptions['cc_value'][$ID];
+				$fieldLabel   = XmlExportEngine::$exportOptions['cc_label'][$ID];
+				$fieldSql     = XmlExportEngine::$exportOptions['cc_sql'][$ID];
+				$fieldPhp     = XmlExportEngine::$exportOptions['cc_php'][$ID];
+				$fieldCode    = XmlExportEngine::$exportOptions['cc_code'][$ID];
+				$fieldType    = XmlExportEngine::$exportOptions['cc_type'][$ID];
+				$fieldOptions = XmlExportEngine::$exportOptions['cc_options'][$ID];
+                $fieldSettings = empty(XmlExportEngine::$exportOptions['cc_settings'][$ID]) ? $fieldOptions : XmlExportEngine::$exportOptions['cc_settings'][$ID];
+
+				if ( empty($fieldName) or empty($fieldType) or ! is_numeric($ID)) continue;
+				
+				$element_name = ( ! empty($fieldName) ) ? $fieldName : 'untitled_' . $ID;
+
+				$element_name_ns = '';
+				
+				if ( $is_xml_export )
+				{					
+					$element_name = ( ! empty($fieldName) ) ? preg_replace('/[^a-z0-9_:-]/i', '', $fieldName) : 'untitled_' . $ID;				
+
+					if (strpos($element_name, ":") !== false)
+					{
+						$element_name_parts = explode(":", $element_name);
+						$element_name_ns = (empty($element_name_parts[0])) ? '' : $element_name_parts[0];
+						$element_name = (empty($element_name_parts[1])) ? 'untitled_' . $ID : preg_replace('/[^a-z0-9_-]/i', '', $element_name_parts[1]);							
+					}
+				} 
+				
+				$fieldSnipped = ( ! empty($fieldPhp ) and ! empty($fieldCode)) ? $fieldCode : false;
+
+				switch ($fieldType)
+				{						
+					case 'comment_ID':													
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_comment_id', pmxe_filter($comment->comment_ID, $fieldSnipped), $comment->comment_ID) );
+						break;
+					case 'comment_post_ID':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_comment_post_id', pmxe_filter($comment->comment_post_ID, $fieldSnipped), $comment->comment_ID) );
+						break;
+					case 'comment_author':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_comment_author', pmxe_filter($comment->comment_author, $fieldSnipped), $comment->comment_ID) );
+						break;							
+					case 'comment_author_email':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_comment_author_email', pmxe_filter($comment->comment_author_email, $fieldSnipped), $comment->comment_ID) );
+						break;
+					case 'comment_author_url':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_comment_author_url', pmxe_filter($comment->comment_author_url, $fieldSnipped), $comment->comment_ID) );
+						break;
+					case 'comment_author_IP':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_comment_author_ip', pmxe_filter($comment->comment_author_IP, $fieldSnipped), $comment->comment_ID) );
+						break;										
+					case 'comment_karma':									
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_comment_karma', pmxe_filter($comment->comment_karma, $fieldSnipped), $comment->comment_ID) );
+						break;	
+					case 'comment_content':
+						$val = apply_filters('pmxe_comment_content', pmxe_filter($comment->comment_content, $fieldSnipped), $comment->comment_ID);										
+						wp_all_export_write_article( $article, $element_name, ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($val))) : $val );
+						break;		
+					case 'comment_date':
+
+                        $post_date = prepare_date_field_value($fieldSettings, strtotime($comment->comment_date), "Y-m-d H:i:s");
+
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_comment_date', pmxe_filter($post_date, $fieldSnipped), $comment->comment_ID) );
+						break;						
+					case 'comment_approved':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_comment_approved', pmxe_filter($comment->comment_approved, $fieldSnipped), $comment->comment_ID) );
+						break;	
+					case 'comment_agent':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_comment_agent', pmxe_filter($comment->comment_agent, $fieldSnipped), $comment->comment_ID) );
+						break;	
+					case 'comment_type':						
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_comment_type', pmxe_filter($comment->comment_type, $fieldSnipped), $comment->comment_ID) );
+						break;													
+					case 'comment_parent':													
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_comment_parent', pmxe_filter($comment->comment_parent, $fieldSnipped), $comment->comment_ID) );
+						break;
+					case 'user_id':													
+						wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_user_id', pmxe_filter($comment->user_id, $fieldSnipped), $comment->comment_ID) );
+						break;							
+					case 'cf':							
+						if ( ! empty($fieldValue) ){																		
+							$cur_meta_values = get_comment_meta($comment->comment_ID, $fieldValue);
+							if (!empty($cur_meta_values) and is_array($cur_meta_values)){									
+								$val = "";
+								foreach ($cur_meta_values as $key => $cur_meta_value) {										
+									if (empty($val)){
+										$val = apply_filters('pmxe_custom_field', pmxe_filter(maybe_serialize($cur_meta_value), $fieldSnipped), $fieldValue, $comment->comment_ID);																					
+									}
+									else{
+										$val = apply_filters('pmxe_custom_field', pmxe_filter($val . $implode_delimiter . maybe_serialize($cur_meta_value), $fieldSnipped), $fieldValue, $comment->comment_ID);
+									}
+								}
+								wp_all_export_write_article( $article, $element_name, $val );
+							}		
+
+							if (empty($cur_meta_values)){
+								if (empty($article[$element_name])){									
+									wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_custom_field', pmxe_filter('', $fieldSnipped), $fieldValue, $comment->comment_ID) );
+								}									
+							}																																																																
+						}	
+						break;																	
+					case 'sql':							
+						if ( ! empty($fieldSql) ) 
+						{
+							global $wpdb;											
+							$val = $wpdb->get_var( $wpdb->prepare( stripcslashes(str_replace("%%ID%%", "%d", $fieldSql)), $comment->comment_ID ));
+							if ( ! empty($fieldPhp) and !empty($fieldCode) )
+							{
+								// if shortcode defined
+								if (strpos($fieldCode, '[') === 0)
+								{
+									$val = do_shortcode(str_replace("%%VALUE%%", $val, $fieldCode));
+								}	
+								else
+								{
+									$val = eval('return ' . stripcslashes(str_replace("%%VALUE%%", $val, $fieldCode)) . ';');
+								}										
+							}							
+							wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_sql_field', $val, $element_name, $comment->comment_ID) );
+						}
+						break;					
+					default:
+						# code...
+						break;
+				}	
+
+				if ( $is_xml_export and isset($article[$element_name]) )
+				{
+					$element_name_in_file = XmlCsvExport::_get_valid_header_name( $element_name );
+
+					$xmlWriter = apply_filters('wp_all_export_add_before_element', $xmlWriter, $element_name_in_file, XmlExportEngine::$exportID, $comment->comment_ID);
+
+					$xmlWriter->beginElement($element_name_ns, $element_name_in_file, null);
+						$xmlWriter->writeData($article[$element_name], $element_name_in_file);
+					$xmlWriter->closeElement();
+
+					$xmlWriter = apply_filters('wp_all_export_add_after_element', $xmlWriter, $element_name_in_file, XmlExportEngine::$exportID, $comment->comment_ID);
+				}																					
+			}	
+			return $article;	
+		}
 
 		/**
 	     * __get function.

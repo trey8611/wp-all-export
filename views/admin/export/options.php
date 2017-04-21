@@ -1,5 +1,6 @@
-<?php			
-	$l10n = array(
+<?php
+
+$l10n = array(
 		'confirm_and_run'    => __('Confirm & Run Export', 'wp_all_export_plugin'),
 		'save_configuration' => __('Save Export Configuration', 'wp_all_export_plugin')	
 	);
@@ -41,7 +42,7 @@
 										
 				<div class="wpallexport-content-section" style="padding: 0 30px 0 0; overflow: hidden; margin-bottom: 0;">
 
-					<div id="filtering_result" class="wpallexport-ready-to-go">
+					<div id="filtering_result" class="wpallexport-ready-to-go">																		
 						<h3> &nbsp; </h3>
 						<div class="wp_all_export_preloader"></div>
 					</div>	
@@ -60,6 +61,8 @@
 
 				<form class="<?php echo ! $this->isWizard ? 'edit' : 'options' ?> choose-export-options" method="post" enctype="multipart/form-data" autocomplete="off" <?php echo ! $this->isWizard ? 'style="overflow:visible;"' : '' ?>>
 
+					<input type="hidden" class="hierarhy-output" name="filter_rules_hierarhy" value="<?php echo esc_html($post['filter_rules_hierarhy']);?>"/>
+					
 					<?php 
 					$selected_post_type = '';
 					if (XmlExportUser::$is_active): 
@@ -75,11 +78,12 @@
 					?>
 
 					<input type="hidden" name="selected_post_type" value="<?php echo $selected_post_type; ?>"/>	
-					<input type="hidden" name="export_type" value="<?php echo $post['export_type']; ?>"/>							
+					<input type="hidden" name="export_type" value="<?php echo $post['export_type']; ?>"/>
 					<input type="hidden" name="taxonomy_to_export" value="<?php echo $post['taxonomy_to_export'];?>">
+					<input type="hidden" name="wpml_lang" value="<?php echo empty(PMXE_Plugin::$session->wpml_lang) ? $post['wpml_lang'] : PMXE_Plugin::$session->wpml_lang;?>" />
 					<input type="hidden" id="export_variations" name="export_variations" value="<?php echo XmlExportEngine::getProductVariationMode();?>" />
 
-					<?php XmlExportFiltering::render_filtering_block( $engine, $this->isWizard, $post ); ?>																						
+					<?php //\Wpae\Pro\Filtering\FilteringFactory::render_filtering_block( $engine, $this->isWizard, $post ); ?>
 
 					<?php include_once 'options/settings.php'; ?>			
 

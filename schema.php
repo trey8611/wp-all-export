@@ -21,7 +21,7 @@ if ( ! empty($wpdb->charset))
 	$charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
 if ( ! empty($wpdb->collate))
 	$charset_collate .= " COLLATE $wpdb->collate";
-	
+
 $table_prefix = PMXE_Plugin::getInstance()->getTablePrefix();
 
 $plugin_queries = <<<SCHEMA

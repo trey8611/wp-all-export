@@ -14,5 +14,5 @@ $config = array(
 	"secure" => 1,
 	"zapier_api_key" => wp_all_export_rand_char(32),
 	"zapier_invitation_url" => "",
-	"zapier_invitation_url_received" => ""	
+	"zapier_invitation_url_received" => ""
 );

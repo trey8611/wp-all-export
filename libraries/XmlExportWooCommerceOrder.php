@@ -1399,7 +1399,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 				'_shipping_postcode', '_shipping_country', '_shipping_state'
 			);
 
-			switch ($element_type)
+			switch ($element_type) 
 			{
 				case 'ID':
 					$templateOptions['unique_key'] = '{'. $element_name .'[1]}';

@@ -1,4 +1,4 @@
-<form>	
+<form>
 	<div class="wp-all-export-field-options">
 		<div class="input" style="margin-bottom:10px;">
 			<label for="column_value_default" style="padding:4px; display: block;"><?php _e('What field would you like to export?', 'wp_all_export_plugin' )?></label>
@@ -11,7 +11,7 @@
 			<div class="clear"></div>
 			<input type="text" class="column_name" value="" style="width:50%"/>
 		</div>
-		
+
 		<!-- Advanced Field Options -->
 		
 		<?php include_once 'advanced_field_options.php'; ?>

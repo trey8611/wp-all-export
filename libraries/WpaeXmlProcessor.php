@@ -93,6 +93,41 @@ class WpaeXmlProcessor
     private function parseElement(DOMNode $element)
     {
         if($element->hasAttributes() && $element->nodeValue == '') {
+
+            if ($element->hasChildNodes()) {
+                $has_text_elements = false;
+                for ($i = 0; $i < $element->childNodes->length; $i++) {
+                    if ( $element->childNodes->item($i)->nodeType == XML_TEXT_NODE ){
+                        $has_text_elements = true;
+                        break;
+                    }
+                }
+                if ( ! $has_text_elements ){
+                    $nodeAttributes = $this->getNodeAttributes($element);
+                    $snippets = $this->parseSnippetsInString($nodeAttributes);
+                    if (!empty($snippets)){
+                        $tagValues = array();
+                        foreach ($snippets as $snippet) {
+                            $wholeValue = str_replace("\n", '', $nodeAttributes);
+                            $isInFunction = $this->wpaeString->isBetween($wholeValue, $snippet, '[',']');
+                            $snippetValue = $this->processSnippet($snippet,$isInFunction);
+                            $tagValues[$snippet] = $snippetValue;
+                        }
+
+                        // Doing this to replace multiple snippet in the same tag (not to treat them as array and
+                        // replace the snippet with the first letter of the string
+                        foreach ($snippets as $snippet) {
+                            if(isset($tagValues[$snippet])){
+                                //$element->nodeValue = str_replace($snippet, $tagValues[$snippet], $element->nodeValue);
+                                $this->replaceSnippetInAttributes($element, $snippet, $tagValues[$snippet]);
+                            }
+                        }
+                    }
+                }
+                for ($i = 0; $i < $element->childNodes->length; $i++) {
+                    $this->parseElement($element->childNodes->item($i));
+                }
+            }
             $textNode = new DOMText('##FILLER##');
             $element->appendChild($textNode);
             return $this->parseElement($textNode);
@@ -106,6 +141,7 @@ class WpaeXmlProcessor
             $tagValues = array();
 
             if (count($snippets) > 0) {
+
                 if (count($snippets) == 1) {
                     $snippet = $snippets[0];
                     $isInFunction = $this->wpaeString->isBetween($nodeAttributes.$element->nodeValue, $snippet, '[',']');
@@ -122,6 +158,7 @@ class WpaeXmlProcessor
                         $nodeXML = $this->cloneNode($element->parentNode, $snippet, $snippetValues);
                         $f = $this->dom->createDocumentFragment();
                         $f->appendXML($nodeXML);
+                        $this->parseElement($f);
                         $element->parentNode->parentNode->replaceChild($f, $element->parentNode);
 
                     } else {
@@ -235,7 +272,7 @@ class WpaeXmlProcessor
      */
     private function sanitizeFunctionName($filtered)
     {
-        $functionName = str_replace('array','', substr($filtered, 0, strpos($filtered, "(")));
+        $functionName = str_replace('array(','(', substr($filtered, 0, strpos($filtered, "(")));
         return $functionName;
     }
 

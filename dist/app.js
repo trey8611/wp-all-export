@@ -37101,7 +37101,7 @@ angular.module('ngSanitize').filter('linky', ['$sanitize', function($sanitize) {
 
 var GoogleMerchants = angular.module('GoogleMerchants', ['templates-dist','dotjem.angular.tree', 'ngSanitize', 'ngAnimate', 'ng-slide-down', 'angular-click-outside']);
 
-GoogleMerchants.constant('BACKEND', '/wp-admin/admin-ajax.php?action=wpae_api&q=');
+GoogleMerchants.constant('BACKEND', ajaxurl+'?action=wpae_api&q=');
 
 GoogleMerchants.filter('safe', ['$sce', function($sce) {
     return $sce.trustAsHtml;
@@ -37306,34 +37306,27 @@ GoogleMerchants.directive('cascade', [function() {
         restrict: 'A',
         controller: ['$scope', function($scope) {
 
-            var uniqueId = function() {
-                return 'id-' + Math.random().toString(36).substr(2, 16);
-            };
+            function selectRecursive(selectedItem, currentNode) {
 
-            $scope.$on('wpae.gender.changed', function(event, scopeId, selectedGender){
-                if($scope.$id != scopeId) {
-                    $scope.node.selectedGender = selectedGender;
+                var i, currentChild;
+
+                for (i = 0; i < currentNode.children.length; i += 1) {
+
+                    currentChild = currentNode.children[i];
+                    $scope.mappings[currentChild.id] = selectedItem
+
+                    selectRecursive(selectedItem, currentChild);
                 }
-            });
 
-            $scope.$on('wpae.ageGroup.changed', function(event, scopeId, selectedAgeGroup){
-                if($scope.$id != scopeId) {
-                    $scope.node.selectedAgeGroup = selectedAgeGroup;
-                }
-            });
+                return false;
+            }
 
-            $scope.selectGender = function() {
-                $scope.$parent.$broadcast('wpae.gender.changed', $scope.$id, $scope.node.selectedGender);
+            $scope.select = function() {
+                console.log("Changing to ", $scope.mappings[$scope.node.id]);
+                selectRecursive($scope.mappings[$scope.node.id], $scope.node);
             };
 
-            $scope.selectAgeGroup = function() {
-                $scope.$parent.$broadcast('wpae.ageGroup.changed', $scope.$id, $scope.node.selectedAgeGroup);
-            };
-
-        }],
-        link: function (scope, element, attributes) {
-            scope.cascadeName = attributes.$attr.cascade;
-        }
+        }]
     };
 }]);
 GoogleMerchants.directive('contenteditable', ['$sce', function($sce) {
@@ -37386,39 +37379,19 @@ GoogleMerchants.factory('currencyService', [function(){
         }
     }
 }]);
-GoogleMerchants.directive('droppable', [function() {
+GoogleMerchants.directive('droppable', [function () {
     return {
         restrict: 'A',
         require: '^ngModel',
         link: function (scope, element, attributes, ngModelCtrl) {
+            
+            
+            function processElementName($element, elementName) {
 
-            function placeCaretAtEnd(el) {
-                el.focus();
-                if (typeof window.getSelection != "undefined"
-                    && typeof document.createRange != "undefined") {
-                    var range = document.createRange();
-                    range.selectNodeContents(el);
-                    range.collapse(false);
-                    var sel = window.getSelection();
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                } else if (typeof document.body.createTextRange != "undefined") {
-                    var textRange = document.body.createTextRange();
-                    textRange.moveToElementText(el);
-                    textRange.collapse(false);
-                    textRange.select();
-                }
-            }
-
-
-            function processElementName($element, elementName){
-
-                if ( $element.find('input[name^=cc_type]').val().indexOf('image_') !== -1 )
-                {
+                if ($element.find('input[name^=cc_type]').val().indexOf('image_') !== -1) {
                     elementName = 'Image ' + elementName;
                 }
-                if ( $element.find('input[name^=cc_type]').val().indexOf('attachment_') !== -1 )
-                {
+                if ($element.find('input[name^=cc_type]').val().indexOf('attachment_') !== -1) {
                     elementName = 'Attachment ' + elementName;
                 }
                 return elementName;
@@ -37426,46 +37399,19 @@ GoogleMerchants.directive('droppable', [function() {
 
             var $element;
 
-            if(element[[0]].nodeName == 'STYLED-INPUT') {
-                $element = angular.element(element).find('div');
+            $element = angular.element(element);
+            $element.addClass('google-merchants-droppable');
 
-                $element.droppable({
-                    over: function(event, ui) {
-                        jQuery('body').css('cursor','copy');
-                    },
-                    drop: function( event, ui ) {
-
-                        var $droppedElement = ui.draggable.find('.custom_column');
-                        var elementName = $droppedElement.find('input[name^=cc_name]').val();
-                        elementName = processElementName($droppedElement, elementName);
-                        $element.html($element.html() + '<strong>{' + elementName + '}</strong>&#8203;');
-                        placeCaretAtEnd($element[0]);
-                        $element.focus();
-                        //ngModelCtrl.$setViewValue($element.val());
-                        //ngModelCtrl.$render();
-                    }
-                });
-            } else {
-                $element = angular.element(element);
-
-                $element.droppable({
-                    over: function(event, ui) {
-                        jQuery(this).css("cursor", "copy");
-                    },
-                    out: function(event, ui) {
-                        jQuery(this).css("cursor", "initial");
-                    },
-                    drop: function( event, ui ) {
-                        jQuery(this).css("cursor", "initial");
-                        var $droppedElement = ui.draggable.find('.custom_column');
-                        var elementName = $droppedElement.find('input[name^=cc_name]').val();
-                        elementName = processElementName($droppedElement, elementName);
-                        $element.val($element.val() + '{' + elementName + '}');
-                        ngModelCtrl.$setViewValue($element.val());
-                        ngModelCtrl.$render();
-                    }
-                });
-            }
+            $element.droppable({
+                drop: function (event, ui) {
+                    var $droppedElement = ui.draggable.find('.custom_column');
+                    var elementName = $droppedElement.find('input[name^=cc_name]').val();
+                    elementName = processElementName($droppedElement, elementName);
+                    $element.val($element.val() + '{' + elementName + '}');
+                    ngModelCtrl.$setViewValue($element.val());
+                    ngModelCtrl.$render();
+                }
+            });
 
 
         }
@@ -37548,9 +37494,13 @@ GoogleMerchants.factory('googleCategoriesService', ['$rootScope', '$q', '$log', 
         categorySelected: categorySelected
     }
 }]);
-GoogleMerchants.controller('mainController', ['$scope', '$timeout', '$window', '$document', '$location', 'templateService', 'exportService', 'currencyService', 'attributesService', 'wpHttp', function ($scope, $timeout, $window, $document, $location, templateService, exportService, currencyService, attributesService, wpHttp) {
-
+GoogleMerchants.controller('mainController', ['$scope', '$rootScope', '$timeout', '$window', '$document', '$location', '$log', 'templateService', 'exportService', 'currencyService', 'attributesService', 'wpHttp',
+    function ($scope, $rootScope, $timeout, $window, $document, $location, $log, templateService, exportService, currencyService, attributesService, wpHttp) {
     var defaultMappings = [{mapFrom : '', mapTo: ''}];
+
+    $scope.cats = [];
+        
+    $scope.templateId = false;
 
     $scope.merchantsFeedData = {
 
@@ -37564,12 +37514,13 @@ GoogleMerchants.controller('mainController', ['$scope', '$timeout', '$window', '
             itemImageLink: "useProductFeaturedImage",
             itemLink: "productLink",
             condition: 'new',
-            conditionMappings: defaultMappings,
+            conditionMappings: angular.copy(defaultMappings),
             userVariationDescriptionForVariableProducts: true,
             addVariationAttributesToProductUrl: true,
             useVariationImage: true,
             useFeaturedImageIfThereIsNoVariationImage: true,
-            useParentDescirptionIfThereIsNoVariationDescirption: true
+            useParentDescirptionIfThereIsNoVariationDescirption: true,
+            useVariationDescriptionForVariableProducts: true,
         },
         detailedInformation: {
             open: false,
@@ -37577,14 +37528,17 @@ GoogleMerchants.controller('mainController', ['$scope', '$timeout', '$window', '
             size: 'selectFromWooCommerceProductAttributes',
             gender: 'selectFromWooCommerceProductAttributes',
             setTheGroupId: 'automatically',
-            mappings: defaultMappings,
+            mappings: angular.copy(defaultMappings),
             ageGroup: 'selectFromWooCommerceProductAttributes',
             material: 'selectFromWooCommerceProductAttributes',
             pattern: 'selectFromWooCommerceProductAttributes',
             genderAutodetect: 'keepBlank',
             sizeSystem: '',
             adjustPrice: false,
-            adjustSalePrice: false
+            adjustSalePrice: false,
+            genderCats: {},
+            ageGroupCats: {},
+            sizeTypeMappings: angular.copy(defaultMappings)
 
         },
         availabilityPrice: {
@@ -37601,7 +37555,8 @@ GoogleMerchants.controller('mainController', ['$scope', '$timeout', '$window', '
         productCategories: {
             open: false,
             productType: 'useWooCommerceProductCategories',
-            productCategories: 'mapProductCategories'
+            productCategories: 'mapProductCategories',
+            catMappings: {}
         },
         uniqueIdentifiers: {
             open: false,
@@ -37610,7 +37565,8 @@ GoogleMerchants.controller('mainController', ['$scope', '$timeout', '$window', '
         shipping: {
             dimensions: 'useWooCommerceProductValues',
             convertTo: 'cm',
-            adjustPriceType: '%'
+            adjustPriceType: '%',
+            weight: ''
         },
         template: {
             save: false,
@@ -37620,16 +37576,16 @@ GoogleMerchants.controller('mainController', ['$scope', '$timeout', '$window', '
             adult: 'no',
             unitPricingBaseMeasureUnit: 'kg',
             excludedDestination: 'no',
-            customLabel0Mappings: defaultMappings,
-            customLabel1Mappings: defaultMappings,
-            customLabel2Mappings: defaultMappings,
-            customLabel3Mappings: defaultMappings,
-            customLabel4Mappings: defaultMappings,
-            energyEfficiencyClassMappings: defaultMappings,
-            promotionIdMappings: defaultMappings
+            customLabel0Mappings: angular.copy(defaultMappings),
+            customLabel1Mappings: angular.copy(defaultMappings),
+            customLabel2Mappings: angular.copy(defaultMappings),
+            customLabel3Mappings: angular.copy(defaultMappings),
+            customLabel4Mappings: angular.copy(defaultMappings),
+            energyEfficiencyClassMappings: angular.copy(defaultMappings),
+            promotionIdMappings: angular.copy(defaultMappings)
         }
     };
-
+        
     function getParameterByName(name, url) {
         if (!url) {
             url = window.location.href;
@@ -37644,18 +37600,19 @@ GoogleMerchants.controller('mainController', ['$scope', '$timeout', '$window', '
 
     function setCategoriesToCustomDataIfProductsNotCategorized() {
 
-        if (!$scope.merchantsFeedData.productCategories.cats.children.length) {
+        if (!$rootScope.cats.children.length) {
             $scope.merchantsFeedData.productCategories.productCategories = 'customValue';
         }
     }
 
-    $scope.init = function (currencySymbol, currencyCode) {
+    $scope.init = function (currencySymbol, currencyCode, templateId) {
 
         attributesService.setAttributes(wpae_product_attributes);
-
         $scope.isGoogleMerchantExport = false;
-
         currencyService.setCurrency(currencySymbol, currencyCode);
+
+        $scope.templateId = templateId;
+
     };
 
     $scope.selectGoogleMerchantsInitially = function() {
@@ -37677,26 +37634,28 @@ GoogleMerchants.controller('mainController', ['$scope', '$timeout', '$window', '
                     name: ''
                 };
 
-
                 $scope.merchantsFeedData = exportData;
-
-                setCategoriesToCustomDataIfProductsNotCategorized();
-
-            } else {
-                wpHttp.get('categories/index').then(function (data) {
-
-                    $scope.merchantsFeedData.productCategories.cats = data;
-                    $scope.merchantsFeedData.detailedInformation.genderCats = data;
-                    $scope.merchantsFeedData.detailedInformation.ageGroupCats = data;
-
-                    setCategoriesToCustomDataIfProductsNotCategorized();
-
-                }, function () {
-                    $log.error('There was a problem loading the WordPress categories');
-                });
             }
         });
 
+        if($scope.templateId) {
+            console.log("Loading template with id " + $scope.templateId);
+            templateService.getTemplate($scope.templateId).then(function (template) {
+                $scope.merchantsFeedData = template.google_merchants_post_data;
+            });
+        }
+
+        wpHttp.get('categories/index').then(function (data) {
+            $rootScope.cats = data;
+            console.log('Broadcasting loaded categories...');
+            $rootScope.$broadcast('categories.loaded');
+            setCategoriesToCustomDataIfProductsNotCategorized();
+        }, function () {
+            $log.error('There was a problem loading the WordPress categories');
+
+
+        });
+        
         if($scope.merchantsFeedData.availabilityPrice.currency == null) {
             $scope.merchantsFeedData.availabilityPrice.currency = currencyService.getCurrencyCode();
         }
@@ -37747,7 +37706,10 @@ GoogleMerchants.controller('mainController', ['$scope', '$timeout', '$window', '
 
     $scope.process = function () {
 
+        return false;
         $scope.merchantsFeedData.extraData = jQuery('#templateForm').serialize();
+
+        $scope.merchantsFeedData.template.save = jQuery('#save_template_as').prop('checked');
 
         var id = getParameterByName('id');
 
@@ -37761,7 +37723,7 @@ GoogleMerchants.controller('mainController', ['$scope', '$timeout', '$window', '
             if(response.redirect) {
                 $window.location.href = response.redirect;
             } else {
-                $window.location.href = '/wp-admin/admin.php?page=pmxe-admin-export&action=options';
+                $window.location.href = 'admin.php?page=pmxe-admin-export&action=options';
             }
 
         });
@@ -37807,7 +37769,8 @@ GoogleMerchants.directive('mapping', function() {
         scope: {
             'mappings' : '=',
             'show' : '=',
-            'context' : '='
+            'context' : '=',
+            'tooltip' : '@'
         },
         templateUrl: 'common/mapping/mapping.tpl.html',
         controller: 'mappingController'
@@ -37942,7 +37905,7 @@ GoogleMerchants.directive('detailedInformation', function() {
         controller: 'detailedInformationController'
     };
 });
-GoogleMerchants.controller('categoryMapperController', ['$scope', '$log', 'wpHttp', function($scope, $log, wpHttp){
+GoogleMerchants.controller('categoryMapperController', ['$scope', '$rootScope', '$interval', '$timeout', function($scope, $rootScope, $interval, $timeout){
 
     $scope.dialogVisible = true;
 
@@ -37953,6 +37916,41 @@ GoogleMerchants.controller('categoryMapperController', ['$scope', '$log', 'wpHtt
     $scope.parentWidth = false;
 
     $scope.siteCats = [];
+
+    $scope.initialized = false;
+
+    $scope.innerMapping = false;
+
+    $scope.limits = 100;
+
+    $scope.catMappings = [];
+
+    $rootScope.$on('categories.loaded', function(){
+        $scope.innerMapping = $rootScope.cats;
+    });
+
+    $scope.innerMapping = $rootScope.cats;
+
+    $scope.initialize = function() {
+        if(!$scope.initialized) {
+            $timeout(function () {
+                $interval(function () {
+                    if ($scope.limits < $scope.innerMapping.length) {
+                        $scope.limits += 20;
+                    }
+                }, 10);
+            }, 100);
+
+            $scope.initialized = true;
+            $scope.afterInitialize();
+        }
+    };
+
+    $scope.afterInitialize = function() {
+        angular.forEach($scope.cats, function(value, key) {
+
+        });
+    };
 
     // Context can be: 'categories', 'gender', 'ageGroup'
     if (angular.isUndefined($scope.context)){
@@ -37972,14 +37970,22 @@ GoogleMerchants.controller('categoryMapperController', ['$scope', '$log', 'wpHtt
     $scope.toggleDialog = function() {
         $scope.dialogVisible = !$scope.dialogVisible;
     };
+
+    $scope.getPlaceholder = function() {
+
+        if($scope.visible) {
+            return ''; }
+        else {
+            return 'Select Google Product Category';
+        }
+    };
         
 }]);
 GoogleMerchants.directive('categoryMapper', function() {
     return {
         restrict: 'E',
         scope: {
-            'cats': '=',
-            'mapping': '=',
+            'mappings': '=',
             'grey' : '=',
             'context' : '@?'
         },
@@ -38003,15 +38009,57 @@ GoogleMerchants.controller('googleCategorySelectorController', ['$scope', '$log'
 
     $scope.byUser = false;
 
-    var selectCategory = function(category, byUser) {
-        $scope.selectedCategory = category.name
+    function selectCategoryRecursive(catId, catName, currentNode) {
+
+        var i, currentChild;
+
+        for (i = 0; i < currentNode.children.length; i += 1) {
+            currentChild = currentNode.children[i];
+
+            // If the category was selected
+            if(angular.isDefined($scope.mappings[currentChild.id])){
+                // but not by the user
+                if(!$scope.mappings[currentChild.id].byUser) {
+                    $scope.mappings[currentChild.id] = {
+                        id: catId,
+                        name: catName,
+                        byUser: false
+                    };
+                }
+            } else {
+                $scope.mappings[currentChild.id] = {
+                    id: catId,
+                    name: catName,
+                    byUser: false
+                };
+            }
+
+            selectCategoryRecursive(catId, catName, currentChild);
+
+        }
+
+        return false;
+    }
+
+    $scope.select = function(category) {
+
+        var categoryName = category.name
             .replace('<strong>','')
             .replace('</strong>','')
             .replace('<b>','')
             .replace('</b>','');
-        $scope.selectedCategoryId = category.id;
-        $scope.byUser = byUser;
+
         $scope.visible = false;
+
+        var categoryData = {
+            id: category.id,
+            name: categoryName
+        };
+
+        $scope.mappings[$scope.node.id] = {id: category.id, name: categoryName, byUser: true};
+
+        // New cascade logic
+        selectCategoryRecursive(category.Id, categoryName, $scope.node);
     };
 
     $scope.loadCategories = function(search) {
@@ -38052,30 +38100,11 @@ GoogleMerchants.controller('googleCategorySelectorController', ['$scope', '$log'
             });
     };
 
-    $scope.select = function(category) {
-        category.scopeId = $scope.$id;
-        $scope.$parent.$parent.$broadcast('wpae.parentCategorySelected', category);
-        selectCategory(category, true);
-    };
-
     $scope.matchSearch = function(criteria) {
         return function(item) {
             return item.name === criteria.name;
         };
     };
-
-    $scope.$on('wpae.parentCategorySelected', function(event, category) {
-        // Only select category if we are in a child scope, because we will get the event in the
-        // triggering scope also
-        if(!$scope.byUser && $scope.$id != category.scopeId) {
-            selectCategory(category, false);
-        }
-    });
-
-    $scope.$watch('selectedCategory', function(newValue, oldValue){
-        //TODO: Remove this watcher if not neeeded
-        // We should do the search here and remove from below
-    });
 
     $scope.$watch('search', function(newValue, oldValue) {
         // Keep the old state
@@ -38119,8 +38148,6 @@ GoogleMerchants.directive('googleCategorySelector', ['$rootScope', function($roo
         restrict: 'E',
         templateUrl: 'productCategories/googleCategorySelector/googleCategorySelector.tpl.html',
         controller: 'googleCategorySelectorController',
-        link: function(scope, element) {
-        }
     };
 }]);
 GoogleMerchants.directive('googleCategorySelectorAdder', [function() {
@@ -38145,7 +38172,7 @@ GoogleMerchants.directive('googleCategorySelectorAdder', [function() {
         templateUrl: 'productCategories/googleCategorySelector/googleCategorySelectorAdder.tpl.html'
     };
 }]);
-GoogleMerchants.controller('productCategoriesController', ['$scope', '$log', 'BACKEND', function($scope, $log, BACKEND){
+GoogleMerchants.controller('productCategoriesController', ['$scope', function($scope){
 
 }]);
 GoogleMerchants.directive('productCategories', function() {
@@ -38240,41 +38267,41 @@ angular.module("advancedAttributes/advancedAttributes.tpl.html", []).run(["$temp
     "                <div style=\"margin-top:10px;\">Custom Label 0</div>\n" +
     "                <div class=\"input\">\n" +
     "                    <input type=\"text\" class=\"wpae-default-input\" ng-model=\"advancedAttributes.customLabel0\" droppable />\n" +
-    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showCustomLabel0Mappings=true\">Field Options...</a>\n" +
+    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showCustomLabel0Mappings=true\">Data Mapping</a>\n" +
     "                    <div style=\"position: relative\">\n" +
-    "                        <mapping mappings=\"advancedAttributes.customLabel0Mappings\" show=\"showCustomLabel0Mappings\" context=\"text\" />\n" +
+    "                        <mapping mappings=\"advancedAttributes.customLabel0Mappings\" show=\"showCustomLabel0Mappings\" context=\"text\" tooltip=\"For example, if you have products tagged 'reduced price' and 'on sale' and you want both to be listed as 'clearance' in your export:<br/><br/>Create two sets of data mappings, with 'Exported Data' set to 'reduced price' for one and 'on sale' for the other. 'Translated To' for both would be 'clearance'.\" />\n" +
     "                    </div>\n" +
     "                </div>\n" +
     "                <div style=\"margin-top:10px;\">Custom Label 1</div>\n" +
     "                <div class=\"input\">\n" +
     "                    <input type=\"text\" class=\"wpae-default-input\" ng-model=\"advancedAttributes.customLabel1\" droppable />\n" +
-    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showCustomLabel1Mappings=true\">Field Options...</a>\n" +
+    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showCustomLabel1Mappings=true\">Data Mapping</a>\n" +
     "                    <div style=\"position: relative\">\n" +
-    "                        <mapping mappings=\"advancedAttributes.customLabel1Mappings\" show=\"showCustomLabel1Mappings\" context=\"text\" />\n" +
+    "                        <mapping mappings=\"advancedAttributes.customLabel1Mappings\" show=\"showCustomLabel1Mappings\" context=\"text\" tooltip=\"For example, if you have products tagged 'reduced price' and 'on sale' and you want both to be listed as 'clearance' in your export:<br/><br/>Create two sets of data mappings, with 'Exported Data' set to 'reduced price' for one and 'on sale' for the other. 'Translated To' for both would be 'clearance'.\" />\n" +
     "                    </div>\n" +
     "                </div>\n" +
     "                <div style=\"margin-top:10px;\">Custom Label 2</div>\n" +
     "                <div class=\"input\">\n" +
     "                    <input type=\"text\" class=\"wpae-default-input\" ng-model=\"advancedAttributes.customLabel2\" droppable />\n" +
-    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showCustomLabel2Mappings=true\">Field Options...</a>\n" +
+    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showCustomLabel2Mappings=true\">Data Mapping</a>\n" +
     "                    <div style=\"position: relative\">\n" +
-    "                        <mapping mappings=\"advancedAttributes.customLabel2Mappings\" show=\"showCustomLabel2Mappings\" context=\"text\" />\n" +
+    "                        <mapping mappings=\"advancedAttributes.customLabel2Mappings\" show=\"showCustomLabel2Mappings\" context=\"text\" tooltip=\"For example, if you have products tagged 'reduced price' and 'on sale' and you want both to be listed as 'clearance' in your export:<br/><br/>Create two sets of data mappings, with 'Exported Data' set to 'reduced price' for one and 'on sale' for the other. 'Translated To' for both would be 'clearance'.\" />\n" +
     "                    </div>\n" +
     "                </div>\n" +
     "                <div style=\"margin-top:10px;\">Custom Label 3</div>\n" +
     "                <div class=\"input\">\n" +
     "                    <input type=\"text\" class=\"wpae-default-input\" ng-model=\"advancedAttributes.customLabel3\" droppable />\n" +
-    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showCustomLabel3Mappings=true\">Field Options...</a>\n" +
+    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showCustomLabel3Mappings=true\">Data Mapping</a>\n" +
     "                    <div style=\"position: relative\">\n" +
-    "                        <mapping mappings=\"advancedAttributes.customLabel3Mappings\" show=\"showCustomLabel3Mappings\" context=\"text\" />\n" +
+    "                        <mapping mappings=\"advancedAttributes.customLabel3Mappings\" show=\"showCustomLabel3Mappings\" context=\"text\" tooltip=\"For example, if you have products tagged 'reduced price' and 'on sale' and you want both to be listed as 'clearance' in your export:<br/><br/>Create two sets of data mappings, with 'Exported Data' set to 'reduced price' for one and 'on sale' for the other. 'Translated To' for both would be 'clearance'.\" />\n" +
     "                    </div>\n" +
     "                </div>\n" +
     "                <div style=\"margin-top:10px;\">Custom Label 4</div>\n" +
     "                <div class=\"input\">\n" +
     "                    <input type=\"text\" class=\"wpae-default-input\" ng-model=\"advancedAttributes.customLabel4\" droppable />\n" +
-    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showCustomLabel4Mappings=true\">Field Options...</a>\n" +
+    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showCustomLabel4Mappings=true\">Data Mapping</a>\n" +
     "                    <div style=\"position: relative\">\n" +
-    "                        <mapping mappings=\"advancedAttributes.customLabel4Mappings\" show=\"showCustomLabel4Mappings\" context=\"text\" />\n" +
+    "                        <mapping mappings=\"advancedAttributes.customLabel4Mappings\" show=\"showCustomLabel4Mappings\" context=\"text\" tooltip=\"For example, if you have products tagged 'reduced price' and 'on sale' and you want both to be listed as 'clearance' in your export:<br/><br/>Create two sets of data mappings, with 'Exported Data' set to 'reduced price' for one and 'on sale' for the other. 'Translated To' for both would be 'clearance'.\" />\n" +
     "                    </div>\n" +
     "                </div>\n" +
     "\n" +
@@ -38324,9 +38351,11 @@ angular.module("advancedAttributes/advancedAttributes.tpl.html", []).run(["$temp
     "                </p>\n" +
     "                <div class=\"input\">\n" +
     "                    <input type=\"text\" class=\"wpae-default-input\" ng-model=\"advancedAttributes.energyEfficiencyClass\" droppable />\n" +
-    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showEnergyEfficiencyMappings=true\">Field Options...</a>\n" +
+    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showEnergyEfficiencyMappings=true\">Data Mapping</a>\n" +
     "                    <div style=\"position: relative\">\n" +
-    "                        <mapping mappings=\"advancedAttributes.energyEfficiencyClassMappings\" show=\"showEnergyEfficiencyMappings\" />\n" +
+    "                        <mapping mappings=\"advancedAttributes.energyEfficiencyClassMappings\" show=\"showEnergyEfficiencyMappings\" tooltip=\"For example, if you have products tagged 'energy efficient' and 'low power' and you want both to be listed as 'A+++' in your export:\n" +
+    "<br/><br/>\n" +
+    "Create two sets of data mappings, with 'Exported Data' set to 'energy efficient' for one and 'low power' for the other. 'Translated To' for both would be 'A+++'.\" />\n" +
     "                    </div>\n" +
     "                </div>\n" +
     "                <h4>Promotion ID</h4>\n" +
@@ -38336,9 +38365,11 @@ angular.module("advancedAttributes/advancedAttributes.tpl.html", []).run(["$temp
     "                </p>\n" +
     "                <div class=\"input\">\n" +
     "                    <input type=\"text\" class=\"wpae-default-input\" ng-model=\"advancedAttributes.promotionId\" droppable />\n" +
-    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showPromotionIdMappings=true\">Field Options...</a>\n" +
+    "                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showPromotionIdMappings=true\">Data Mapping</a>\n" +
     "                    <div style=\"position: relative\">\n" +
-    "                        <mapping mappings=\"advancedAttributes.promotionIdMappings\" show=\"showPromotionIdMappings\" />\n" +
+    "                        <mapping mappings=\"advancedAttributes.promotionIdMappings\" show=\"showPromotionIdMappings\" tooltip=\"For example, if your products are tagged 'reduced price' and 'on sale' and you want both to be listed with a specific promotion ID in your export:\n" +
+    "<br/><br/>\n" +
+    "Create two sets of data mappings, with 'Exported Data' set to 'reduced price' for one and 'on sale' for the other. 'Translated To' for both would be the desired promotion ID.\" />\n" +
     "                    </div>\n" +
     "                </div>\n" +
     "\n" +
@@ -38504,9 +38535,9 @@ angular.module("basicInformation/basicInformation.tpl.html", []).run(["$template
     "                    <label><input type=\"radio\" ng-model=\"basicInformation.itemTitle\" value=\"productTitle\"/>Use the product title</label>\n" +
     "                </div>\n" +
     "                <div class=\"input\">\n" +
-    "                    <label><input type=\"radio\" ng-model=\"basicInformation.itemTitle\" value=\"customValue\" />Custom data</label>\n" +
-    "                    <div class=\"input inner\" ng-slide-down=\"basicInformation.itemTitle == 'customValue'\" duration=\"0.2\">\n" +
-    "                        <input type=\"text\" class=\"wpae-default-input\" ng-model=\"basicInformation.itemTitleCV\" droppable />\n" +
+    "                    <label><input type=\"radio\" id=\"title-custom-data-select\" ng-model=\"basicInformation.itemTitle\" value=\"customValue\" />Custom data</label>\n" +
+    "                    <div class=\"input inner\" id=\"title-custom-data-container\" ng-slide-down=\"basicInformation.itemTitle == 'customValue'\" duration=\"0.2\">\n" +
+    "                        <input type=\"text\" id=\"title-custom-data-value\" class=\"wpae-default-input\" ng-model=\"basicInformation.itemTitleCV\" droppable />\n" +
     "                    </div>\n" +
     "                </div>\n" +
     "\n" +
@@ -38516,15 +38547,15 @@ angular.module("basicInformation/basicInformation.tpl.html", []).run(["$template
     "\n" +
     "                <h4>Item Description</h4>\n" +
     "                <div class=\"input\">\n" +
-    "                    <label><input type=\"radio\" ng-model=\"basicInformation.itemDescription\" value=\"productDescription\"/>Use the product description</label>\n" +
+    "                    <label><input type=\"radio\" ng-model=\"basicInformation.itemDescription\" id=\"use-product-description\" value=\"productDescription\"/>Use the product description</label>\n" +
     "                </div>\n" +
     "                <div class=\"input\">\n" +
-    "                    <label><input type=\"radio\" ng-model=\"basicInformation.itemDescription\" value=\"productShortDescription\"/>Use the product short description</label>\n" +
+    "                    <label><input type=\"radio\" ng-model=\"basicInformation.itemDescription\" id=\"use-product-short-description\" value=\"productShortDescription\"/>Use the product short description</label>\n" +
     "                </div>\n" +
     "                <div class=\"input\">\n" +
-    "                    <label><input type=\"radio\" ng-model=\"basicInformation.itemDescription\" value=\"customValue\" />Custom data</label>\n" +
+    "                    <label><input type=\"radio\" ng-model=\"basicInformation.itemDescription\" id=\"product-description-custom-data\" value=\"customValue\" />Custom data</label>\n" +
     "                    <div class=\"input inner\" ng-slide-down=\"basicInformation.itemDescription == 'customValue'\" duration=\"0.2\">\n" +
-    "                        <input type=\"text\" class=\"wpae-default-input\"  ng-model=\"basicInformation.itemDescriptionCV\" droppable />\n" +
+    "                        <input type=\"text\" class=\"wpae-default-input\" id=\"description-custom-data-value\"  ng-model=\"basicInformation.itemDescriptionCV\" droppable />\n" +
     "                    </div>\n" +
     "                </div>\n" +
     "\n" +
@@ -38537,7 +38568,7 @@ angular.module("basicInformation/basicInformation.tpl.html", []).run(["$template
     "\n" +
     "                <h4>Link</h4>\n" +
     "                <div class=\"input\">\n" +
-    "                    <label><input type=\"radio\" ng-model=\"basicInformation.itemLink\" value=\"productLink\"/>Use the product permalink</label>\n" +
+    "                    <label><input type=\"radio\" ng-model=\"basicInformation.itemLink\" id=\"use-product-permalinks\" value=\"productLink\"/>Use the product permalink</label>\n" +
     "                </div>\n" +
     "\n" +
     "                <div class=\"input\">\n" +
@@ -38598,7 +38629,7 @@ angular.module("basicInformation/basicInformation.tpl.html", []).run(["$template
     "                                <h4>Item Condition</h4>\n" +
     "                                <div class=\"input\">\n" +
     "                                    <input type=\"text\" class=\"wpae-default-input\" ng-model=\"basicInformation.condition\" droppable />\n" +
-    "                                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showConditionMappings=true\">Field Options...</a>\n" +
+    "                                    <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showConditionMappings=true\">Data Mapping</a>\n" +
     "                                        <mapping mappings=\"basicInformation.conditionMappings\" show=\"showConditionMappings\" context=\"condition\" />\n" +
     "                                    <a style=\"margin-top: 7px;\" class=\"wpallexport-help\" tipsy=\"The condition or state of the item. Google Shopping allows the promotion of quality second-hand items. There are only 3 accepted values: 'new', 'refurbished', and 'used'\">?</a>\n" +
     "                                </div>\n" +
@@ -38620,19 +38651,26 @@ angular.module("common/mapping/mapping.tpl.html", []).run(["$templateCache", fun
   $templateCache.put("common/mapping/mapping.tpl.html",
     "<div class=\"wp-pointer wp-pointer-right\" style=\"width: 450px; display: block; position: absolute; top: -70px; left: -23px;\" ng-if=\"show\">\n" +
     "    <div class=\"wp-pointer-content\">\n" +
-    "        <fieldset>\n" +
-    "            <table cellpadding=\"0\" cellspacing=\"5\" class=\"cf-form-table\" rel=\"cf_mapping_0\">\n" +
+    "        <h4 style=\"padding-left:25px; margin-bottom:0; padding-bottom:0; margin-top:20px;\">\n" +
+    "            Data Mapping\n" +
+    "            <a style=\"margin-top: 7px;\" ng-if=\"tooltip\" class=\"wpallexport-help\"\n" +
+    "               tipsy=\"{{ tooltip }}\">?\n" +
+    "            </a>\n" +
+    "        </h4>\n" +
+    "\n" +
+    "        <fieldset style=\"margin-top: 0; padding-top: 0; padding-bottom: 0;\">\n" +
+    "            <table cellpadding=\"0\" cellspacing=\"0\" class=\"cf-form-table\" rel=\"cf_mapping_0\" style=\"margin-left: 5px; margin-top: 15px;\">\n" +
     "                <thead>\n" +
     "                <tr>\n" +
-    "                    <td>Exported Data</td>\n" +
-    "                    <td>Translated To</td>\n" +
+    "                    <td><div style=\"padding-bottom:5px\">Exported Data</div></td>\n" +
+    "                    <td><div style=\"padding-bottom:5px;\">Translated To</div></td>\n" +
     "                    <td>&nbsp;</td>\n" +
     "                </tr>\n" +
     "                </thead>\n" +
     "                <tbody>\n" +
     "                <tr class=\"form-field\" ng-repeat=\"mapping in mappings\">\n" +
     "                    <td style=\"width: 50%;\">\n" +
-    "                        <input type=\"text\" ng-model=\"mapping.mapFrom\"/>\n" +
+    "                        <input type=\"text\" ng-model=\"mapping.mapFrom\" style=\"margin-left:0;\"/>\n" +
     "                    </td>\n" +
     "                    <td style=\"width: 50%;\">\n" +
     "                        <div ng-if=\"context == 'sizeType'\">\n" +
@@ -38663,23 +38701,19 @@ angular.module("common/mapping/mapping.tpl.html", []).run(["$templateCache", fun
     "                </tr>\n" +
     "                <tr>\n" +
     "                    <td colspan=\"3\">\n" +
-    "                        <a href=\"\" ng-click=\"addMapping()\" title=\"Add Another\" class=\"action add-new-key add-new-entry\">\n" +
+    "                        <a href=\"\" ng-click=\"addMapping()\" title=\"Add Another\" class=\"action add-new-key add-new-entry\" style=\"margin-top: 15px; margin-bottom:15px; margin-left: 0;\">\n" +
     "                            Add Another\n" +
     "                        </a>\n" +
-    "                    </td>\n" +
-    "                </tr>\n" +
-    "                <tr>\n" +
-    "                    <td colspan=\"3\">\n" +
-    "                        <div class=\"wrap\" style=\"position:relative;\">\n" +
-    "                            <a class=\"save_popup save_mr\" href=\"\" ng-click=\"saveMappings()\">Save Rules</a>\n" +
-    "                        </div>\n" +
     "                    </td>\n" +
     "                </tr>\n" +
     "                </tbody>\n" +
     "            </table>\n" +
     "            <input type=\"hidden\" name=\"custom_mapping_rules[]\" value=\"\">\n" +
     "        </fieldset>\n" +
-    "        <div class=\"wp-pointer-buttons\"><a class=\"close\" href=\"\" ng-click=\"close()\">Close</a></div>\n" +
+    "        <div class=\"wp-pointer-buttons\">\n" +
+    "            <a class=\"close\" href=\"\" ng-click=\"close()\">Close</a>\n" +
+    "            <a class=\"save_popup save_mr\" style=\"position:static; margin-right: 15px;\" href=\"\" ng-click=\"saveMappings()\">Save Rules</a>\n" +
+    "        </div>\n" +
     "    </div>\n" +
     "    <div class=\"wp-pointer-arrow\">\n" +
     "        <div class=\"wp-pointer-arrow-inner\"></div>\n" +
@@ -38715,10 +38749,13 @@ angular.module("detailedInformation/detailedInformation.tpl.html", []).run(["$te
     "                <div class=\"input\">\n" +
     "                    <label><input type=\"radio\" ng-model=\"detailedInformation.color\" value=\"selectFromWooCommerceProductAttributes\" />Select from WooCommerce product attributes</label>\n" +
     "                    <div ng-slide-down=\"detailedInformation.color == 'selectFromWooCommerceProductAttributes'\" duration=\"0.2\">\n" +
-    "                        <div class=\"select-container\">\n" +
+    "                        <div class=\"select-container\" ng-if=\"attributes.length\">\n" +
     "                            <select autodetect=\"Color\" chosen ng-options=\"'{' + i.name + '}' as i.name for i in attributes\" ng-model=\"detailedInformation.colorAttribute\" class=\"inner\">\n" +
     "                                <option value=\"\">Leave Blank</option>\n" +
     "                            </select>\n" +
+    "                        </div>\n" +
+    "                        <div class=\"no-attributes\" ng-if=\"!attributes.length\">\n" +
+    "                            The products in this export have no product attributes. Add attributes to your products in order to map them to a color.\n" +
     "                        </div>\n" +
     "                    </div>\n" +
     "                </div>\n" +
@@ -38733,10 +38770,13 @@ angular.module("detailedInformation/detailedInformation.tpl.html", []).run(["$te
     "                <div class=\"input\">\n" +
     "                    <label><input type=\"radio\" ng-model=\"detailedInformation.size\" value=\"selectFromWooCommerceProductAttributes\" />Select from WooCommerce product attributes</label>\n" +
     "                    <div ng-slide-down=\"detailedInformation.size == 'selectFromWooCommerceProductAttributes'\" duration=\"0.2\">\n" +
-    "                        <div class=\"select-container\">\n" +
+    "                        <div class=\"select-container\" ng-if=\"attributes.length\">\n" +
     "                            <select id=\"sizeAttribute\" autodetect=\"Size\" chosen ng-options=\"'{' + i.name + '}' as i.name for i in attributes\" ng-model=\"detailedInformation.sizeAttribute\" class=\"inner\">\n" +
     "                                <option value=\"\">Leave Blank</option>\n" +
     "                            </select>\n" +
+    "                        </div>\n" +
+    "                        <div class=\"no-attributes\" ng-if=\"!attributes.length\">\n" +
+    "                            The products in this export have no product attributes. Add attributes to your products in order to map them to a size.\n" +
     "                        </div>\n" +
     "                    </div>\n" +
     "                </div>\n" +
@@ -38754,15 +38794,18 @@ angular.module("detailedInformation/detailedInformation.tpl.html", []).run(["$te
     "                    <label><input type=\"radio\" ng-model=\"detailedInformation.gender\" value=\"selectFromWooCommerceProductAttributes\" />Select from WooCommerce product attributes</label>\n" +
     "                    <div class=\"clear\"></div>\n" +
     "                    <div ng-slide-down=\"detailedInformation.gender == 'selectFromWooCommerceProductAttributes'\" duration=\"0.2\">\n" +
-    "                        <div class=\"select-container\">\n" +
+    "                        <div class=\"select-container\" ng-if=\"attributes.length\">\n" +
     "                            <select autodetect=\"Gender\" chosen ng-options=\"'{' + i.name + '}' as i.name for i in attributes\" ng-model=\"detailedInformation.genderAttribute\" class=\"inner\">\n" +
     "                                <option value=\"\">Leave Blank</option>\n" +
     "                            </select>\n" +
     "                        </div>\n" +
+    "                        <div class=\"no-attributes\" ng-if=\"!attributes.length\">\n" +
+    "                            The products in this export have no product attributes. Add attributes to your products in order to map them to a gender.\n" +
+    "                        </div>\n" +
     "                    </div>\n" +
     "                </div>\n" +
-    "                <!--<div class=\"input\">\n" +
-    "                    <label><input type=\"radio\" ng-model=\"detailedInformation.gender\" value=\"autodetectBasedOnProductTaxonomies\"/>Autodetect based on product taxonomies</label>\n" +
+    "                <div class=\"input\">\n" +
+    "                    <label><input type=\"radio\" ng-model=\"detailedInformation.gender\" value=\"autodetectBasedOnProductTaxonomies\"/>Autodetect based on WooCommerce product categories</label>\n" +
     "                    <div ng-slide-down=\"detailedInformation.gender == 'autodetectBasedOnProductTaxonomies'\" duration=\"0.2\">\n" +
     "                        <div class=\"inner\">\n" +
     "                            <div class=\"input\">\n" +
@@ -38777,12 +38820,13 @@ angular.module("detailedInformation/detailedInformation.tpl.html", []).run(["$te
     "                            </div>\n" +
     "                        </div>\n" +
     "                    </div>\n" +
-    "                </div>-->\n" +
+    "                </div>\n" +
     "                <div class=\"input\">\n" +
     "                    <label>\n" +
-    "                        <input type=\"radio\" ng-model=\"detailedInformation.gender\" value=\"selectProductTaxonomies\" />Select from WooCommerce product categories</label>\n" +
+    "                        <input type=\"radio\" ng-model=\"detailedInformation.gender\" value=\"selectProductTaxonomies\" />Select from WooCommerce product categories\n" +
+    "                    </label>\n" +
     "                    <div ng-slide-down=\"detailedInformation.gender == 'selectProductTaxonomies'\" duration=\"0.2\">\n" +
-    "                        <category-mapper mapping=\"detailedInformation.genderCats\" context=\"gender\" />\n" +
+    "                        <category-mapper mappings=\"detailedInformation.genderCats\" context=\"gender\" />\n" +
     "                    </div>\n" +
     "                </div>\n" +
     "                <div class=\"input\">\n" +
@@ -38805,7 +38849,7 @@ angular.module("detailedInformation/detailedInformation.tpl.html", []).run(["$te
     "                                <div style=\"display: inline-block;\">\n" +
     "                                    <input type=\"text\" class=\"wpae-default-input\" ng-model=\"detailedInformation.sizeType\" droppable />\n" +
     "                                </div>\n" +
-    "                                <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showMappings=true\">Field Options...</a>\n" +
+    "                                <a href=\"\" class=\"wpae-field-mapping\" ng-click=\"showMappings=true\">Data Mapping</a>\n" +
     "                                <div style=\"position: relative\">\n" +
     "                                    <mapping mappings=\"detailedInformation.sizeTypeMappings\" show=\"showMappings\" context=\"sizeType\" />\n" +
     "                                </div>\n" +
@@ -38835,17 +38879,22 @@ angular.module("detailedInformation/detailedInformation.tpl.html", []).run(["$te
     "                                    <input type=\"radio\" ng-model=\"detailedInformation.ageGroup\" value=\"selectFromWooCommerceProductAttributes\"/>Select from WooCommerce product attributes\n" +
     "                                </label>\n" +
     "                                <div ng-slide-down=\"detailedInformation.ageGroup == 'selectFromWooCommerceProductAttributes'\" duration=\"0.2\">\n" +
-    "                                    <div class=\"select-container\">\n" +
+    "                                    <div class=\"select-container\" ng-if=\"attributes.length\">\n" +
     "                                        <select chosen ng-options=\"'{' + i.name + '}' as i.name for i in attributes\" ng-model=\"detailedInformation.ageGroupAttribute\" class=\"inner\">\n" +
     "                                            <option value=\"\">Leave Blank</option>\n" +
     "                                        </select>\n" +
     "                                    </div>\n" +
+    "                                    <div class=\"no-attributes\" ng-if=\"!attributes.length\">\n" +
+    "                                        The products in this export have no product attributes. Add attributes to your products in order to map them to an age group.\n" +
+    "                                    </div>\n" +
     "                                </div>\n" +
     "                            </div>\n" +
     "                            <div class=\"input\">\n" +
-    "                                <label><input type=\"radio\" ng-model=\"detailedInformation.ageGroup\" value=\"selectFromProductTaxonomies\" />Select product taxonomies</label>\n" +
+    "                                <label><input type=\"radio\" ng-model=\"detailedInformation.ageGroup\" value=\"selectFromProductTaxonomies\" />Select from WooCommerce product categories</label>\n" +
     "                                <div ng-slide-down=\"detailedInformation.ageGroup == 'selectFromProductTaxonomies' \" duration=\"0.5\" >\n" +
-    "                                    <category-mapper mapping=\"detailedInformation.ageGroupCats\" grey=\"1\" context=\"ageGroup\" />\n" +
+    "                                    <div ng-show=\"detailedInformation.ageGroup == 'selectFromProductTaxonomies' \">\n" +
+    "                                        <category-mapper mappings=\"detailedInformation.ageGroupCats\" grey=\"1\" context=\"ageGroup\" />\n" +
+    "                                    </div>\n" +
     "                                </div>\n" +
     "                            </div>\n" +
     "                            <div class=\"input\">\n" +
@@ -38860,10 +38909,13 @@ angular.module("detailedInformation/detailedInformation.tpl.html", []).run(["$te
     "                            <div class=\"input\">\n" +
     "                                <label><input type=\"radio\" ng-model=\"detailedInformation.material\" value=\"selectFromWooCommerceProductAttributes\" />Select from WooCommerce product attributes</label>\n" +
     "                                <div ng-slide-down=\"detailedInformation.material == 'selectFromWooCommerceProductAttributes'\" duration=\"0.2\">\n" +
-    "                                    <div class=\"select-container\">\n" +
+    "                                    <div class=\"select-container\" ng-if=\"attributes.length\">\n" +
     "                                        <select chosen ng-options=\"'{' + i.name + '}' as i.name for i in attributes\" ng-model=\"detailedInformation.materialAttribute\" class=\"inner\">\n" +
     "                                            <option value=\"\">Leave Blank</option>\n" +
     "                                        </select>\n" +
+    "                                    </div>\n" +
+    "                                    <div class=\"no-attributes outer\" ng-if=\"!attributes.length\">\n" +
+    "                                        The products in this export have no product attributes. Add attributes to your products in order to map them to a material.\n" +
     "                                    </div>\n" +
     "                                </div>\n" +
     "                            </div>\n" +
@@ -38879,10 +38931,13 @@ angular.module("detailedInformation/detailedInformation.tpl.html", []).run(["$te
     "                            <div class=\"input\">\n" +
     "                                <label><input type=\"radio\" ng-model=\"detailedInformation.pattern\" value=\"selectFromWooCommerceProductAttributes\" />Select from WooCommerce product attributes</label>\n" +
     "                                <div ng-slide-down=\"detailedInformation.pattern == 'selectFromWooCommerceProductAttributes'\" duration=\"0.2\">\n" +
-    "                                    <div class=\"select-container\">\n" +
+    "                                    <div class=\"select-container\" ng-if=\"attributes.length\">\n" +
     "                                        <select chosen ng-options=\"'{' + i.name + '}' as i.name for i in attributes\" ng-model=\"detailedInformation.patternAttribute\" class=\"inner\">\n" +
     "                                            <option value=\"\">Leave Blank</option>\n" +
     "                                        </select>\n" +
+    "                                    </div>\n" +
+    "                                    <div class=\"no-attributes outer\" ng-if=\"!attributes.length\">\n" +
+    "                                        The products in this export have no product attributes. Add attributes to your products in order to map them to a pattern.\n" +
     "                                    </div>\n" +
     "                                </div>\n" +
     "                            </div>\n" +
@@ -38903,32 +38958,32 @@ angular.module("detailedInformation/detailedInformation.tpl.html", []).run(["$te
 
 angular.module("productCategories/categoryMapper/categoryMapper.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("productCategories/categoryMapper/categoryMapper.tpl.html",
-    "<div class=\"category-mapper\" ng-if=\"mapping.children.length\">\n" +
+    "<div class=\"category-mapper\">\n" +
     "    <div>\n" +
     "        <div class=\"woocommerce-categories-title\" style=\"float:left; padding: 13px 13px 13px 31px;\">\n" +
     "            <h4 style=\"margin: 0; padding: 0; font-size:13px; color:#000;\">WooCommerce Categories</h4>\n" +
     "        </div>\n" +
     "\n" +
-    "        <div class=\"google-categories-title\" style=\"float:right; padding:13px; margin-right: 278px;\" ng-if=\"context=='categories'\">\n" +
+    "        <div class=\"google-categories-title\" style=\"float:right; padding:13px; margin-right: 278px;\" ng-if=\"::(context=='categories')\">\n" +
     "            <h4 style=\"margin:0; padding:0; font-size:13px; color:#000; \">Google Categories</h4>\n" +
     "        </div>\n" +
     "\n" +
-    "        <div class=\"google-categories-title\" style=\"float:right; padding:13px; margin-right: 288px;\" ng-if=\"context=='gender'\">\n" +
+    "        <div class=\"google-categories-title\" style=\"float:right; padding:13px; margin-right: 288px;\" ng-if=\"::(context=='gender')\">\n" +
     "            <h4 style=\"margin:0; padding:0; font-size:13px; color:#000; \">Google Genders</h4>\n" +
     "        </div>\n" +
     "\n" +
-    "        <div class=\"google-categories-title\" style=\"float:right; padding:13px; margin-right: 268px;\" ng-if=\"context=='ageGroup'\">\n" +
+    "        <div class=\"google-categories-title\" style=\"float:right; padding:13px; margin-right: 268px;\" ng-if=\"::(context=='ageGroup')\">\n" +
     "            <h4 style=\"margin:0; padding:0; font-size:13px; color:#000; \">Google Age Groups</h4>\n" +
     "        </div>\n" +
     "    </div>\n" +
     "\n" +
-    "    <ul dx-start-with=\"mapping\" class=\"tree\" ng-class=\"{ 'root' : $dxLevel == 0 }\" style=\"width: 100%; float:left;\">\n" +
-    "        <li ng-repeat=\"node in $dxPrior.children\" style=\"display: block;\">\n" +
-    "            <div class=\"category-container\" style=\"position: relative;\" ng-class=\"{ 'with-children' : node.children.length, 'without-children' : !node.children.length }\">\n" +
+    "    <ul dx-start-with=\"innerMapping\" class=\"tree\" ng-class=\"::{ 'root' : $dxLevel == 0 }\" ng-init=\"initialize()\" style=\"width: 100%; float:left; margin-top: 0px;\" ng-if=\"innerMapping\">\n" +
+    "        <li ng-repeat=\"node in $dxPrior.children | limitTo: limits\" style=\"display: block;\">\n" +
+    "            <div class=\"category-container\" style=\"position: relative;\" ng-class=\"::{ 'with-children' : node.children.length, 'without-children' : (!node.children.length) }\">\n" +
     "                <div class=\"hline\"></div>\n" +
     "                <div class=\"category-icon-container\" style=\"float:left;\">\n" +
-    "                    <div class=\"vline\" ng-if=\"($index > 0 && $dxLevel == 0) || $dxLevel > 0\"></div>\n" +
-    "                    <div class=\"vline noborder\" ng-if=\"!(($index > 0 && $dxLevel == 0) || $dxLevel > 0)\"></div>\n" +
+    "                    <div class=\"vline\" ng-if=\"::(($index > 0 && $dxLevel == 0) || $dxLevel > 0)\"></div>\n" +
+    "                    <div class=\"vline noborder\" ng-if=\"::(!(($index > 0 && $dxLevel == 0) || $dxLevel > 0))\"></div>\n" +
     "                    <span ng-if=\"node.expanded\" class=\"minus\" ng-click=\"expandNode(node)\">\n" +
     "                        <svg width=\"9\" height=\"9\" viewBox=\"0 0 1792 1792\" xmlns=\"http://www.w3.org/2000/svg\">\n" +
     "                            <path d=\"M1600 736v192q0 40-28 68t-68 28h-1216q-40 0-68-28t-28-68v-192q0-40 28-68t68-28h1216q40 0 68 28t28 68z\"/>\n" +
@@ -38939,32 +38994,43 @@ angular.module("productCategories/categoryMapper/categoryMapper.tpl.html", []).r
     "                            <path d=\"M1600 736v192q0 40-28 68t-68 28h-416v416q0 40-28 68t-68 28h-192q-40 0-68-28t-28-68v-416h-416q-40 0-68-28t-28-68v-192q0-40 28-68t68-28h416v-416q0-40 28-68t68-28h192q40 0 68 28t28 68v416h416q40 0 68 28t28 68z\"/>\n" +
     "                        </svg>\n" +
     "                    </span>\n" +
-    "                    <span ng-if=\"!node.children.length\" class=\"plus blank\" style=\"cursor: default;\"></span>\n" +
+    "                    <span ng-if=\"::(!node.children.length)\" class=\"plus blank\" style=\"cursor: default;\"></span>\n" +
     "                    <div class=\"vline bottom\"></div>\n" +
     "                </div>\n" +
     "                <div class=\"category-name-container\">\n" +
-    "                    <span class=\"dot\" ng-repeat=\"i in getTimes($dxLevel) track by $index\"></span>\n" +
+    "                    <span class=\"dot\" ng-repeat=\"i in ::getTimes($dxLevel) track by $index\"></span>\n" +
     "                    <div class=\"category\">\n" +
-    "                        <a class=\"category-title\" href=\"\" ng-click=\"expandNode(node)\">{{ node.title }}</a>\n" +
-    "                        <br ng-if=\"node.children.length\"/>\n" +
-    "                        <span ng-if=\"node.children.length\" class=\"children-number\">\n" +
-    "                            {{ node.children.length }} child categor<span ng-if=\"node.children.length == 1\">y</span><span ng-if=\"node.children.length > 1\">ies</span>\n" +
+    "                        <a class=\"category-title\" href=\"\" ng-click=\"expandNode(node)\">{{ ::node.title }}</a>\n" +
+    "                        <br ng-if=\"::node.children.length\"/>\n" +
+    "                        <span ng-if=\"::node.children.length\" class=\"children-number\">\n" +
+    "                            {{ ::node.children.length }} child <span ng-if=\"::node.children.length == 1\">category</span><span ng-if=\"::node.children.length > 1\">categories</span>\n" +
     "                        </span>\n" +
     "                    </div>\n" +
     "                </div>\n" +
     "                <div class=\"line\" ></div>\n" +
-    "                <div class=\"mapping\" ng-if=\"context == 'categories'\" >\n" +
-    "                    <google-category-selector-adder selected-category=\"node.selectedCategory\" selected-category-id=\"node.selectedCategoryId\" />\n" +
+    "                <div class=\"mapping\" ng-if=\"::(context == 'categories')\" >\n" +
+    "                    <div style=\"position: relative\" ng-init=\"visible=false\">\n" +
+    "                        <input type=\"text\" style=\"width: 402px; font-size:13px; padding-left: 8px;\" placeholder=\"{{ getPlaceholder() }}\"\n" +
+    "                               ng-class=\"{ 'selected-automatically' : !mappings[node.id].byUser, 'opened' : visible }\"\n" +
+    "                               ng-model=\"selectedCategory\"\n" +
+    "                               ng-value=\"mappings[node.id].name\"\n" +
+    "                               ng-change=\"categoryChanged()\"\n" +
+    "                               ng-click=\"categoryClicked()\"\n" +
+    "                               class=\"wpae-google-category-input\"\n" +
+    "                               ng-model-options=\"{ debounce: 200 }\"\n" +
+    "                        />\n" +
+    "                        <google-category-selector />\n" +
+    "                    </div>\n" +
     "                </div>\n" +
-    "                <div class=\"mapping gender\" ng-if=\"context == 'gender'\" style=\"border: none;\">\n" +
-    "                    <select chosen cascade=\"gender\" ng-model=\"node.selectedGender\" ng-change=\"selectGender()\">\n" +
+    "                <div class=\"mapping gender\" ng-if=\"::(context == 'gender')\" style=\"border: none;\">\n" +
+    "                    <select chosen cascade ng-model=\"mappings[node.id]\" ng-change=\"select()\">\n" +
     "                        <option value=\"male\">Male</option>\n" +
     "                        <option value=\"female\">Female</option>\n" +
     "                        <option value=\"unisex\">Unisex</option>\n" +
     "                    </select>\n" +
     "                </div>\n" +
-    "                <div class=\"mapping\" ng-if=\"context == 'ageGroup'\" style=\"border: none; background-color: #F1F1F1; padding:0; margin-top: 5px;\" >\n" +
-    "                    <select chosen cascade=\"ageGroup\" ng-model=\"node.selectedAgeGroup\" ng-change=\"selectAgeGroup()\">\n" +
+    "                <div class=\"mapping\" ng-if=\"::(context == 'ageGroup')\" style=\"border: none; background-color: #F1F1F1; padding:0; margin-top: 5px;\" >\n" +
+    "                    <select chosen cascade ng-model=\"mappings[node.id]\" ng-change=\"select()\">\n" +
     "                        <option value=\"newborn\">Newborn</option>\n" +
     "                        <option value=\"infant\">Infant</option>\n" +
     "                        <option value=\"toddler\">Toddler</option>\n" +
@@ -38974,13 +39040,13 @@ angular.module("productCategories/categoryMapper/categoryMapper.tpl.html", []).r
     "                </div>\n" +
     "                <div style=\"clear:both;\"></div>\n" +
     "            </div>\n" +
-    "            <ul dx-connect=\"node\" ng-show=\"node.expanded==true\"/>\n" +
+    "            <ul dx-connect=\"node\" ng-if=\"node.expanded==true\"/>\n" +
     "        </li>\n" +
     "    </ul>\n" +
     "    <div class='catList' style=\"clear:both;\"></div>\n" +
-    "    <div class=\"mask\" ng-class=\"{ grey : grey == 1}\"></div>\n" +
+    "    <div class=\"mask\" ng-class=\"::{ grey : grey == 1}\"></div>\n" +
     "</div>\n" +
-    "<div ng-if=\"!mapping.children.length\">\n" +
+    "<div ng-if=\"initialized && !innerMapping.children.length\">\n" +
     "    <div ng-include=\"'productCategories/categoryMapper/noCategoriesNotice.tpl.html'\"></div>\n" +
     "</div>");
 }]);
@@ -39004,7 +39070,6 @@ angular.module("productCategories/categoryMapper/noCategoriesNotice.tpl.html", [
 angular.module("productCategories/googleCategorySelector/googleCategorySelector.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("productCategories/googleCategorySelector/googleCategorySelector.tpl.html",
     "<div class=\"google-category-selector\" ng-init=\"loadCategories()\" ng-if=\"visible\" click-outside=\"closeMe()\">\n" +
-    "    <!--<input focus-me-when-enabled ng-disabled=\"loading\" type=\"text\" placeholder=\"Search...\" class=\"search\" ng-model=\"search\" style=\"margin-bottom:0; margin-top:10px; width:380px; margin-left: 10px;\" ng-model=\"search\" ng-model-options=\"{ debounce: 500 }\" />-->\n" +
     "    <ul class=\"categories\" dx-start-with=\"categories\">\n" +
     "        <li ng-repeat=\"category in $dxPrior.children\" style=\"position: relative;\">\n" +
     "            <div class=\"div-content\">\n" +
@@ -39018,12 +39083,16 @@ angular.module("productCategories/googleCategorySelector/googleCategorySelector.
     "                        </svg>\n" +
     "                    </div>\n" +
     "                </div>\n" +
-    "                <div ng-bind-html=\"category.name | safe\" ng-click=\"select(category)\" style=\"display: inline-block; vertical-align: top; margin-top:2px; margin-left:5px; font-size:14px; width:80%; height: 24px;\"></div>\n" +
+    "                <div ng-bind-html=\"category.name | safe\" ng-click=\"select(category)\" class=\"google-category-name-container\">\n" +
+    "                </div>\n" +
+    "                <div class=\"clear\"></div>\n" +
     "            </div>\n" +
-    "            <ul dx-connect=\"category\" class=\"categories\" style=\"margin-left: 25px;\" ng-if=\"category.opened\" />\n" +
+    "            <ul dx-connect=\"category\" class=\"categories inner-categories\" ng-if=\"category.opened\" />\n" +
     "        </li>\n" +
     "    </ul>\n" +
-    "    <div style=\"padding: 0 10px 10px;\" ng-if=\"!hasResults\">No results were found for <i><strong>{{search}}</strong></i>.</div>\n" +
+    "    <div ng-if=\"!categories.children.length\" class=\"google-no-results-found\">\n" +
+    "        No results found\n" +
+    "    </div>\n" +
     "</div>");
 }]);
 
@@ -39077,7 +39146,7 @@ angular.module("productCategories/productCategories.tpl.html", []).run(["$templa
     "                    </label>\n" +
     "                </div>\n" +
     "                <div ng-slide-down=\"productCategories.productCategories == 'mapProductCategories'\" duration=\"0.5\">\n" +
-    "                    <category-mapper mapping=\"productCategories.cats\" />\n" +
+    "                    <category-mapper mappings=\"productCategories.catMappings\" />\n" +
     "                </div>\n" +
     "\n" +
     "                <div class=\"input\">\n" +
@@ -39086,7 +39155,10 @@ angular.module("productCategories/productCategories.tpl.html", []).run(["$templa
     "                        <a href=\"#\" class=\"wpallexport-help\" style=\"margin-top:5px; margin-left: 2px;\"\n" +
     "                        tipsy=\"Products assigned to more than one WooCommerce product category will only have the most specific, deepest product category exported.\">?</a>\n" +
     "                    </label>\n" +
-    "                    <div ng-slide-down=\"!productCategories.cats.children.length && productCategories.productCategories == 'useWooCommerceProductCategories'\" duration=\"0.2\">\n" +
+    "                    <p class=\"no-categories-notice\" ng-slide-down=\"productCategories.productCategories == 'useWooCommerceProductCategories'\" duration=\"0.2\">\n" +
+    "                        If your WooCommerce product categories do not exactly match Google's, your feed will fail when uploaded to Google.\n" +
+    "                    </p>\n" +
+    "                    <div ng-slide-down=\"!$root.cats.children.length && productCategories.productCategories == 'useWooCommerceProductCategories'\" duration=\"0.2\">\n" +
     "                        <div ng-include=\"'productCategories/categoryMapper/noCategoriesNotice.tpl.html'\" ng-init=\"context = 'categories' \"></div>\n" +
     "                    </div>\n" +
     "                </div>\n" +
@@ -39160,6 +39232,24 @@ angular.module("shipping/shipping.tpl.html", []).run(["$templateCache", function
     "                    </div>\n" +
     "                </div>\n" +
     "\n" +
+    "                <h4>Shipping Weight</h4>\n" +
+    "                <div class=\"input\">\n" +
+    "                    <label>\n" +
+    "                        <input type=\"radio\" ng-model=\"shipping.weight\" value=\"\"/>Do not include in the feed\n" +
+    "                    </label>\n" +
+    "                </div>\n" +
+    "                <div class=\"input\">\n" +
+    "                    <label>\n" +
+    "                        <input type=\"radio\" ng-model=\"shipping.weight\" value=\"useWooCommerceProductValues\"/>Use WooCommerce's product values\n" +
+    "                    </label>\n" +
+    "                </div>\n" +
+    "                <div class=\"input\">\n" +
+    "                    <label><input type=\"radio\" ng-model=\"shipping.weight\" value=\"customValue\"/>Custom data</label>\n" +
+    "                    <div ng-slide-down=\"shipping.weight == 'customValue'\" duration=\"0.2\" class=\"input inner\">\n" +
+    "                        <input type=\"text\" class=\"wpae-default-input\" ng-model=\"shipping.weightCV\" droppable />\n" +
+    "                    </div>\n" +
+    "                </div>\n" +
+    "\n" +
     "                <h4>Shipping Label</h4>\n" +
     "                <div class=\"input\">\n" +
     "                    <input type=\"text\" class=\"wpae-default-input\" ng-model=\"shipping.shippingLabel\" droppable />\n" +
@@ -39204,7 +39294,9 @@ angular.module("uniqueIdentifiers/uniqueIdentifiers.tpl.html", []).run(["$templa
     "\n" +
     "                <h4>Identifier Exists</h4>\n" +
     "                <div class=\"input\">\n" +
-    "                    <label><input type=\"radio\" ng-model=\"uniqueIdentifiers.identifierExists\" value=\"1\" />Set to false if product has no GTIN or MPN</label>\n" +
+    "                    <label><input type=\"radio\" ng-model=\"uniqueIdentifiers.identifierExists\" value=\"1\" />Set to false if product has no GTIN or MPN\n" +
+    "                        <a style=\"margin-top: 0; margin-bottom: 0; margin-left: 0; padding-bottom: 0;\" class=\"wpallexport-help\" tipsy=\"If your product has neither an MPN or GTIN, Google requires the attribute 'identifier_exists' to be set to false. WP All Export will do this automatically if this option is enabled.\">?</a>\n" +
+    "                    </label>\n" +
     "                </div>\n" +
     "                <div class=\"input\">\n" +
     "                    <label><input type=\"radio\" ng-model=\"uniqueIdentifiers.identifierExists\" value=\"customValue\" />Custom data</label>\n" +

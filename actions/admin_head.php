@@ -1,5 +1,5 @@
 <?php
-function pmxe_admin_head(){	
+function pmxe_admin_head(){
 	$input = new PMXE_Input();
 	$export_id = $input->get('id', false);
 	$export_action = $input->get('action', false);	
@@ -11,14 +11,14 @@ function pmxe_admin_head(){
 		<?php
 	}
 
-	$wp_all_export_ajax_nonce = wp_create_nonce( "wp_all_export_secure" );
+	$wp_all_export_ajax_nonce = wp_create_nonce("wp_all_export_secure");
 
 	?>
-		<script type="text/javascript">
+		<script type="text/javascript" id="googleMerchantsInit">
 			if(typeof GoogleMerchants != 'undefined') {
 				GoogleMerchants.constant('NONCE', '<?php echo $wp_all_export_ajax_nonce; ?>');
 			}
-
+			var ajaxurl = '<?php echo admin_url( "admin-ajax.php" ); ?>';
 			var export_action = '<?php echo $export_action; ?>';
 			var wp_all_export_security = '<?php echo $wp_all_export_ajax_nonce; ?>';
 		</script>

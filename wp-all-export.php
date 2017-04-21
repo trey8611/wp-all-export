@@ -232,7 +232,15 @@ else {
 		 * @param string $rootDir Plugin root dir
 		 * @param string $pluginFilePath Plugin main file
 		 */
-		protected function __construct() {					
+		protected function __construct() {
+
+			require_once (self::ROOT_DIR . '/classes/installer.php');
+			
+			$installer = new PMXE_Installer();
+			$installer->checkActivationConditions();
+			
+			// uncaught exception doesn't prevent plugin from being activated, therefore replace it with fatal error so it does
+			//set_exception_handler(create_function('$e', 'trigger_error($e->getMessage(), E_USER_ERROR);'));
 
 			// register autoloading method
 			spl_autoload_register(array($this, 'autoload'));
@@ -386,6 +394,7 @@ else {
 		 * @param string $content Shortcode tag content
 		 * @param string $tag Shortcode tag name which is being dispatched
 		 * @return string
+		 * @throws Exception
 		 */
 		public function shortcodeDispatcher($args, $content, $tag) {
 
@@ -405,7 +414,10 @@ else {
 		/**
 		 * Dispatch admin page: call corresponding controller based on get parameter `page`
 		 * The method is called twice: 1st time as handler `parse_header` action and then as admin menu item handler
-		 * @param string[optional] $page When $page set to empty string ealier buffered content is outputted, otherwise controller is called based on $page value
+		 * @param string $page
+		 * @param string $action
+		 * @throws Exception
+		 * @internal param $string [optional] $page When $page set to empty string ealier buffered content is outputted, otherwise controller is called based on $page value
 		 */
 		public function adminDispatcher($page = '', $action = 'index') {
 			if ('' === $page) {				
@@ -446,6 +458,7 @@ else {
 		 * @return bool
 		 */
 		public function autoload($className) {
+
 			$is_prefix = false;
 			$filePath = str_replace('_', '/', preg_replace('%^' . preg_quote(self::PREFIX, '%') . '%', '', strtolower($className), 1, $is_prefix)) . '.php';
 			if ( ! $is_prefix) { // also check file with original letter case
@@ -474,7 +487,7 @@ else {
 				$prefix = 'Wpae\\';
 
 				// base directory for the namespace prefix
-				$base_dir = __DIR__ . '/src/';
+				$base_dir = self::ROOT_DIR . '/src/';
 
 				// does the class use the namespace prefix?
 				$len = strlen($prefix);
@@ -502,8 +515,9 @@ else {
 
 		/**
 		 * Get plugin option
-		 * @param string[optional] $option Parameter to return, all array of options is returned if not set
+		 * @param string [optional] $option Parameter to return, all array of options is returned if not set
 		 * @return mixed
+		 * @throws Exception
 		 */
 		public function getOption($option = NULL) {
 			$options = apply_filters('wp_all_export_config_options', $this->options);			
@@ -515,11 +529,14 @@ else {
 				throw new Exception("Specified option is not defined for the plugin");
 			}
 		}
+
 		/**
 		 * Update plugin option value
 		 * @param string $option Parameter name or array of name => value pairs
-		 * @param mixed[optional] $value New value for the option, if not set than 1st parameter is supposed to be array of name => value pairs
+		 * @param null $value
 		 * @return array
+		 * @throws Exception
+		 * @internal param $mixed [optional] $value New value for the option, if not set than 1st parameter is supposed to be array of name => value pairs
 		 */
 		public function updateOption($option, $value = NULL) {
 			is_null($value) or $option = array($option => $value);
@@ -579,15 +596,19 @@ else {
 		 * @return void
 		 */
 		public function load_plugin_textdomain() {
+			
 			$locale = apply_filters( 'plugin_locale', get_locale(), 'wp_all_export_plugin' );							
 			
 			load_plugin_textdomain( 'wp_all_export_plugin', false, dirname( plugin_basename( __FILE__ ) ) . "/i18n/languages" );
-		}		
+		}	
 
 		public function fix_db_schema(){
 
 			global $wpdb;
-			
+			$installed_ver = get_option( "wp_all_export_db_version" );
+
+			if ( $installed_ver == PMXE_VERSION ) return true;
+
 			if ( ! empty($wpdb->charset))
 				$charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
 			if ( ! empty($wpdb->collate))
@@ -598,7 +619,7 @@ else {
 			$wpdb->query("CREATE TABLE IF NOT EXISTS {$table_prefix}templates (
 				id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 				name VARCHAR(200) NOT NULL DEFAULT '',
-				options LONGTEXT,				
+				options LONGTEXT,
 				PRIMARY KEY  (id)
 			) $charset_collate;");
 
@@ -639,6 +660,8 @@ else {
 			if ( ! $export_post_type ){				
 				$wpdb->query("ALTER TABLE {$table} ADD `export_post_type` VARCHAR(64) NOT NULL DEFAULT '';");
 			}
+
+			update_option( "wp_all_export_db_version", PMXE_VERSION );
 		}
 
 		/**
@@ -659,6 +682,30 @@ else {
 			$export = new PMXE_Export_Record();
 			$export->getById($export_id);
 			if ( ! $export->isEmpty() && (empty($export->options['created_at_version']) || version_compare($export->options['created_at_version'], $checkVersion) < 0 )){
+				return true;
+			}
+
+			return false;
+		}
+
+		/**
+		 * Determine is current export is first time running
+		 */
+		public static function isNewExport(){
+
+			$input  = new PMXE_Input();
+			$export_id = $input->get('id', 0);
+
+			if (empty($export_id)) $export_id = $input->get('export_id', 0);
+
+			if (empty($export_id)) $export_id = XmlExportEngine::$exportID;
+
+			// ID not found means this is new export
+			if (empty($export_id)) return true;
+
+			$export = new PMXE_Export_Record();
+			$export->getById($export_id);
+			if ( ! $export->isEmpty() && ! $export->iteration ){
 				return true;
 			}
 
@@ -721,6 +768,7 @@ else {
 				'save_template_as' => 0,
 				'name' => '',
 				'export_only_new_stuff' => 0,
+				'export_only_modified_stuff' => 0,
 				'creata_a_new_export_file' => 0,
 				'attachment_list' => array(),
 				'order_include_poducts' => 0,
@@ -736,10 +784,11 @@ else {
 				'custom_xml_template_loop' => '',
 				'custom_xml_template_footer' => '',				
 				'custom_xml_template_options' => array(),
-                'custom_xml_cdata_logic' => 'auto',
+        		'custom_xml_cdata_logic' => 'auto',
+				'show_cdata_in_preview' => 0,
 				'taxonomy_to_export' => '',
 				'created_at_version' => '',
-                'export_variations' => XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_VARIATION,
+        		'export_variations' => XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION,
 				'export_variations_title' => XmlExportEngine::VARIATION_USE_PARENT_TITLE,
 				'show_cdata_in_preview' => 0,
 				'include_header_row' => 1,

@@ -259,7 +259,8 @@
   .google-category-selector .expand-button {
     width: 20px;
     height: 20px;
-    display: inline-block; }
+    display: block;
+    float: left; }
     .google-category-selector .expand-button .chevron {
       background-color: #F1F2F2;
       border: 1px solid #ccc;
@@ -272,6 +273,22 @@
         margin-left: auto;
         margin-right: auto;
         margin-top: 4px; }
+  .google-category-selector .google-category-name-container {
+    display: block;
+    margin-left: 35px;
+    width: 100%;
+    vertical-align: top;
+    margin-top: 2px;
+    font-size: 14px;
+    height: 24px; }
+  .google-category-selector .google-no-results-found {
+    font-size: 16px;
+    color: #808080;
+    text-align: center;
+    margin-top: 45px;
+    margin-bottom: 45px; }
+  .google-category-selector .inner-categories {
+    margin-left: 25px; }
 
 .no-categories-notice {
   max-width: 550px;
@@ -457,6 +474,13 @@
   max-width: 300px;
   padding: 13px;
   border-radius: 5px; }
+#googleMerchants .no-attributes {
+  padding: 5px;
+  margin-left: 23px; }
+  #googleMerchants .no-attributes.outer {
+    margin-left: 20px; }
+#googleMerchants .wpae-highlight-droppable {
+  cursor: copy !important; }
 
 .ng-cloak {
   display: none; }
@@ -465,7 +489,7 @@
   display: inline-block; }
 
 .wpae-field-mapping {
-  padding: 10px;
+  padding: 9px;
   border: 1px solid #ddd;
   margin-bottom: 10px;
   font-size: 12px;
@@ -473,6 +497,12 @@
   text-decoration: none;
   position: static;
   margin-left: 10px; }
+
+google-category-selector {
+  position: absolute;
+  z-index: 100;
+  top: 41px;
+  left: 1px; }
 
 /*# sourceMappingURL=styles.css.map */
 

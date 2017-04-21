@@ -347,5 +347,5 @@ final class XmlExportMediaGallery
             return get_user_meta($pid, $key, true);
         }
 	    return get_post_meta($pid, $key, true);
-	}
+    }
 }

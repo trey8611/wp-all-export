@@ -24,6 +24,11 @@ class ExportController extends BaseController
 
     public $baseUrlParamNames = array('page', 'pagenum', 'order', 'order_by', 'type', 's', 'f');
 
+    public function saveAction(Request $request)
+    {
+        die('Not Supported');
+    }
+
     public function getAction(Request $request)
     {
         if(!$request->get('id')) {

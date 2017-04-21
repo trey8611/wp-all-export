@@ -617,31 +617,31 @@ if ( ! class_exists('XmlExportACF') )
 						    			$v = $row['value'][ $row['i'] ][ $sub_field['key'] ]; 						    			
 						    			$cache_slug = "format_value/post_id=".$row['post_id']."/name={$sub_field['name']}";
 						    			wp_cache_delete($cache_slug, 'acf');
-											if ($is_xml_export) $v = acf_format_value($v, $row['post_id'], $sub_field);
+										if ($is_xml_export) $v = acf_format_value($v, $row['post_id'], $sub_field);
 						    		}
 						    		else
 						    		{
-											$v = get_sub_field($sub_field['name']);
+										$v = get_sub_field($sub_field['name']);
 						    		}							
 
 						    		if ($preview && ! $is_xml_export){
 						    			switch ($sub_field['type']) {
-												case 'textarea':
-												case 'oembed':
-												case 'wysiwyg':
-												case 'wp_wysiwyg':
-												case 'date_time_picker':
-												case 'date_picker':
-													$v = preg_replace( "/\r|\n/", "", esc_html($v) );
-													break;
-												default:
-													break;
-											}
+											case 'textarea':
+											case 'oembed':
+											case 'wysiwyg':
+											case 'wp_wysiwyg':
+											case 'date_time_picker':
+											case 'date_picker':
+												$v = preg_replace( "/\r|\n/", "", esc_html($v) );
+												break;
+											default:
+												break;
+										}
 						    		}		    			
 									
-										$sub_field['delimiter'] = $implode_delimiter;
+									$sub_field['delimiter'] = $implode_delimiter;
 
-										$sub_field_name = empty($sub_field['name']) ? str_replace("-","_", sanitize_title($sub_field['label'])) : $sub_field['name'];
+									$sub_field_name = empty($sub_field['name']) ? str_replace("-","_", sanitize_title($sub_field['label'])) : $sub_field['name'];
 
 									$sub_field_name = empty($sub_field['name']) ? str_replace("-","_", sanitize_title($sub_field['label'])) : $sub_field['name'];
 
@@ -658,8 +658,8 @@ if ( ! class_exists('XmlExportACF') )
 				    					$fieldSnipped, 
 				    					'', 
 				    					$preview,
-											$is_xml_export ? false : true,
-                      true
+										$is_xml_export ? false : true,
+                      					true
 				    				);				    				
 						    		
 						    		if ( ! $is_xml_export )
@@ -667,8 +667,8 @@ if ( ! class_exists('XmlExportACF') )
 							    		switch ($sub_field['type']) 
 							    		{
 							    			case 'google_map':
-                        case 'paypal_item':
-												case 'location-field':
+											case 'paypal_item':
+											case 'location-field':
 													if ( ! empty($sub_field_value))
 													{
 														foreach ($sub_field_value as $repeater_key => $repeater_value)
@@ -741,12 +741,12 @@ if ( ! class_exists('XmlExportACF') )
 						    				}
 						    				else
 						    				{
-                          if ($is_custom_xml_export){
-														$article[$element_name][$key . '_' . $subkey] = apply_filters('pmxe_acf_field', pmxe_filter(($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars(implode("|", $subvalue)))) : implode("|", $subvalue), $fieldSnipped), $key . '_' . $subkey, $pid);
-													}
-													else{
-														$article[$element_name . '_' . $key . '_' . $subkey] = apply_filters('pmxe_acf_field', pmxe_filter(($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars(implode($implode_delimiter, $subvalue)))) : implode($implode_delimiter, $subvalue), $fieldSnipped), $element_name . '_' . $key . '_' . $subkey, $pid);
-													}
+                          						if ($is_custom_xml_export){
+													$article[$element_name][$key . '_' . $subkey] = apply_filters('pmxe_acf_field', pmxe_filter(($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars(implode("|", $subvalue)))) : implode("|", $subvalue), $fieldSnipped), $key . '_' . $subkey, $pid);
+												}
+												else{
+													$article[$element_name . '_' . $key . '_' . $subkey] = apply_filters('pmxe_acf_field', pmxe_filter(($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars(implode($implode_delimiter, $subvalue)))) : implode($implode_delimiter, $subvalue), $fieldSnipped), $element_name . '_' . $key . '_' . $subkey, $pid);
+												}
 						    				}
 								    	}
 
@@ -775,27 +775,27 @@ if ( ! class_exists('XmlExportACF') )
 					    				}
 					    				else
 					    				{
-												if ($is_custom_xml_export){
-													$article[$element_name][$key] = apply_filters('pmxe_acf_field', pmxe_filter(($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars(implode("|", $values)))) : implode("|", $values), $fieldSnipped), $key, $pid);
-												}
-												else{
-													$article[$element_name . '_' . $key] = apply_filters('pmxe_acf_field', pmxe_filter(($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars(implode($implode_delimiter, $values)))) : implode($implode_delimiter, $values), $fieldSnipped), $element_name . '_' . $key, $pid);
-												}
+											if ($is_custom_xml_export){
+												$article[$element_name][$key] = apply_filters('pmxe_acf_field', pmxe_filter(($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars(implode("|", $values)))) : implode("|", $values), $fieldSnipped), $key, $pid);
+											}
+											else{
+												$article[$element_name . '_' . $key] = apply_filters('pmxe_acf_field', pmxe_filter(($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars(implode($implode_delimiter, $values)))) : implode($implode_delimiter, $values), $fieldSnipped), $element_name . '_' . $key, $pid);
+											}
 					    				}
 								    }						    							    			
 							    }
 
-							  if ($is_custom_xml_export){
+								if ($is_custom_xml_export){
 									$article[$element_name] = serialize($article[$element_name]);
 								}
 
-							  if ( ! empty($repeater_sub_field_names)) $acfs[$element_name] = $repeater_sub_field_names;
+								if ( ! empty($repeater_sub_field_names)) $acfs[$element_name] = $repeater_sub_field_names;
 
 								if ( ! empty($additional_articles) )
-								{ 									
+								{
 									foreach ($additional_articles as $i => $additional_article) {
 										self::$additional_articles[] = $additional_article;
-									}																	
+									}
 								}
 							}
 						 
@@ -825,7 +825,7 @@ if ( ! class_exists('XmlExportACF') )
 
 									if ($layout['name'] == $row['value'][ $row['i'] ]['acf_fc_layout']){
 
-										if ($is_xml_export) $xmlWriter->startElement($row['value'][ $row['i'] ]['acf_fc_layout'] . '_' . $row['i']);
+										if ($is_xml_export) $xmlWriter->startElement(preg_replace('#^\d+#', '', $row['value'][ $row['i'] ]['acf_fc_layout']) . '_' . $row['i']);
 
 								    	foreach ($layout['sub_fields'] as $sub_field) {				    					    		
 								    		
@@ -954,7 +954,7 @@ if ( ! class_exists('XmlExportACF') )
 		    	{		    				    			
 					// $article[$element_name] = ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($val))) : $val;
 					wp_all_export_write_article( $article, $element_name, ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($val))) : $val);
-					if ( ! isset($acfs[$element_name])) $acfs[$element_name] = $element_name;						
+					if ( ! isset($acfs[$element_name]) && ! in_array($field_options['type'], array('repeater'))) $acfs[$element_name] = $element_name;
 		    	}									
 			}
 		}
