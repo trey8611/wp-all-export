@@ -2372,7 +2372,7 @@
 	$('#export_to_sheet').change(function(e){
 
 		if ( $('input[name=export_to]').val() === 'xml' ) return;
-
+		
 		var isWooCommerceOrder = vm.isWoocommerceOrderExport();
 		var isVariationsExport = vm.isProductVariationsExport();
 
@@ -2387,13 +2387,22 @@
 			$('.wpallexport-submit-buttons').hide();
 			$('.wpallexport-submit-template').attr('disabled', 'disabled');
 		} else {
-			$('.csv_delimiter').show();
-			$('.export_to_csv').slideDown();
+			if(isWooCommerceOrder || isVariationsExport) {
+				$('.csv_delimiter').show();
+			} else {
+				$('.export_to_csv').slideDown();
+			}
+			$('.export_to_xls_upgrade_notice').hide();
+			$('.wpallexport-submit-buttons').show();
+			$('.wpallexport-submit-template').removeAttr('disabled');
 		}
 	});
 
 	$('#templateForm').submit(function(event){
-		if(vm.isGoogleMerchantsExport) {
+		
+		var exportType = $('select.xml_template_type').val();
+
+		if(vm.isGoogleMerchantsExport || exportType == 'custom') {
 			event.stopImmediatePropagation();
 			return false;
 		}

@@ -326,7 +326,7 @@
 						<div class="wpallexport-collapsed-header" style="padding-left: 25px;">
 							<h3><?php _e('Export Type','wp_all_export_plugin');?></h3>
 						</div>
-						<div class="wpallexport-collapsed-content" style="padding: 0; overflow: hidden; height: 305px;">
+						<div class="wpallexport-collapsed-content" style="padding: 0; overflow: hidden;">
 							<div class="wpallexport-collapsed-content-inner">								
 								<div class="wpallexport-choose-data-type">
 									<h3 style="margin-top: 10px; margin-bottom: 40px;"><?php _e('Choose your export type', 'wp_all_export_plugin'); ?></h3>
@@ -424,8 +424,8 @@
                                 <div class="wpallexport-content-section rad0"
                                      style="margin:0; border-top:1px solid #ddd; border-bottom: none; border-right: none; border-left: none; background: #f1f2f2; padding-bottom: 15px; margin-top: 5px;">
                                     <div class="wpallexport-collapsed-header">
-                                        <h3 style="color:#40acad;"><?php _e('Advanced Options', 'wp_all_export_plugin'); ?></h3>
-                                        <hr style="display: none; margin-right: 25px;"/>
+                                        <h3 style="color:#40acad;"><?php _e('Advanced Options','wp_all_export_plugin');?></h3>
+										<hr style="display: none; margin-right: 25px;"/>
                                     </div>
                                     <div class="wpallexport-collapsed-content" style="padding: 0 0 0 5px;">
                                         <div class="wpallexport-collapsed-content-inner">
@@ -457,16 +457,16 @@
                                                         for="custom_custom_xml_cdata_logic_never"><?php _e('Never wrap data in CDATA tags', 'wp_all_export_plugin') ?></label>
                                                     <div class="switcher-target-simple_custom_xml_cdata_logic_never"
                                                          style="padding-left:17px;">
-                                                        <p style="font-style: italic;"><?php _e('Warning: This may result in an invalid XML file', 'wp_all_export_plugin'); ?></p>
+                                                        <p style="font-style: italic;"><?php _e('Warning: This may result in an invalid XML file', 'wp_all_export_plugin');?></p>
                                                     </div>
                                                 </div>
-                                                <div class="input" style="margin: 10px 3px;">
+												<div class="input" style="margin: 10px 3px;">
                                                     <input type="checkbox" value="1" name="custom_show_cdata_in_preview"
                                                            id="custom_show_cdata_in_preview" <?php echo (1 == $post['show_cdata_in_preview']) ? 'checked="checked"' : '' ?>
                                                            class="show_cdata_in_preview"/>
                                                     <label for="custom_show_cdata_in_preview">Show CDATA tags in XML
                                                         preview</label>
-                                                </div>
+												</div>
                                             </div>
                                         </div>
                                     </div>
@@ -610,13 +610,13 @@
 </table>	
 
 <fieldset class="optionsset column rad4 wp-all-export-edit-column">
-
+				
     <div class="title"><span
             class="wpallexport-add-row-title"><?php _e('Add Field To Export', 'wp_all_export_plugin'); ?></span><span
             class="wpallexport-edit-row-title"><?php _e('Edit Export Field', 'wp_all_export_plugin'); ?></span></div>
 
-    <?php include_once 'template/add_new_field.php'; ?>
-
+	<?php include_once 'template/add_new_field.php'; ?>
+	
 </fieldset>
 
 <fieldset class="optionsset column rad4 wp-all-export-custom-xml-help">
