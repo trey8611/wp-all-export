@@ -1963,7 +1963,13 @@
 				var $xml_export_format = $('.xml_template_type').val();
 				if ( $xml_export_format == 'custom' || $xml_export_format == 'XmlGoogleMerchants'){
 					$('.wpallexport-submit-template').attr('disabled', 'disabled');
-					$('.custom_xml_upgrade_notice').show();
+
+					if ( $xml_export_format == 'custom') {
+						$('.custom_xml_upgrade_notice.wpallexport-custom-xml-template').show();
+					} else if ($xml_export_format == 'XmlGoogleMerchants') {
+						$('.custom_xml_upgrade_notice.wpallexport-google-merchants-template').show();
+					}
+
 					$('.wpallexport-submit-buttons').hide();
 				}
 				else{
@@ -2372,7 +2378,7 @@
 	$('#export_to_sheet').change(function(e){
 
 		if ( $('input[name=export_to]').val() === 'xml' ) return;
-		
+
 		var isWooCommerceOrder = vm.isWoocommerceOrderExport();
 		var isVariationsExport = vm.isProductVariationsExport();
 
