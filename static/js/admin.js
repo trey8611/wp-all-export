@@ -126,6 +126,7 @@
 			if (currentLine != -1) {
 				removeLine(currentLine);
 			}
+			console.log("Dragging current line", currentLine);
 
 			currentLine = line;
 
@@ -1024,69 +1025,6 @@
 		trigger_warnings();
 
 		var $sortable = $( "#columns" );
-
-		var currentLine = -1;
-
-		function isDraggingOverTextEditor(event) {
-			var e = event.originalEvent.originalEvent.target;
-			return $.contains(xml_editor.display.scroller, e)
-		}
-
-		function addLine(str, line, ch) {
-			if(typeof ch === 'undefined') {
-				ch = 0;
-			}
-			xml_editor.replaceRange(str, {line: line, ch:0}, {line:line, ch:0});
-		}
-
-		function removeLine(line) {
-			xml_editor.removeLine(line);
-		}
-
-		$( "#available_data li:not(.available_sub_section, .wpallexport_disabled)" ).draggable({
-			appendTo: "body",
-			helper: "clone",
-			drag: function(e, ui)
-			{
-				if ( $('select.xml_template_type').val() == 'custom' && isDraggingOverTextEditor(e))
-				{
-					xml_editor.focus();					
-
-					if ( ui.helper.find('.custom_column').length )
-					{
-						var $elementName = ui.helper.find('.custom_column').find('input[name^=cc_name]').val();
-
-						var $elementValue = $elementName;
-						$elementName = helpers.sanitizeElementName($elementName);
-
-						if ( ! ui.helper.find('.custom_column').hasClass('wp-all-export-custom-xml-drag-over') ) ui.helper.find('.custom_column').addClass('wp-all-export-custom-xml-drag-over');
-						ui.helper.find('.custom_column').find('.wpallexport-xml-element').html("&lt;" + $elementName.replace(/ /g,'') + "&gt;<span>{" + $elementValue + "}</span>&lt;/" + $elementName.replace(/ /g,'') + "&gt;");
-					}
-					if ( ui.helper.find('.default_column').length )
-					{
-						var $elementName = ui.helper.find('.default_column').find('.wpallexport-element-label').html();
-						if ( ! ui.helper.find('.default_column').hasClass('wp-all-export-custom-xml-drag-over') ) ui.helper.find('.default_column').addClass('wp-all-export-custom-xml-drag-over');
-					}
-
-					var line = xml_editor.lineAtHeight(ui.position.top, 'page');
-					var ch   = xml_editor.coordsChar(ui.position, 'page');
-
-					if( line == currentLine ) {
-						return;
-					}
-
-					if (currentLine != -1) {
-						removeLine(currentLine);
-					}
-
-					currentLine = line;
-
-					addLine("\n", line);
-
-					xml_editor_doc.setCursor({line:line, ch:ch.ch});
-				}
-			}
-		});
 
 		var outsideContainer = 0;
 
