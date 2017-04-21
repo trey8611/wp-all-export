@@ -42,7 +42,7 @@
 
 				<div class="wpallexport-content-section" style="padding: 0 30px 0 0; overflow: hidden; margin-bottom: 0;">
 
-					<div id="filtering_result" class="wpallexport-ready-to-go">
+					<div id="filtering_result" class="wpallexport-ready-to-go">						
 						<h3> &nbsp; </h3>
 						<div class="wp_all_export_preloader"></div>
 					</div>	
@@ -76,8 +76,9 @@
 					?>
 					
 					<input type="hidden" name="selected_post_type" value="<?php echo $selected_post_type; ?>"/>
-					<input type="hidden" name="export_type" value="<?php echo $post['export_type']; ?>"/>							
+					<input type="hidden" name="export_type" value="<?php echo $post['export_type']; ?>"/>
 					<input type="hidden" name="taxonomy_to_export" value="<?php echo $post['taxonomy_to_export'];?>">
+					<input type="hidden" name="wpml_lang" value="<?php echo $post['wpml_lang'];?>" />
 					<input type="hidden" id="export_variations" name="export_variations" value="<?php echo XmlExportEngine::getProductVariationMode();?>" />
 
 					<?php XmlExportFiltering::render_filtering_block( $engine, $isWizard, $post ); ?>							
