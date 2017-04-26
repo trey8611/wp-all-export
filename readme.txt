@@ -1,8 +1,8 @@
 === Export WordPress data to XML/CSV ===
 Contributors: soflyy, wpallimport
 Requires at least: 4.1
-Tested up to: 4.7.2
-Stable tag: 1.1.2
+Tested up to: 4.7.4
+Stable tag: 1.1.4
 Tags: wordpress csv export, wordpress xml export, xml, csv, datafeed, export, migrate, export csv from wordpress, export xml from wordpress, advanced xml export, advanced csv export, export data, bulk csv export, export custom post type, export woocommerce products, export woocommerce orders, migrate woocommerce, csv export, export csv, xml export, export xml, csv exporter, datafeed
 
 WP All Export is an extremely powerful exporter that makes it easy to export any XML or CSV file from WordPress. 
@@ -77,6 +77,12 @@ Either: -
 * Unzip wp-all-export.zip and upload the contents to /wp-content/plugins/, and then activate the plugin from the Plugins page in WordPress
 
 == Changelog ==
+
+= 1.1.3 =
+* improvement: added post_modified field
+* bug fix: export attributes for simple products
+* bug fix: db schema updating
+* bug fix: variations with trashed parents shouldn't be included in the export
 
 = 1.1.2 =
 * improvement: choose WPML language in export options

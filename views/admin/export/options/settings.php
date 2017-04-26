@@ -12,17 +12,17 @@
 								<label for="records_per_request"><?php _e('In each iteration, process', 'wp_all_export_plugin');?> <input type="text" name="records_per_iteration" class="wp_all_export_sub_input" style="width: 40px;" value="<?php echo esc_attr($post['records_per_iteration']) ?>" /> <?php _e('records', 'wp_all_export_plugin'); ?></label>
 								<a href="#help" class="wpallexport-help" style="position: relative; top: -2px;" title="<?php _e('WP All Export must be able to process this many records in less than your server\'s timeout settings. If your export fails before completion, to troubleshoot you should lower this number.', 'wp_all_export_plugin'); ?>">?</a>							
 							</div>
-							<div class="input" style="margin:5px 0px;">														
+							<div class="input" style="margin:5px 0px;">
 								<input type="hidden" name="export_only_new_stuff" value="0" />
-								<input type="checkbox" id="export_only_new_stuff" name="export_only_new_stuff" value="1" <?php echo $post['export_only_new_stuff'] ? 'checked="checked"': '' ?> />
-								<label for="export_only_new_stuff"><?php printf(__('Only export %s once', 'wp_all_export_plugin'), empty($post['cpt']) ? __('records', 'wp_all_export_plugin') : wp_all_export_get_cpt_name($post['cpt'], 2, $post)); ?></label>
-								<a href="#help" class="wpallexport-help" style="position: relative; top: -2px;" title="<?php _e('If re-run, this export will only include records that have not been previously exported.', 'wp_all_export_plugin'); ?>">?</a>							
+								<input type="checkbox" id="export_only_new_stuff" name="export_only_new_stuff" value="1" <?php echo $post['export_only_new_stuff'] ? 'checked="checked"': '' ?> disabled="disabled"/>
+								<label for="export_only_new_stuff" disabled="disabled"><?php printf(__('Only export %s once', 'wp_all_export_plugin'), empty($post['cpt']) ? __('records', 'wp_all_export_plugin') : wp_all_export_get_cpt_name($post['cpt'])); ?></label>
+								<a href="#help" class="wpallexport-help" style="position: relative; top: -2px;" title="<?php _e('If re-run, this export will only include records that have not been previously exported.<br><br><strong>Upgrade to the Pro edition of WP All Export to use this option.</strong>', 'wp_all_export_plugin'); ?>">?</a>
 							</div>
 							<div class="input" style="margin:5px 0px;">
 								<input type="hidden" name="export_only_modified_stuff" value="0" />
-								<input type="checkbox" id="export_only_modified_stuff" name="export_only_modified_stuff" value="1" <?php echo $post['export_only_modified_stuff'] ? 'checked="checked"': '' ?> />
-								<label for="export_only_modified_stuff"><?php printf(__('Only export %s that have been modified since last export', 'wp_all_export_plugin'), empty($post['cpt']) ? __('records', 'wp_all_export_plugin') : wp_all_export_get_cpt_name($post['cpt'], 2, $post)); ?></label>
-								<a href="#help" class="wpallexport-help" style="position: relative; top: -2px;" title="<?php _e('If re-run, this export will only include records that have been modified since last export run.', 'wp_all_export_plugin'); ?>">?</a>
+								<input type="checkbox" id="export_only_modified_stuff" name="export_only_modified_stuff" value="1" <?php echo $post['export_only_modified_stuff'] ? 'checked="checked"': '' ?> disabled="disabled"/>
+								<label for="export_only_modified_stuff" disabled="disabled"><?php printf(__('Only export %s that have been modified since last export', 'wp_all_export_plugin'), empty($post['cpt']) ? __('records', 'wp_all_export_plugin') : wp_all_export_get_cpt_name($post['cpt'], 2, $post)); ?></label>
+								<a href="#help" class="wpallexport-help" style="position: relative; top: -2px;" title="<?php _e('If re-run, this export will only include records that have been modified since last export run.<br><br><strong>Upgrade to the Pro edition of WP All Export to use this option.</strong>', 'wp_all_export_plugin'); ?>">?</a>
 							</div>
 							<div class="input" style="margin:5px 0px;">
 								<input type="hidden" name="include_bom" value="0" />
