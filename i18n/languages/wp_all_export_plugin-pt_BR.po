@@ -4,7 +4,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: POEditor.com\n"
-"Project-Id-Version: WP All Export Pro\n"
+"Project-Id-Version: WP All Export\n"
 "Language: pt-br\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
@@ -20,7 +20,7 @@ msgstr "WP All Export"
 
 #: actions/admin_menu.php:11
 msgid "All Export"
-msgstr "Exportar Tudo"
+msgstr "All Export"
 
 #: actions/admin_menu.php:14
 msgid "Export to XML"
