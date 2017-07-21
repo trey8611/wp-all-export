@@ -106,8 +106,8 @@ function pmxe_wp_ajax_wpae_preview(){
 		exit( json_encode(array('html' => ob_get_clean())) );
 	}
 
-	if ( 'advanced' == $exportOptions['export_type'] ) 
-	{		
+	if ( 'advanced' == $exportOptions['export_type'] )
+	{
 		if ( XmlExportEngine::$is_user_export ) {
 			$exportQuery = eval('return new WP_User_Query(array(' . $exportOptions['wp_query'] . ', \'offset\' => 0, \'number\' => 10));');
 		}
@@ -115,26 +115,36 @@ function pmxe_wp_ajax_wpae_preview(){
 			$exportQuery = eval('return new WP_Comment_Query(array(' . $exportOptions['wp_query'] . ', \'offset\' => 0, \'number\' => 10));');
 		}
 		else {
+			remove_all_actions('parse_query');
+			remove_all_actions('pre_get_posts');
+			remove_all_filters('posts_clauses');
+			
 			$exportQuery = eval('return new WP_Query(array(' . $exportOptions['wp_query'] . ', \'offset\' => 0, \'posts_per_page\' => 10));');
-		}		
+		}
 	}
 	else
 	{
 		XmlExportEngine::$post_types = $exportOptions['cpt'];
 
 		if ( in_array('users', $exportOptions['cpt']) or in_array('shop_customer', $exportOptions['cpt']))
-		{						
+		{
 			add_action('pre_user_query', 'wp_all_export_pre_user_query', 10, 1);
 			$exportQuery = new WP_User_Query( array( 'orderby' => 'ID', 'order' => 'ASC', 'number' => 10 ));
 			remove_action('pre_user_query', 'wp_all_export_pre_user_query');
 		}
+		elseif ( in_array('taxonomies', $exportOptions['cpt']))
+		{
+			add_filter('terms_clauses', 'wp_all_export_terms_clauses', 10, 3);
+			$exportQuery = new WP_Term_Query( array( 'taxonomy' => $exportOptions['taxonomy_to_export'], 'orderby' => 'term_id', 'order' => 'ASC', 'number' => 10, 'hide_empty' => false ));
+			remove_filter('terms_clauses', 'wp_all_export_terms_clauses');
+		}
 		elseif( in_array('comments', $exportOptions['cpt']))
-		{			
+		{
 			add_action('comments_clauses', 'wp_all_export_comments_clauses', 10, 1);
-			
-			global $wp_version;					
 
-			if ( version_compare($wp_version, '4.2.0', '>=') ) 
+			global $wp_version;
+
+			if ( version_compare($wp_version, '4.2.0', '>=') )
 			{
 				$exportQuery = new WP_Comment_Query( array( 'orderby' => 'comment_ID', 'order' => 'ASC', 'number' => 10 ));
 			}
@@ -145,18 +155,19 @@ function pmxe_wp_ajax_wpae_preview(){
 			remove_action('comments_clauses', 'wp_all_export_comments_clauses');
 		}
 		else
-		{			
+		{
 			remove_all_actions('parse_query');
 			remove_all_actions('pre_get_posts');
-			remove_all_filters('posts_clauses');			
-			
+			remove_all_filters('posts_clauses');
+
 			add_filter('posts_join', 'wp_all_export_posts_join', 10, 1);
 			add_filter('posts_where', 'wp_all_export_posts_where', 10, 1);
-			$exportQuery = new WP_Query( array( 'post_type' => $exportOptions['cpt'], 'post_status' => 'any', 'orderby' => 'title', 'order' => 'ASC', 'posts_per_page' => 10 ));			
+			$exportQuery = new WP_Query( array( 'post_type' => $exportOptions['cpt'], 'post_status' => 'any', 'orderby' => 'title', 'order' => 'ASC', 'posts_per_page' => 10 ));
+			
 			remove_filter('posts_where', 'wp_all_export_posts_where');
-			remove_filter('posts_join', 'wp_all_export_posts_join');					
+			remove_filter('posts_join', 'wp_all_export_posts_join');
 		}
-	}	
+	}
 
 	XmlExportEngine::$exportQuery = $exportQuery;
 
@@ -169,7 +180,7 @@ function pmxe_wp_ajax_wpae_preview(){
 		<p class="wpallexport-preview-title"><?php echo sprintf("Preview first 10 %s", wp_all_export_get_cpt_name($exportOptions['cpt'], 10, $exportOptions)); ?></p>
 
 		<div class="wpallexport-preview-content">
-			
+
 		<?php
 
 		if(!$custom_xml_valid) {
@@ -187,22 +198,23 @@ function pmxe_wp_ajax_wpae_preview(){
 			exit( json_encode(array('html' => ob_get_clean())) );
 		}
 
-		$wp_uploads = wp_upload_dir();	
-		
+		$wp_uploads = wp_upload_dir();
+
 		$functions = $wp_uploads['basedir'] . DIRECTORY_SEPARATOR . WP_ALL_EXPORT_UPLOADS_BASE_DIRECTORY . DIRECTORY_SEPARATOR . 'functions.php';
-		if ( @file_exists($functions) )
+		if ( @file_exists($functions) ) {
 			require_once $functions;
+		}
 
 		switch ($exportOptions['export_to']) {
 
-			case 'xml':				
+			case 'xml':
 
 				$dom = new DOMDocument('1.0', $exportOptions['encoding']);
 				libxml_use_internal_errors(true);
 				try{
 					$xml = XmlCsvExport::export_xml(true);
 				} catch (WpaeMethodNotFoundException $e) {
-					
+
 					// Find the line where the function is
 					$errorMessage = '';
 					$functionName = $e->getMessage();
@@ -359,15 +371,15 @@ function pmxe_wp_ajax_wpae_preview(){
 						}
 					}
 				}
-													
+
 				break;
 
 			case 'csv':
-				?>			
+				?>
 				<small>
-				<?php					
-					
-					$csv = XmlCsvExport::export_csv( true );					
+				<?php
+
+					$csv = XmlCsvExport::export_csv( true );
 
 					if (!empty($csv)){
 						$csv_rows = array_filter(explode("\n", $csv));
@@ -375,8 +387,8 @@ function pmxe_wp_ajax_wpae_preview(){
 							?>
 							<table class="pmxe_preview" cellpadding="0" cellspacing="0">
 							<?php
-							foreach ($csv_rows as $rkey => $row) {							
-								$cells = str_getcsv($row, $exportOptions['delimiter']);															
+							foreach ($csv_rows as $rkey => $row) {
+								$cells = str_getcsv($row, $exportOptions['delimiter']);
 								if ($cells){
 									?>
 									<tr>
@@ -393,18 +405,18 @@ function pmxe_wp_ajax_wpae_preview(){
 										?>
 									</tr>
 									<?php
-								}							
+								}
 							}
 							?>
 							</table>
 							<?php
-						}						
+						}
 					}
 					else{
 						_e('Data not found.', 'wp_all_export_plugin');
 					}
 				?>
-				</small>			
+				</small>
 				<?php
 				break;
 

@@ -19,7 +19,7 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 	{
 		// do not generate export bundle if not supported
 		if ( ! self::is_bundle_supported($this->options) ) return;
-
+		
 		$uploads  = wp_upload_dir();
 
 		//generate temporary folder
@@ -291,7 +291,7 @@ class PMXE_Export_Record extends PMXE_Model_Record {
     	if ( $options['export_to'] == 'xml' && ! empty($options['xml_template_type']) && in_array($options['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ) return false;
 
         // Export only parent product do not support import bundle
-        if ( ! empty($options['cpt']) and in_array($options['cpt'][0], array('product', 'product_variation')) and class_exists('WooCommerce') and $options['export_variations'] == XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT){
+        if ( ! empty($options['cpt']) and in_array($options['cpt'][0], array('product', 'product_variation')) and class_exists('WooCommerce') and $options['export_variations'] != XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION){
             return false;
         }
 

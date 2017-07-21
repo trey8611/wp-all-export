@@ -50,7 +50,6 @@ class WpaeString
      */
     public function quoteParams($sanitizedSnippet)
     {
-
         if(strpos($sanitizedSnippet, 'array') !== false) {
             return $sanitizedSnippet;
         }

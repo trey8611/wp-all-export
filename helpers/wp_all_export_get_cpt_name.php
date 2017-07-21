@@ -16,7 +16,7 @@ function wp_all_export_get_cpt_name($cpt = array(), $count = 2, $post = array())
 		elseif (in_array('comments', $cpt))
 		{
 			$cptName = ($count > 1) ? __('Comments', 'wp_all_export_plugin') : __('Comment', 'wp_all_export_plugin');
-		}					
+		}
         elseif (in_array('taxonomies', $cpt))
         {
             if (!empty($post['taxonomy_to_export'])){
@@ -27,7 +27,7 @@ function wp_all_export_get_cpt_name($cpt = array(), $count = 2, $post = array())
                 $cptName = ($count > 1) ? __('Taxonomy Terms', 'wp_all_export_plugin') : __('Taxonomy Term', 'wp_all_export_plugin');
             }
         }
-		else
+        else
 		{
 			if (count($cpt) === 1 and in_array('product_variation', $cpt) and class_exists('WooCommerce')){
 				$cptName = ($count > 1) ? 'Variations' : 'Variation';

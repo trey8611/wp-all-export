@@ -18,7 +18,7 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 	 * Previous Imports list
 	 */
 	public function index() {
-		
+
 		$get = $this->input->get(array(
 			's' => '',
 			'order_by' => 'id',
@@ -67,7 +67,7 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 	/**
 	 * Edit Options
 	 */
-	public function options() {			
+	public function options() {
 		
 		// deligate operation to other controller
 		$controller = new PMXE_Admin_Export();
@@ -78,8 +78,8 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 	/**
 	 * Edit Template
 	 */
-	public function template() {			
-		
+	public function template() {
+
 		// deligate operation to other controller
 		$controller = new PMXE_Admin_Export();
 		$controller->set('isTemplateEdit', true);
@@ -107,6 +107,23 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 		{			
 			$this->data['bundle_url'] = site_url() . '/wp-cron.php?export_hash=' . substr(md5($this->data['cron_job_key'] . $item['id']), 0, 16) . '&export_id=' . $item['id'] . '&action=get_bundle&t=zip';
 		}		
+
+		$this->render();
+	}
+
+	/**
+	 * Google merchants info
+	 */
+	public function google_merchants_info() {
+
+		$this->data['id'] = $id = $this->input->get('id');
+		$this->data['cron_job_key'] = PMXE_Plugin::getInstance()->getOption('cron_job_key');
+		$this->data['item'] = $item = new PMXE_Export_Record();
+		if ( ! $id or $item->getById($id)->isEmpty()) {
+			wp_redirect($this->baseUrl); die();
+		}
+		
+		$this->data['file_path'] = site_url() . '/wp-cron.php?export_hash=' . substr(md5($this->data['cron_job_key'] . $item['id']), 0, 16) . '&export_id=' . $item['id'] . '&action=get_data';
 
 		$this->render();
 	}
@@ -179,8 +196,8 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 
 		if ($this->input->post('is_confirmed')) {
 
-			check_admin_referer('update-export', '_wpnonce_update-export');				
-
+			check_admin_referer('update-export', '_wpnonce_update-export');	
+			
 			$iteration = ( empty($item->options['creata_a_new_export_file']) && ! empty($post['creata_a_new_export_file'])) ? 0 : $item->iteration;			
 
 			$item->set(array( 'options' => $post, 'iteration' => $iteration))->save();
@@ -188,7 +205,7 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 				$item->set( array( 'friendly_name' => $post['friendly_name'], 'scheduled' => (($post['is_scheduled']) ? $post['scheduled_period'] : '') ) )->save();	
 			}			
 
-			// compose data to look like result of wizard steps				
+			// compose data to look like result of wizard steps
 			$sesson_data = $post + array('update_previous' => $item->id ) + $default;
 			
 			foreach ($sesson_data as $key => $value) {
@@ -330,7 +347,7 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 					$bundle_path = wp_all_export_get_absolute_path($export->options['bundlepath']);
 
 					if ( @file_exists($bundle_path) )
-					{
+					{						
 						$bundle_url = $uploads['baseurl'] . str_replace($uploads['basedir'], '', $bundle_path);
 
 						PMXE_download::zip($bundle_path);	
@@ -414,7 +431,7 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 			$export = new PMXE_Export_Record();
 
 			$filepath = '';
-			
+
 			if ( ! $export->getById($id)->isEmpty())
 			{
 				if ( ! $is_secure_import)
@@ -431,19 +448,23 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin {
 					switch ($export->options['export_to']) 
 					{
 						case 'xml':
-							PMXE_download::xml($filepath);		
+							if($export['options']['xml_template_type'] == XmlExportEngine::EXPORT_TYPE_GOOLE_MERCHANTS) {
+								PMXE_Download::txt($filepath);
+							} else {
+								PMXE_download::xml($filepath);
+							}
+
 							break;
-						case 'csv':
+						case 'csv':							
 							if (empty($export->options['export_to_sheet']) or $export->options['export_to_sheet'] == 'csv')
 							{
-							    PMXE_download::csv($filepath);		
+								PMXE_download::csv($filepath);		
 							}							
 							else 
 							{													
 								PMXE_download::xls($filepath);		
 							}
 							break;
-						
 						default:
 							wp_redirect(add_query_arg('pmxe_nt', urlencode(__('File format not supported', 'wp_all_export_plugin')), $this->baseUrl)); die();
 							break;

@@ -41,19 +41,18 @@ class WpaeXmlProcessor
         // While we have snippets
         if ($snippetCount = count($this->parseSnippetsInString($xml))) {
 
-//            $this->step++;
+            // $this->step++;
             $xml = '<root>' . $xml . '</root>';
             $this->initVariables($xml);
-
             $root = $this->dom->getElementsByTagName("root");
             $this->parseElement($root->item(0));
             $response = $this->dom->saveXML($this->dom);
 
             $xml = $this->cleanResponse($response);
 
-//            if ($this->step > 8) {
-//                throw new WpaeTooMuchRecursionException('Too much recursion');
-//            }
+            // if ($this->step > 8) {
+            //  throw new WpaeTooMuchRecursionException('Too much recursion');
+            // }
         }
 
         $xml = $this->postProcessXml($xml);
@@ -71,8 +70,8 @@ class WpaeXmlProcessor
     {
         $xml = '<root>' . $xml . '</root>';
         $this->initVariables($xml);
-//        $root = $this->dom->getElementsByTagName("root");
-//        $this->preprocess_attributes($root->item(0));
+        // $root = $this->dom->getElementsByTagName("root");
+        // $this->preprocess_attributes($root->item(0));
 
         return "\n  ".$this->cleanResponse($this->dom->saveXML($this->dom));
     }
@@ -185,7 +184,6 @@ class WpaeXmlProcessor
                             $maxTagValues = count($tagValues[$snippet]);
                         }
                     }
-
                     //We have arrays
                     if ($maxTagValues > 1) {
                         for ($i = 0; $i < $maxTagValues; $i++) {
@@ -584,15 +582,15 @@ class WpaeXmlProcessor
      */
     private function postProcessXml($xml)
     {
-        $xml = str_replace('<id>', '<ID>', $xml);
-        $xml = str_replace('</id>', '</ID>', $xml);
-
         $xml = str_replace('CDATABEGIN', '<![CDATA[', $xml);
         $xml = str_replace('CDATACLOSE', ']]>', $xml);
 
         $xml = str_replace('CLOSEBRAKET', ']', str_replace('OPENBRAKET', '[', $xml));
         $xml = str_replace('CLOSECURVE', '}', str_replace('OPENCURVE', '{', $xml));
         $xml = str_replace('CLOSECIRCLE', ')', str_replace('OPENCIRCLE', '(', $xml));
+
+        $xml = str_replace('**SINGLEQUOT**', "'", $xml);
+        $xml = str_replace('**DOUBLEQUOT**', "\"", $xml);
 
         $xml = str_replace('##FILLER##', '', $xml);
         $xml = str_replace('<filler>c</filler>', '', $xml);

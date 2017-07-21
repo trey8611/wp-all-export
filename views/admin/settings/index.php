@@ -122,7 +122,7 @@
 </form>
 
 <?php
-	$uploads   = wp_upload_dir();
+	$uploads = wp_upload_dir();
 	$functions = $uploads['basedir'] . DIRECTORY_SEPARATOR . WP_ALL_EXPORT_UPLOADS_BASE_DIRECTORY . DIRECTORY_SEPARATOR . 'functions.php';
 ?>
 <hr />
@@ -145,6 +145,7 @@
 	<div class="input wp_all_export_saving_status" style="display:inline-block;">
 
 	</div>
+
 </div>
 
 <a href="http://soflyy.com/" target="_blank" class="wpallexport-created-by"><?php _e('Created by', 'wp_all_export_plugin'); ?> <span></span></a>

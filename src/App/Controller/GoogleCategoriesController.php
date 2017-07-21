@@ -37,6 +37,11 @@ class GoogleCategoriesController extends BaseController
             $parents = [];
 
             foreach($pageposts as $category) {
+
+                if(!$category['parent_id']) {
+                    $parents = array_merge($parents, [$category]);
+                }
+
                 $sql = "SELECT * FROM `{$tablePrefix}google_cats` WHERE `id` = $category[parent_id]";
                 $results = $wpdb->get_results($sql, ARRAY_A);
 

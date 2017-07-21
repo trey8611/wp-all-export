@@ -40,7 +40,7 @@ final class XmlExportCpt
 		if ( ! empty($xmlWriter) && $exportOptions['export_to'] == 'xml' && !in_array($exportOptions['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ){
 			$is_xml_export = true;
 		}
-        
+
 		foreach ($exportOptions['ids'] as $ID => $value)
 		{
 			$pType = $entry->post_type;
@@ -315,6 +315,9 @@ final class XmlExportCpt
 									$attr_new[] = $t->name;
 								}
 								wp_all_export_write_article( $article, $element_name, apply_filters('pmxe_woo_attribute', pmxe_filter(implode($implode_delimiter, $attr_new), $fieldSnipped), $entry->ID, $fieldValue) );
+							} else {
+								// Write empty value (so the functions are still applied)
+								wp_all_export_write_article( $article, $element_name, pmxe_filter('', $fieldSnipped));
 							}
 						}
 						else {

@@ -17,8 +17,15 @@ class PMXE_Admin_Settings extends PMXE_Controller_Admin {
 			if ( ! $this->errors->get_error_codes()) { // no validation errors detected
 
 				PMXE_Plugin::getInstance()->updateOption($post);
+
+				if (empty($_POST['pmxe_license_activate']) and empty($_POST['pmxe_license_deactivate'])) {
+					$post['license_status'] = $this->check_license();
+					PMXE_Plugin::getInstance()->updateOption($post);
+				}				
+
+				isset( $_POST['pmxe_license_activate'] ) and $this->activate_licenses();
 				
-				wp_redirect(add_query_arg('pmxe_nt', urlencode(__('Settings saved', 'pmxe_plugin')), $this->baseUrl)); die();
+				wp_redirect(add_query_arg('pmxe_nt', urlencode(__('Settings saved', 'wp_all_export_plugin')), $this->baseUrl)); die();
 			}
 		}
 
@@ -49,12 +56,23 @@ class PMXE_Admin_Settings extends PMXE_Controller_Admin {
 								$templates_data = json_decode($import_data, true);
 								
 								if (!empty($templates_data)){
-									$template = new PMXE_Template_Record();
-									foreach ($templates_data as $template_data) {
-										unset($template_data['id']);
-										$template->clear()->set($template_data)->insert();
-									}
-									wp_redirect(add_query_arg('pmxe_nt', urlencode(sprintf(_n('%d template imported', '%d templates imported', count($templates_data), 'wp_all_export_plugin'), count($templates_data))), $this->baseUrl)); die();
+                                    $templateOptions = empty($templates_data[0]['options']) ? false : unserialize($templates_data[0]['options']);
+                                    if ( empty($templateOptions) ){
+                                        $this->errors->add('form-validation', __('The template is invalid. Options are missing.', 'wp_all_export_plugin'));
+                                    }
+                                    else{
+                                        if (!isset($templateOptions['is_user_export'])){
+                                            $this->errors->add('form-validation', __('The template you\'ve uploaded is intended to be used with WP All Import plugin.', 'wp_all_export_plugin'));
+                                        }
+                                        else{
+                                            $template = new PMXE_Template_Record();
+                                            foreach ($templates_data as $template_data) {
+                                                unset($template_data['id']);
+                                                $template->clear()->set($template_data)->insert();
+                                            }
+                                            wp_redirect(add_query_arg('pmxe_nt', urlencode(sprintf(_n('%d template imported', '%d templates imported', count($templates_data), 'wp_all_export_plugin'), count($templates_data))), $this->baseUrl)); die();
+                                        }
+                                    }
 								}
 								else $this->errors->add('form-validation', __('Wrong imported data format', 'wp_all_export_plugin'));							
 							}
@@ -109,5 +127,88 @@ class PMXE_Admin_Settings extends PMXE_Controller_Admin {
 
 		exit('OK');
 	}	
+
+	/*
+	*
+	* Activate licenses for main plugin and all premium addons
+	*
+	*/
+	protected function activate_licenses() {
+
+		// listen for our activate button to be clicked
+		if( isset( $_POST['pmxe_license_activate'] ) ) {			
+
+			// retrieve the license from the database
+			$options = PMXE_Plugin::getInstance()->getOption();
+			
+			$product_name = PMXE_Plugin::getEddName();
+
+			if ( $product_name !== false ){
+				// data to send in our API request
+				$api_params = array( 
+					'edd_action'=> 'activate_license', 
+					'license' 	=> $options['license'], 
+					'item_name' => urlencode( $product_name ) // the name of our product in EDD
+				);								
+				
+				// Call the custom API.
+				$response = wp_remote_get( add_query_arg( $api_params, $options['info_api_url'] ), array( 'timeout' => 15, 'sslverify' => false ) );						
+
+				// make sure the response came back okay
+				if ( is_wp_error( $response ) )
+					return false;
+
+				// decode the license data
+				$license_data = json_decode( wp_remote_retrieve_body( $response ) );
+				
+				// $license_data->license will be either "active" or "inactive"
+
+				$options['license_status'] = $license_data->license;
+				
+				PMXE_Plugin::getInstance()->updateOption($options);	
+			}			
+
+		}
+	}	
+
+	/*
+	*
+	* Check plugin's license
+	*
+	*/
+	public static function check_license() {
+
+		global $wp_version;
+
+		$options = PMXE_Plugin::getInstance()->getOption();	
+
+		if (!empty($options['license'])){
+
+			$product_name = PMXE_Plugin::getEddName();
+
+			if ( $product_name !== false ){
+
+				$api_params = array( 
+					'edd_action' => 'check_license', 
+					'license' => $options['license'], 
+					'item_name' => urlencode( $product_name ) 
+				);
+
+				// Call the custom API.
+				$response = wp_remote_get( add_query_arg( $api_params, $options['info_api_url'] ), array( 'timeout' => 15, 'sslverify' => false ) );
+
+				if ( is_wp_error( $response ) )
+					return false;
+
+				$license_data = json_decode( wp_remote_retrieve_body( $response ) );
+
+				return $license_data->license;
+				
+			}
+		}
+
+		return false;
+
+	}
 
 }

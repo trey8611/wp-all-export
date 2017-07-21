@@ -261,6 +261,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 		private $taxes 		= array();
 		private $attributes = array();
 		private $articles 	= array();
+		private $exclude_from_filling = array();
 
 		protected function prepare_export_data( $record, $options, $elId, $preview ){						
 
@@ -280,6 +281,8 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 		
 			if ( empty($this->order_id) or $this->order_id != $record->ID)
 			{
+				$this->__coupons_used = array();
+
 				$this->order_id   = $record->ID;
 
 				$all_order_items  = $wpdb->get_results("SELECT * FROM {$table_prefix}woocommerce_order_items WHERE order_id = {$record->ID}");
@@ -362,7 +365,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 									// do not export anything if product doesn't exist
 									if ( ! empty($_product) )
 									{										
-										$item_add_data = XmlExportCpt::prepare_data( $_product, false, $this->acfs, $this->woo, $this->woo_order, ",", $preview, true, $subID );
+										$item_add_data = XmlExportCpt::prepare_data( $_product, XmlExportEngine::$exportOptions, false, $this->acfs, $this->woo, $this->woo_order, ",", $preview, true, $subID );
 
 										if ( ! empty($item_add_data))
 										{
@@ -389,16 +392,542 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 						
 						$data[$options['cc_name'][$elId]] = ( strpos($options['cc_value'][$elId], "_") === 0 ) ? get_post_meta($record->ID, $options['cc_value'][$elId], true) : $record->{$options['cc_value'][$elId]};
 
-						if ($options['cc_value'][$elId] == "post_title")
-						{							
-							$data[$options['cc_name'][$elId]] = str_replace("&ndash;", '-', $data[$options['cc_name'][$elId]]);
-						}						
+						switch ($options['cc_value'][$elId]){
+							case 'post_title':
+								$data[$options['cc_name'][$elId]] = str_replace("&ndash;", '-', $data[$options['cc_name'][$elId]]);
+								break;
+							case 'post_date':
+								$data[$options['cc_name'][$elId]] = prepare_date_field_value($options['cc_settings'][$elId], get_post_time('U', true, $record->ID), "Ymd");
+								break;
+							case '_completed_date':
+								$_completed_date = get_post_meta($record->ID, '_completed_date', true);
+								$_completed_date_unix = empty($_completed_date) ? '' : strtotime($_completed_date);
+								$data[$options['cc_name'][$elId]] = empty($_completed_date_unix) ? '' : prepare_date_field_value($options['cc_settings'][$elId], $_completed_date_unix, "Ymd");
+								break;
+							case '_customer_user_email':
+								$customer_user_id = get_post_meta($record->ID, '_customer_user', true);
+								if ( $customer_user_id ){
+									$user = get_user_by( 'id', $customer_user_id );
+									if ($user){
+										$data[$options['cc_name'][$elId]] = $user->user_email;
+									}
+								}
+								if (empty($data[$options['cc_name'][$elId]])) $data[$options['cc_name'][$elId]] = get_post_meta($record->ID, '_billing_email', true);
+								break;
+						}
 
 						$data[$options['cc_name'][$elId]] = pmxe_filter( $data[$options['cc_name'][$elId]], $fieldSnipped);	
 
 						break;	
 					
+					case 'refunds':
+
+						if ( ! empty($this->order_refunds)) 
+						{
+							foreach ($this->order_refunds as $refund) 
+							{
+								$refunds_data = array();
+								
+								foreach ($options['ids'] as $subID => $subvalue) 
+								{
+									if ( $options['cc_type'][$subID] == 'woo_order' and $options['cc_options'][$subID] == 'refunds') 
+									{
+										$element_name = $options['cc_name'][$subID];
+										$RefundsfieldSnipped = ( ! empty($options['cc_php'][$subID]) and ! empty($options['cc_code'][$subID]) ) ? $options['cc_code'][$subID] : false;																				
+
+										switch ($options['cc_value'][$subID]) {
+
+                                            case 'refund_id':
+                                                $refunds_data[$element_name] = pmxe_filter( $refund->ID, $RefundsfieldSnipped);
+                                                break;
+										    case 'refund_amount':
+												$refunds_data[$element_name] = pmxe_filter( get_post_meta($refund->ID, '_refund_amount', true), $RefundsfieldSnipped);															
+												break;
+											case 'refund_date':
+												$refunds_data[$element_name] = pmxe_filter( date("Ymd", get_post_time('U', true, $refund->ID)), $RefundsfieldSnipped);
+												break;
+											case 'refund_reason':
+												$refunds_data[$element_name] = pmxe_filter( $refund->post_excerpt, $RefundsfieldSnipped);
+												break;
+											case 'refund_author_email':
+												$refund_author = get_userdata($refund->post_author);
+												if ($refund_author) {
+													$refunds_data[$element_name] = pmxe_filter( $refund_author->user_email, $RefundsfieldSnipped);	
+												}												
+												break;																						
+										}
+									}
+								}		
+								if ( ! empty($refunds_data) ) $data['refunds'][] = $refunds_data;
+							}
+
+							$this->order_refunds = null;																			
+							
+						}						
+
+						switch ($options['cc_value'][$elId]) 
+						{
+							case '_refund_total':
+
+								$_refund_total = 0;
+								
+								$order_refunds = $wpdb->get_results("SELECT * FROM {$table_prefix}posts WHERE post_parent = {$record->ID} AND post_type = 'shop_order_refund'");
+
+								if ( ! empty($order_refunds)) 
+								{
+									foreach ($order_refunds as $refund) 
+									{										
+										$_refund_total += get_post_meta($refund->ID, '_refund_amount', true);
+									}
+								}
+								
+								$data[$options['cc_name'][$elId]] = pmxe_filter( $_refund_total, $fieldSnipped);	
+
+								break;
+							
+							default:																	
+
+								break;
+						}
+
+						break;
+
+					case 'notes':
+
+						global $wp_version;					
+			
+						$args = array(
+							'post_id' => $record->ID,								
+							'type'    => 'order_note'
+						);
+
+            remove_filter( 'comments_clauses', array( 'WC_Comments', 'exclude_order_comments' ), 10 );
+
+						$comments = get_comments( $args );
+
+						add_filter( 'comments_clauses', array( 'WC_Comments', 'exclude_order_comments' ), 10, 1 );						
+
+						$note_data = array();
+
+						foreach ( $comments as $comment ) :
+
+							switch ($options['cc_value'][$elId]) 
+							{
+								case 'visibility':
+									$visibility = get_comment_meta( $comment->comment_ID, 'is_customer_note', true);
+									$note_data[] = $visibility ? 'customer' : 'private';
+									break;
+								
+								default:								
+									$note_data[] = $comment->{$options['cc_value'][$elId]};
+									break;
+							}							
+							
+						endforeach;
+
+						$data[$options['cc_name'][$elId]] = pmxe_filter( implode($implode_delimiter, $note_data), $fieldSnipped);
+
+						break;		
+					case 'items':
+
+						if ( ! empty($this->order_items)){
+							
+							foreach ($this->order_items as $n => $order_item) {
+
+								$meta_data = $wpdb->get_results("SELECT * FROM {$table_prefix}woocommerce_order_itemmeta WHERE order_item_id = {$order_item->order_item_id}", ARRAY_A);
+
+								$product_id   = '';
+								$variation_id = '';
+
+								foreach ($meta_data as $meta) {
+									if ($meta['meta_key'] == '_variation_id' and ! empty($meta['meta_value'])){
+										$variation_id = $meta['meta_value'];
+									}
+									if ($meta['meta_key'] == '_product_id' and ! empty($meta['meta_value'])){
+										$product_id = $meta['meta_value'];
+									}
+								}
+
+								$_product_id = empty($variation_id) ? $product_id : $variation_id;
+
+								$item_data = array();
+
+								foreach ($options['ids'] as $subID => $subvalue) {
+
+									if ( $options['cc_type'][$subID] == 'woo_order' and $options['cc_options'][$subID] == 'items') {
+										
+										$element_name = $options['cc_name'][$subID] . ' #' . ($n + 1);
+										$ItemsfieldSnipped = ( ! empty($options['cc_php'][$subID]) and ! empty($options['cc_code'][$subID]) ) ? $options['cc_code'][$subID] : false;																				
+
+										switch ($options['cc_value'][$subID]) {
+											case '__line_item_id':
+												$item_data[$element_name] = pmxe_filter( $order_item->order_item_id, $ItemsfieldSnipped);
+												break;
+											case '__line_item_title':
+												$item_data[$element_name] = pmxe_filter( $order_item->order_item_name, $ItemsfieldSnipped);
+												break;
+											case '_product_id':
+											case '__product_sku':
+											case '__product_title':
+
+												switch ($options['cc_value'][$subID]) {
+
+													case '_product_id':																											
+
+														$item_data[$element_name] = pmxe_filter( $_product_id, $ItemsfieldSnipped);														
+
+														break;
+
+													case '__product_sku':														
+
+														$item_data[$element_name] = pmxe_filter( get_post_meta($_product_id, '_sku', true), $ItemsfieldSnipped);														
+
+														break;
+
+													case '__product_title':														
+														
+														$_product = get_post($_product_id);
+
+														$item_data[$element_name] = ( ! is_null($_product)) ? pmxe_filter( $_product->post_title, $ItemsfieldSnipped) : $order_item->order_item_name;
+														
+														if ($options['xml_template_type'] == 'custom') $item_data[$element_name] = urlencode($item_data[$element_name]);
+														
+														break;
+
+												}
+
+												break;
+
+											case '__product_variation':												
+
+												$variations = array();
+
+												foreach ($meta_data as $meta) {
+													if ( strpos($meta['meta_key'], "pa_") === 0 ){
+														$variations[$meta['meta_key']] = $meta['meta_value'];														
+													}
+												}
+
+												if ( ! empty($variations) ){													
+													foreach ($variations as $key => $value) {
+														$item_data_key = $element_name . " (" . sanitize_title(str_replace("pa_", "", $key)) . ")";
+														$item_data[$item_data_key] = apply_filters('pmxe_order_item_attribute', pmxe_filter( $value, $ItemsfieldSnipped), $key);
+														$this->exclude_from_filling[$item_data_key] = 1;
+													}													
+												}												
+
+												break;
+
+											case '_line_subtotal':
+
+												$_line_total = 0;
+												$_qty = 0;
+												foreach ($meta_data as $meta) {
+													if ($meta['meta_key'] == '_line_total'){
+														$_line_total = $meta['meta_value'];
+													}
+													if ($meta['meta_key'] == '_qty'){
+														$_qty = $meta['meta_value'];
+													}
+												}
+
+												$_line_subtotal = ($_qty) ? number_format($_line_total/$_qty, 2) : 0;
+
+												$item_data[$element_name] = pmxe_filter( $_line_subtotal, $ItemsfieldSnipped);
+
+												break;
+
+											default:
+												
+												$meta_key_founded = false;
+												foreach ($meta_data as $meta) {
+													if ($meta['meta_key'] == $options['cc_value'][$subID]){
+														if ( ! isset($item_data[$element_name])){
+															$item_data[$element_name] = array();
+														}
+														$item_data[$element_name][] = $meta['meta_value'];
+														$meta_key_founded = true;
+													}
+												}
+												if ( ! $meta_key_founded ){
+													$item_data[$element_name] = pmxe_filter( '', $ItemsfieldSnipped);
+												}
+												else{
+													$item_data[$element_name] = pmxe_filter(implode($implode_delimiter, $item_data[$element_name]), $ItemsfieldSnipped);
+												}
+
+												break;
+										}										
+									}	
+
+									if ( strpos($options['cc_label'][$subID], 'item_data__') !== false ) 
+									{
+										$product_id   = '';
+										$variation_id = '';
+										foreach ($meta_data as $meta) {
+											if ($meta['meta_key'] == '_variation_id' and ! empty($meta['meta_value'])){
+												$variation_id = $meta['meta_value'];																
+											}
+											if ($meta['meta_key'] == '_product_id' and ! empty($meta['meta_value'])){
+												$product_id = $meta['meta_value'];																
+											}
+										}
+
+										$_product_id = empty($variation_id) ? $product_id : $variation_id;
+
+										$_product = get_post($_product_id);
+
+										// do not export anything if product doesn't exist
+										if ( ! empty($_product))
+										{											
+											$item_add_data = XmlExportCpt::prepare_data( $_product, XmlExportEngine::$exportOptions, false, $this->acfs, $this->woo, $this->woo_order, ",", $preview, true, $subID );
+
+											if ( ! empty($item_add_data))
+											{
+												foreach ($item_add_data as $item_add_data_key => $item_add_data_value) {													
+													if ( ! isset($item_data[$item_add_data_key])) $item_data[$item_add_data_key] = $item_add_data_value;
+												}												
+											}
+										}
+									}								
+								}
+
+								$is_export_record = apply_filters('wp_all_export_order_item', true, $_product_id, XmlExportEngine::$exportOptions, XmlExportEngine::$exportID);
+
+								if($is_export_record) {
+									if (!empty($item_data)) $data['items'][] = $item_data;
+								}
+							}								
+
+							$this->order_items = null;
+						}
+
+						break;
+
+					case 'taxes':
+
+						// Order Taxes
+						if ( ! empty($this->order_taxes) ){
+
+							foreach ($this->order_taxes as $order_tax) {															
+
+								$meta_data = $wpdb->get_results("SELECT * FROM {$table_prefix}woocommerce_order_itemmeta WHERE order_item_id = {$order_tax->order_item_id}", ARRAY_A);
+								$rate_details = null;
+								foreach ($meta_data as $meta) {
+									if ($meta['meta_key'] == 'rate_id'){
+										$rate_id = $meta['meta_value'];														
+										$rate_details = $wpdb->get_row("SELECT * FROM {$table_prefix}woocommerce_tax_rates WHERE tax_rate_id = {$rate_id}");																																	
+										break;
+									}	
+								}
+
+								$tax_data = array();
+								
+								foreach ($options['ids'] as $subID => $subvalue) {
+
+									if ( $options['cc_type'][$subID] == 'woo_order' and $options['cc_options'][$subID] == 'taxes') {
+
+										// $element_name = str_replace("per tax", $rate_details->tax_rate_name, $options['cc_name'][$subID]);
+										$element_name = str_replace(" (per tax)", "", $options['cc_name'][$subID]);
+										$TaxesfieldSnipped = ( ! empty($options['cc_php'][$subID]) and ! empty($options['cc_code'][$subID]) ) ? $options['cc_code'][$subID] : false;																				
+
+										switch ($options['cc_value'][$subID]) {
+											case 'tax_order_item_name':
+												$tax_data[$element_name] = pmxe_filter( $order_tax->order_item_name, $TaxesfieldSnipped);															
+												break;
+											case 'tax_rate':
+												$tax_data['Rate Name'] = $rate_details->tax_rate_name;
+												$tax_data[$element_name] = pmxe_filter(( ! empty($rate_details)) ? $rate_details->tax_rate : '', $TaxesfieldSnipped);
+												break;
+											case 'tax_amount':
+												$tax_amount = 0;
+												foreach ($meta_data as $meta) {
+													if ($meta['meta_key'] == 'tax_amount' || $meta['meta_key'] == 'shipping_tax_amount'){
+														$tax_amount += $meta['meta_value'];
+													}
+												}
+												
+												$tax_data[$element_name] = pmxe_filter( $tax_amount, $TaxesfieldSnipped);			
+												
+												break;
+																						
+										}										
+									}	
+								}
+								if ( ! empty($tax_data) ) $data['taxes'][] = $tax_data;
+							}								
+
+							$this->order_taxes = null;
+						}
+
+						// Calculate Total Tax Amount
+						if ( $options['cc_value'][$elId] == '_order_tax' ){
+						
+							$_order_shipping_tax = get_post_meta($record->ID, '_order_shipping_tax', true);
+							$_order_tax 		 = get_post_meta($record->ID, '_order_tax', true);
+							$_order_tax_total    = $_order_shipping_tax + $_order_tax;												
+							
+							$data[$options['cc_name'][$elId]] = pmxe_filter( $_order_tax_total, $fieldSnipped);			
+							
+						}
+
+						if ( ! empty($this->order_shipping) ){
+
+							foreach ($this->order_shipping as $order_ship) {											
+
+								$shipping_data = array();
+
+								foreach ($options['ids'] as $subID => $subvalue) {
+
+									if ( $options['cc_type'][$subID] == 'woo_order' and $options['cc_options'][$subID] == 'taxes') {
+
+										$element_name = $options['cc_name'][$subID];
+										$ShippingfieldSnipped = ( ! empty($options['cc_php'][$subID]) and ! empty($options['cc_code'][$subID]) ) ? $options['cc_code'][$subID] : false;																			
+
+										switch ($options['cc_value'][$subID]) {
+											case 'shipping_order_item_name':
+													$shipping_data[$element_name] = pmxe_filter( $order_ship->order_item_name, $ShippingfieldSnipped);													
+												break;
+											case '_order_shipping':			
+													$meta_data = $wpdb->get_results("SELECT * FROM {$table_prefix}woocommerce_order_itemmeta WHERE order_item_id = {$order_ship->order_item_id}", ARRAY_A);
+													foreach ($meta_data as $meta) {
+														if ($meta['meta_key'] == 'cost'){
+															$shipping_data[$element_name] = pmxe_filter( $meta['meta_value'], $ShippingfieldSnipped);
+															break;
+														}
+													}
+												break;
+											case '_order_shipping_taxes':
+													$meta_data = $wpdb->get_results("SELECT * FROM {$table_prefix}woocommerce_order_itemmeta WHERE order_item_id = {$order_ship->order_item_id}", ARRAY_A);
+													foreach ($meta_data as $meta) {
+															if ($meta['meta_key'] == 'taxes'){
+																	$shipping_data[$element_name] = pmxe_filter( $meta['meta_value'], $ShippingfieldSnipped);
+																	break;
+															}
+													}
+												break;
+										}																				
+									}
+								}		
+								if ( ! empty($shipping_data) ) $data['shipping'][] = $shipping_data;																						
+							}
+
+							$this->order_shipping = null;
+						}							
+
+						break;
+					case 'fees':
+
+						if ( ! empty($this->order_coupons) ){				
+
+							$this->__coupons_used = array();			
+								
+							foreach ($this->order_coupons as $order_coupon) {		
+
+								$this->__coupons_used[] = $order_coupon->order_item_name;						
+
+								$meta_data = $wpdb->get_results("SELECT * FROM {$table_prefix}woocommerce_order_itemmeta WHERE order_item_id = {$order_coupon->order_item_id}", ARRAY_A);
+
+								$coupons_data = array();
+
+								foreach ($options['ids'] as $subID => $subvalue) {
+
+									if ( $options['cc_type'][$subID] == 'woo_order' and $options['cc_options'][$subID] == 'fees') {
+										
+										// $element_name = str_replace("per coupon", $order_coupon->order_item_name, $options['cc_name'][$subID]);
+										$element_name = str_replace("(per coupon)", "", $options['cc_name'][$subID]);
+										$FeesfieldSnipped = ( ! empty($options['cc_php'][$subID]) and ! empty($options['cc_code'][$subID]) ) ? $options['cc_code'][$subID] : false;																				
+
+										switch ($options['cc_value'][$subID]) {
+											case 'discount_amount':
+												foreach ($meta_data as $meta) {
+													if ($meta['meta_key'] == 'discount_amount'){			
+														$coupons_data['Coupon Code'] = $order_coupon->order_item_name;
+														$coupons_data[$element_name] = pmxe_filter( $meta['meta_value'] * (-1), $FeesfieldSnipped);														
+														break;
+													}	
+												}
+												break;																																
+										}										
+									}
+								}		
+								if ( ! empty($coupons_data) ) $data['coupons'][] = $coupons_data;					
+							}							
+							$this->order_coupons = null;
+						}
+
+						// List of all coupons used
+						if ( $options['cc_value'][$elId] == '__coupons_used' and ! is_null($this->__coupons_used)){
+							$data[$options['cc_name'][$elId]] = pmxe_filter(implode($implode_delimiter, $this->__coupons_used) , $fieldSnipped);
+							//$this->__coupons_used = array();
+						}
+
+						// Calculate Total Discount Amount
+						if ( $options['cc_value'][$elId] == '_cart_discount' ){
+							$_cart_discount = get_post_meta($record->ID, '_cart_discount', true);							
+							$data[$options['cc_name'][$elId]] = pmxe_filter( $_cart_discount * (-1), $fieldSnipped);																
+						}
+
+						if ( ! empty($this->order_surcharge) ){													
+							
+							$this->__total_fee_amount = 0;
+
+							foreach ($this->order_surcharge as $order_surcharge) {									
+
+								$meta_data = $wpdb->get_results("SELECT * FROM {$table_prefix}woocommerce_order_itemmeta WHERE order_item_id = {$order_surcharge->order_item_id}", ARRAY_A);
+
+								$surcharge_data = array();
+
+								foreach ($options['ids'] as $subID => $subvalue) {
+
+									if ( $options['cc_type'][$subID] == 'woo_order' and $options['cc_options'][$subID] == 'fees') {
+										
+										// $element_name = str_replace("Amount (per surcharge)", "(".$order_surcharge->order_item_name.")", $options['cc_name'][$subID]);
+										$element_name = str_replace(" (per surcharge)", "", $options['cc_name'][$subID]);
+										$SurchargefieldSnipped = ( ! empty($options['cc_php'][$subID]) and ! empty($options['cc_code'][$subID]) ) ? $options['cc_code'][$subID] : false;																				
+
+										switch ($options['cc_value'][$subID]) {																					
+											
+											case 'fee_line_total':
+
+												foreach ($meta_data as $meta) {
+													if ($meta['meta_key'] == '_line_total'){															
+														$surcharge_data['Fee Name'] = $order_surcharge->order_item_name;
+														$surcharge_data[$element_name] = pmxe_filter( $meta['meta_value'], $SurchargefieldSnipped);
+														$this->__total_fee_amount += $meta['meta_value'];
+														break;
+													}	
+												}
+
+												break;
+
+											case '__fee_tax_data':
+
+													foreach ($meta_data as $meta) {
+															if ($meta['meta_key'] == '_line_tax_data'){
+																	$surcharge_data[$element_name] = pmxe_filter( $meta['meta_value'], $SurchargefieldSnipped);
+																	break;
+															}
+													}
+
+													break;
+										}										
+									}
+								}		
+								if ( ! empty($surcharge_data) ) $data['surcharge'][] = $surcharge_data;					
+							}														
+
+							$this->order_surcharge = null;
+						}								
+
+						// Total Fee Amount
+						if ( $options['cc_value'][$elId] == '__total_fee_amount' and ! is_null($this->__total_fee_amount)){
+							$data[$options['cc_name'][$elId]] = $this->__total_fee_amount;
+						}				
+
+						break;
 				}
+
 			}
 
 			return $data;
@@ -421,14 +950,17 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					if ( ! empty($data))
 					{													
 						if ( $key == 'items' and ( $options['order_item_per_row'] or $options['xml_template_type'] == 'custom'))
-						{																		
+						{
 							foreach ($data as $item) {			
 								$additional_article = array();											
 								if ( ! empty($item) ){																		
 									foreach ($item as $item_key => $item_value) {
 										$final_key = preg_replace("%\s#\d*%", "", $item_key);										
-										$additional_article[$final_key] = $item_value;										
-										// if ( ! in_array($final_key, $titles) ) $titles[] = $final_key;
+										$additional_article[$final_key] = $item_value;
+										if ( ! empty($this->exclude_from_filling[$item_key])){
+											unset($this->exclude_from_filling[$item_key]);
+											$this->exclude_from_filling[$final_key] = 1;
+										}
 									}									
 								}																				
 
@@ -442,7 +974,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 									}								
 									$this->additional_articles[] = $additional_article;
 								}
-							}													
+							}
 						}	
 						else
 						{			
@@ -488,6 +1020,11 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					foreach ($this->additional_articles as $article) {	
 						if ($options['order_item_fill_empty_columns'] and $options['export_to'] == 'csv')
 						{
+							if (!empty($this->exclude_from_filling)){
+								foreach ($this->exclude_from_filling as $key => $value) {
+									$article[$key] = isset($article[$key]) ? $article[$key] : '';
+								}
+							}
 							foreach ($article as $key => $value) {
 								unset($base_article[$key]);				
 							}									
@@ -500,7 +1037,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					}
 					$this->additional_articles = array();
 				}				
-			}			
+			}
 
 			return $articles;
 		}
@@ -760,7 +1297,7 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 									$xmlWriter->startElement(preg_replace("%(s|es)$%", "", ucfirst($key)));
 									foreach ($item as $item_key => $item_value) {
 										$element_name_ns = '';	
-										$element_name = str_replace("-", "_", preg_replace('/[^a-z0-9:_]/i', '', preg_replace("%#\d%", "", $item_key)));
+										$element_name = str_replace("-", "_", preg_replace('/[^a-z0-9:_]/i', '', preg_replace("%#\d*%", "", $item_key)));
 										if (strpos($element_name, ":") !== false)
 										{
 											$element_name_parts = explode(":", $element_name);
@@ -953,16 +1490,17 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 					<?php endif; ?>
 					<ul>
 						<?php if ( ! empty($section['meta']) ): ?>
-						<li <?php if ( ! in_array($slug, array('order', 'customer', 'cf', 'other'))) : ?>class="wpallexport_disabled"<?php endif; ?>>
+						<li>
 							<div class="default_column" rel="">								
 								<label class="wpallexport-element-label"><?php echo __("All", "wp_all_export_plugin") . ' ' . $section['title'] . ' ' . __("Data", "wp_all_export_plugin"); ?></label>
 								<input type="hidden" name="rules[]" value="pmxe_<?php echo $slug;?>"/>
 							</div>
 						</li>
 						<?php
-						foreach ($section['meta'] as $cur_meta_key => $field) {									
+						foreach ($section['meta'] as $cur_meta_key => $field) {
+							$is_auto_field = ( ! empty($field['auto']) or XmlExportEngine::$is_auto_generate_enabled and 'specific' != $this->post['export_type']);
 							?>
-							<li class="pmxe_<?php echo $slug; ?> <?php if ( ! in_array($slug, array('order', 'customer', 'cf', 'other'))) : ?>wpallexport_disabled<?php endif;?>">
+							<li class="pmxe_<?php echo $slug; ?>  <?php if ( $is_auto_field ) echo 'wp_all_export_auto_generate';?>">
 								<div class="custom_column" rel="<?php echo ($i + 1);?>">
 									<label class="wpallexport-xml-element"><?php echo (is_array($field)) ? $field['name'] : $field; ?></label>
 									<input type="hidden" name="ids[]" value="1"/>
@@ -979,8 +1517,8 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 							</li>
 							<?php
 							$i++;												
-						}
-						endif;																		
+						}	
+						endif;																	
 
 						if ( ! empty($section['additional']) )
 						{

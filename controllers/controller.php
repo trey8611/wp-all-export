@@ -49,16 +49,16 @@ abstract class PMXE_Controller {
 			}
 		}		
 	}
-	
+
 	/**
 	 * Method returning resolved template content
-	 * 
-	 * @param string[optional] $viewPath Template path to render
+	 *
+	 * @param string [optional] $viewPath Template path to render
 	 * @throws Exception
 	 */
 	protected function render($viewPath = null) {
 		
-		if ( ! get_current_user_id() or ! current_user_can(PMXE_Plugin::$capabilities)) {
+		if ( ! get_current_user_id() or ! current_user_can( PMXE_Plugin::$capabilities )) {
 		    // This nonce is not valid.
 		    die( 'Security check' ); 
 
@@ -111,11 +111,12 @@ abstract class PMXE_Controller {
 		}
 	}
 	
-	public function download(){				
+	public function download(){
+
 
 		$nonce = (!empty($_REQUEST['_wpnonce'])) ? $_REQUEST['_wpnonce'] : '';
-		if ( ! wp_verify_nonce( $nonce, '_wpnonce-download_feed' ) ) {		    
-		    die( __('Security check', 'wp_all_export_plugin') ); 
+		if ( ! wp_verify_nonce( $nonce, '_wpnonce-download_feed' ) && !isset($_GET['google_feed']) ) {
+		    die( __('Security check', 'wp_all_export_plugin') );
 		} else {
 
 			$is_secure_import = PMXE_Plugin::getInstance()->getOption('secure');
@@ -128,6 +129,9 @@ abstract class PMXE_Controller {
 			
 			if ( ! $export->getById($id)->isEmpty())
 			{
+				if($export->options['export_to'] != XmlExportEngine::EXPORT_TYPE_GOOLE_MERCHANTS && isset($_GET['google_feed'])) {
+					die('Unauthorized');
+				}
 				if ( ! $is_secure_import)
 				{
 					$filepath = get_attached_file($export->attch_id);					
@@ -136,18 +140,23 @@ abstract class PMXE_Controller {
 				{
 					$filepath = wp_all_export_get_absolute_path($export->options['filepath']);
 				}				
-
 				if ( @file_exists($filepath) )
 				{
 					switch ($export['options']['export_to']) 
 					{
-						case 'xml':
-							PMXE_download::xml($filepath);		
+						case XmlExportEngine::EXPORT_TYPE_XML:
+
+							if($export['options']['xml_template_type'] == XmlExportEngine::EXPORT_TYPE_GOOLE_MERCHANTS) {
+								PMXE_download::txt($filepath);
+							} else {
+								PMXE_download::xml($filepath);
+							}
+
 							break;
-						case 'csv':
+						case XmlExportEngine::EXPORT_TYPE_CSV:
 							if (empty($export->options['export_to_sheet']) or $export->options['export_to_sheet'] == 'csv')
 							{
-							PMXE_download::csv($filepath);		
+								PMXE_download::csv($filepath);		
 							}							
 							else 
 							{
@@ -161,14 +170,13 @@ abstract class PMXE_Controller {
                                 }
 							}							
 							break;
-						
+
 						default:
 							
 							break;
 					}
 				}					
-			}			
+			}	
 		}
-
 	}
 }

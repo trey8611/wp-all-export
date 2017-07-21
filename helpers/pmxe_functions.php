@@ -95,7 +95,7 @@
 			return $_existing_taxonomies;
 		}	
 	}
-	
+
     if ( ! function_exists('wp_all_export_get_taxonomies')) {
         function wp_all_export_get_taxonomies() {
             // get all taxonomies
@@ -161,4 +161,4 @@
             }
             return $post_date;
         }
-    }		
+    }

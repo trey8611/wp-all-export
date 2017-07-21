@@ -15,7 +15,8 @@
 		'isProductVariationsExport' : function() {
 			return this.hasVariations;
 		},
-		'hasVariations' : false
+		'hasVariations' : false,
+		'modeEnabled' : true
 	};
 
 	function processElementName($element, $elementName){
@@ -104,7 +105,7 @@
 			if ( ui.helper.find('.custom_column').length )
 			{
 				$elementName = ui.helper.find('.custom_column').find('input[name^=cc_name]').val();
-
+0
 				var $elementValue = $elementName;
 				$elementName = helpers.sanitizeElementName($elementName);
 
@@ -2432,6 +2433,31 @@
 			$('.disabled_fields_upgrade_notice').hide();
 			$('.save_action').removeClass('wp_all_export_disabled_button').removeAttr('disabled');
 		}
+
 	});
 
-});})(jQuery);
+	var $el = $('#available_data');
+	if($el) {
+		if($el.offset()) {
+
+
+			var originalOffset = $el.offset().top - 50;
+			var elementWidth = $el.width();
+
+			$el.css('width', elementWidth);
+
+			$(window).scroll(function (e) {
+
+				var isPositionFixed = ($el.css('position') == 'fixed');
+				if ($(this).scrollTop() > originalOffset && !isPositionFixed) {
+					$('#available_data').css({'position': 'fixed', 'top': '50px'});
+				}
+				if ($(this).scrollTop() < originalOffset && isPositionFixed) {
+					$('#available_data').css({'position': 'static', 'top': '50px'});
+				}
+			});
+		}
+	}
+
+
+});})(jQuery, window.EventService);

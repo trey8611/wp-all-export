@@ -21,14 +21,14 @@ function pmxe_render_xml_element($el, $shorten = false, $path = '/', $ind = 1, $
 			pmxe_render_xml_text(trim($el->childNodes->item(0)->wholeText), $shorten, $is_render_collapsed);
 		} else {
 			echo '<div class="xml-content' . ($is_render_collapsed ? ' collapsed' : '') . '">';
-			$indexes = array();										
-			foreach ($el->childNodes as $eli => $child) {
+			$indexes = array();													
+			foreach ($el->childNodes as $eli => $child) {						
 				if ($child instanceof DOMElement) {
 					empty($indexes[$child->nodeName]) and $indexes[$child->nodeName] = 0; $indexes[$child->nodeName]++;
 					pmxe_render_xml_element($child, $shorten, $path . '/', $indexes[$child->nodeName], $lvl + 1); 
-				} elseif ($child instanceof DOMCdataSection) {
-					pmxe_render_xml_text(trim($child->wholeText), $shorten, false, true); 
-				} elseif ($child instanceof DOMText) {							
+				} elseif ($child instanceof DOMCdataSection) {					
+					pmxe_render_xml_text(trim($child->wholeText), $shorten, false, true);
+				} elseif ($child instanceof DOMText) {												
 					if ( $el->childNodes->item($eli - 1) and ($el->childNodes->item($eli - 1) instanceof DOMCdataSection) ){
 
 					}
