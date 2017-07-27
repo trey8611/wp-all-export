@@ -59,6 +59,9 @@ class WpaeXmlProcessor
         $xml = $this->decodeSpecialCharacters($xml);
         $xml = $this->encodeSpecialCharsInAttributes($xml);
 
+        $xml = str_replace('**OPENSHORTCODE**', '[', $xml);
+        $xml = str_replace('**CLOSESHORTCODE**', ']', $xml);
+
         return $this->pretify($xml);
     }
 
@@ -479,10 +482,12 @@ class WpaeXmlProcessor
      */
     private function processSnippet($snippet, $isInFunction = false)
     {
+
         $sanitizedSnippet = $this->sanitizeSnippet($snippet);
 
         $sanitizedSnippet = str_replace(WpaeXmlProcessor::SNIPPET_DELIMITER, '"', $sanitizedSnippet);
         $functionName = $this->sanitizeFunctionName($sanitizedSnippet);
+
         $this->checkCorrectNumberOfQuotes($sanitizedSnippet, $functionName);
         $this->checkIfFunctionExists($functionName);
 
@@ -494,6 +499,9 @@ class WpaeXmlProcessor
                 $sanitizedSnippet = str_replace($arg, 'apply_filters("wp_all_export_post_process_xml", '. $arg .')' ,$sanitizedSnippet);
             }
         }
+
+        // Clean empty strings
+        $sanitizedSnippet = str_replace(array(', ,',',,'), ',"",', $sanitizedSnippet);
 
         $snippetValue = eval('return ' . $sanitizedSnippet . ';');
         $snippetValue = $this->encodeSpecialCharacters($snippetValue);

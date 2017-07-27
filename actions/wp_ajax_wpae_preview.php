@@ -19,12 +19,20 @@ function pmxe_wp_ajax_wpae_preview(){
 	ob_start();
 
 	$values = array();
-	
-	parse_str($_POST['data'], $values);	
 
-	$export_id = (isset($_GET['id'])) ? stripcslashes($_GET['id']) : 0;	
+	parse_str($_POST['data'], $values);
 
-	$exportOptions = $values + (PMXE_Plugin::$session->has_session() ? PMXE_Plugin::$session->get_clear_session_data() : array()) + PMXE_Plugin::get_default_import_options();	
+
+	if(is_array($values['cc_options'])) {
+
+		foreach ($values['cc_options'] as &$value) {
+			$value = stripslashes($value);
+		}
+	}
+
+	$export_id = (isset($_GET['id'])) ? stripcslashes($_GET['id']) : 0;
+
+	$exportOptions = $values + (PMXE_Plugin::$session->has_session() ? PMXE_Plugin::$session->get_clear_session_data() : array()) + PMXE_Plugin::get_default_import_options();
 
 	$exportOptions['custom_xml_template'] = (isset($_POST['custom_xml'])) ? stripcslashes($_POST['custom_xml']) : '';
 	$exportOptions['custom_xml_template'] = str_replace('<ID>','<id>', $exportOptions['custom_xml_template'] );
@@ -38,11 +46,11 @@ function pmxe_wp_ajax_wpae_preview(){
 
 	$engine = new XmlExportEngine($exportOptions, $errors);
 
-	XmlExportEngine::$exportOptions     = $exportOptions;
-	XmlExportEngine::$is_user_export    = $exportOptions['is_user_export'];
-	XmlExportEngine::$is_comment_export = $exportOptions['is_comment_export'];
+	XmlExportEngine::$exportOptions      = $exportOptions;
+	XmlExportEngine::$is_user_export     = $exportOptions['is_user_export'];
+	XmlExportEngine::$is_comment_export  = $exportOptions['is_comment_export'];
 	XmlExportEngine::$is_taxonomy_export = $exportOptions['is_taxonomy_export'];
-	XmlExportEngine::$exportID 			= $export_id;
+	XmlExportEngine::$exportID 			 = $export_id;
 
 	if ( class_exists('SitePress') && ! empty(XmlExportEngine::$exportOptions['wpml_lang'])){
 		do_action( 'wpml_switch_language', XmlExportEngine::$exportOptions['wpml_lang'] );
@@ -57,7 +65,7 @@ function pmxe_wp_ajax_wpae_preview(){
 
 		if ( ! empty(XmlExportEngine::$exportOptions['custom_xml_template'])){
 
-			$engine->init_additional_data();		
+			$engine->init_additional_data();
 
 			$engine->init_available_data();
 
