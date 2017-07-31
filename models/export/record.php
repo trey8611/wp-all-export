@@ -286,7 +286,9 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 	}
 
     public static function is_bundle_supported( $options )
-    {	
+    {
+        $options += PMXE_Plugin::get_default_import_options();
+
     	// custom XML template do not support import bundle
     	if ( $options['export_to'] == 'xml' && ! empty($options['xml_template_type']) && in_array($options['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ) return false;
 

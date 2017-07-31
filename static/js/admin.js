@@ -154,7 +154,7 @@
 	}
 
 	var initDraggable = function() {
-		$( "#available_data li:not(.available_sub_section)").draggable({
+		$( "#available_data li:not(.available_sub_section, .wpallexport_disabled)").draggable({
 			appendTo: "body",
 			containment: "document",
 			helper: dragHelper,
@@ -174,7 +174,7 @@
 
 	var resetDraggable = function() {
 
-		var $draggableSelector = $("#available_data li:not(.available_sub_section)");
+		var $draggableSelector = $("#available_data li:not(.available_sub_section, .wpallexport_disabled)");
 
 		if($draggableSelector.data('ui-draggable')){
 			$draggableSelector.draggable('destroy');
