@@ -6,6 +6,9 @@ final Class XmlCsvExport
 
 	public static $node_xml_tag = '';
 
+	/** @var  \Wpae\Csv\CsvWriter */
+	private static $csvWriter;
+
 	public static function export()
 	{
 		switch ( XmlExportEngine::$exportOptions['export_to'] )
@@ -108,7 +111,7 @@ final Class XmlCsvExport
 
 		if ($is_cron) {
 			if ( ! $exported_by_cron ) {
-				fputcsv($stream, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers), XmlExportEngine::$exportOptions['delimiter']);		
+				self::getCsvWriter()->writeCsv($stream, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers), XmlExportEngine::$exportOptions['delimiter']);
 				apply_filters('wp_all_export_after_csv_line', $stream, XmlExportEngine::$exportID);
 			}
 			else {
@@ -118,7 +121,7 @@ final Class XmlCsvExport
 		else
 		{
 			if ($preview or empty(PMXE_Plugin::$session->file)) {
-				fputcsv($stream, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers), XmlExportEngine::$exportOptions['delimiter']);		
+				self::getCsvWriter()->writeCsv($stream, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers), XmlExportEngine::$exportOptions['delimiter']);
 				apply_filters('wp_all_export_after_csv_line', $stream, XmlExportEngine::$exportID);
 			}
 			else {
@@ -133,7 +136,7 @@ final Class XmlCsvExport
                 foreach ($headers as $header) {
                     $line[$header] = (isset($article[$header])) ? $article[$header] : '';
                 }
-                fputcsv($stream, $line, XmlExportEngine::$exportOptions['delimiter']);
+				self::getCsvWriter()->writeCsv($stream, $line, XmlExportEngine::$exportOptions['delimiter']);
                 apply_filters('wp_all_export_after_csv_line', $stream, XmlExportEngine::$exportID);
             }
         }
@@ -634,10 +637,10 @@ final Class XmlCsvExport
 
 			if ( XmlExportEngine::$exportOptions['include_bom'] ) {
                 fwrite($out, chr(0xEF).chr(0xBB).chr(0xBF));
-				fputcsv($out, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers), XmlExportEngine::$exportOptions['delimiter']);
+				self::getCsvWriter()->writeCsv($out, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers), XmlExportEngine::$exportOptions['delimiter']);
 			}
 			else {
-				fputcsv($out, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers), XmlExportEngine::$exportOptions['delimiter']);
+				self::getCsvWriter()->writeCsv($out, array_map(array('XmlCsvExport', '_get_valid_header_name'), $headers), XmlExportEngine::$exportOptions['delimiter']);
 			}						
 
 			apply_filters('wp_all_export_after_csv_line', $out, XmlExportEngine::$exportID);
@@ -652,8 +655,8 @@ final Class XmlCsvExport
 				    $line = array();
 					foreach ($headers as $header) {					
 						$line[$header] = ( isset($data_assoc[$header]) ) ? $data_assoc[$header] : '';	
-					}					
-					fputcsv($out, $line, XmlExportEngine::$exportOptions['delimiter']);
+					}
+					self::getCsvWriter()->writeCsv($out, $line, XmlExportEngine::$exportOptions['delimiter']);
 					apply_filters('wp_all_export_after_csv_line', $out, XmlExportEngine::$exportID);
 				}
 				fclose($in);
@@ -830,4 +833,17 @@ final Class XmlCsvExport
         $xmlWriter->writeData($value, preg_replace('/[^a-z0-9_-]/i', '', $key));
         $xmlWriter->closeElement();
     }
+
+	/**
+	 * @return \Wpae\Csv\CsvWriter
+	 */
+	private static function getCsvWriter()
+	{
+		if(is_null(self::$csvWriter)) {
+			$csvStrategy = apply_filters('wp_all_export_csv_strategy', \Wpae\Csv\CsvWriter::CSV_STRATEGY_DEFAULT);
+			self::$csvWriter = new \Wpae\Csv\CsvWriter($csvStrategy);
+		}
+
+		return self::$csvWriter;
+	}
 }
