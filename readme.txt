@@ -46,6 +46,8 @@ For technical support from the developers, please consider purchasing WP All Exp
 
 * **Export WooCommerce orders:** Export WooCommerce Order item data with WP All Export Pro. Just as with any other custom post type, you can export WooCommerce orders with the free version of WP All Export. However, the order item data is stored by WooCommerce in several custom database tables and this custom data is only accessible with WP All Export Pro.
 
+* **Export Comments:** Export WordPress comments, including WooCommerce reviews and ratings, with WP All Export Pro.
+
 * **Pass data through custom PHP functions:** With WP All Export Pro you can pass your data through a custom function before it is added to your export file. This will allow you to manipulate your data any way you see fit.
 
 * **Guaranteed technical support via e-mail.**
