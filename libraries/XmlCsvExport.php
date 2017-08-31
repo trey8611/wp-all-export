@@ -748,7 +748,7 @@ final Class XmlCsvExport
 			{				
 				foreach ($available_data[$section['content']] as $field) 
 				{					
-					if ( is_array($field) and (isset($field['auto']) or ! in_array('product', $post['cpt']) ))
+					if ( is_array($field) and (isset($field['auto']) or self::isNotProductExport($post['cpt']) ))
 					{							
 						$auto_generate['ids'][] 	   = 1;
 						$auto_generate['cc_label'][]   = is_array($field) ? $field['label'] : $field;
@@ -845,5 +845,14 @@ final Class XmlCsvExport
 		}
 
 		return self::$csvWriter;
+	}
+
+	private static function isNotProductExport($cpt) {
+
+		if(is_array($cpt)) {
+			return !in_array('product', $cpt);
+		} else {
+			return 'product' !== $cpt;
+		}
 	}
 }
