@@ -552,7 +552,6 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 							// $friendly_name = str_replace("per tax", $this->get_rate_friendly_name($tax->order_item_id), $options['cc_name'][$element_key]);							
 							$friendly_name = str_replace(" (per tax)", "", $options['cc_name'][$element_key]);							
 							if ( ! in_array($friendly_name, $headers)) $headers[] = $friendly_name;
-							if ( ! in_array("Rate Name", $headers)) $headers[] = "Rate Name";
 						}
 					}
 
