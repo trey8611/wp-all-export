@@ -1163,7 +1163,7 @@ if ( ! class_exists('XmlExportWooCommerce') )
 
                                 foreach ($attributeOptions as $templateKey => $xpathKey){
 
-                                    if ( ! in_array('{'. $xpathKey . $attribute_name .'[1]}', $templateOptions[$templateKey]) ){
+                                    if ( ! is_array($templateOptions[$templateKey]) || ! in_array('{'. $xpathKey . $attribute_name .'[1]}', $templateOptions[$templateKey]) ){
                                         $templateOptions[$templateKey][]  = '{'. $xpathKey . $attribute_name .'[1]}';
                                     }
                                     else{
@@ -1172,7 +1172,7 @@ if ( ! class_exists('XmlExportWooCommerce') )
                                         do {
                                             $new_element_name = '{'. $xpathKey . $attribute_name .'_'. $i .'[1]}';
 
-                                            if ( ! in_array($new_element_name, $templateOptions[$templateKey]) ) {
+                                            if ( ! is_array($templateOptions[$templateKey]) || ! in_array($new_element_name, $templateOptions[$templateKey]) ) {
                                                 $templateOptions[$templateKey][] = $new_element_name;
                                                 $is_added = true;
                                             }
