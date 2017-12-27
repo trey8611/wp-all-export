@@ -27,26 +27,28 @@ if ( ! class_exists('XmlExportWooCommerce') )
 		private $_woo_data     = array();
 		private $_product_data = array();
 
-		/** @var \Wpae\App\Service\WooCommerceVersion  */
-		private $wooCommerceVersion;
-
 		private static $_existing_attributes = array();					
 
 		public static $is_active = true;
 
 		public function __construct()
 		{
-			$this->_woo_data = array(
-				'_visibility', '_stock_status', '_downloadable', '_virtual', '_regular_price', '_sale_price', '_purchase_note', '_featured', '_weight', '_length',
-				'_width', '_height', '_sku', '_sale_price_dates_from', '_sale_price_dates_to', '_price', '_sold_individually', '_manage_stock', '_stock', '_upsell_ids', '_crosssell_ids',
-				'_downloadable_files', '_download_limit', '_download_expiry', '_download_type', '_product_url', '_button_text', '_backorders', '_tax_status', '_tax_class', '_product_image_gallery', '_default_attributes',
-				'total_sales', '_product_attributes', '_product_version', '_variation_description', '_wc_rating_count', '_wc_review_count', '_wc_average_rating'
-			);
+            $this->_woo_data = array(
+                '_stock_status', '_downloadable', '_virtual', '_regular_price', '_sale_price', '_purchase_note', '_featured', '_weight', '_length',
+                '_width', '_height', '_sku', '_sale_price_dates_from', '_sale_price_dates_to', '_price', '_sold_individually', '_manage_stock', '_stock', '_upsell_ids', '_crosssell_ids',
+                '_downloadable_files', '_download_limit', '_download_expiry', '_download_type', '_product_url', '_button_text', '_backorders', '_tax_status', '_tax_class', '_product_image_gallery', '_default_attributes',
+                'total_sales', '_product_attributes', '_product_version', '_variation_description', '_wc_rating_count', '_wc_review_count', '_wc_average_rating'
+            );
 
-			$this->wooCommerceVersion = new \Wpae\App\Service\WooCommerceVersion();
-			$this->_product_data = array('_sku', '_price', '_regular_price','_sale_price', '_stock_status', '_stock', '_visibility', '_product_url', 'total_sales', 'attributes');
+            $this->_product_data = array('_sku', '_price', '_regular_price','_sale_price', '_stock_status', '_stock', '_product_url', 'total_sales', 'attributes');
 
-			if ( ! class_exists('WooCommerce') 
+            // Old way of managing visibility
+            if(!\Wpae\App\Service\WooCommerceVersion::isWooCommerceNewerThan('3.0')) {
+                $this->_woo_data[] = '_visibility';
+                $this->_product_data[] = '_visibility';
+            }
+
+            if ( ! class_exists('WooCommerce')
 				or ( XmlExportEngine::$exportOptions['export_type'] == 'specific' and ! in_array('product', XmlExportEngine::$post_types) ) 
 					or ( XmlExportEngine::$exportOptions['export_type'] == 'advanced' and strpos(XmlExportEngine::$exportOptions['wp_query'], 'product') === false ) ) {
 				self::$is_active = false;
@@ -333,6 +335,15 @@ if ( ! class_exists('XmlExportWooCommerce') )
 						}						
 					}
 				}
+
+                if(\Wpae\App\Service\WooCommerceVersion::isWooCommerceNewerThan('3.0')) {
+                    $available_data['existing_taxonomies'][] = array(
+                        'name' => 'Product Visibility',
+                        'label' => 'product_visibility',
+                        'type' => 'cats',
+                        'auto' => true
+                    );
+                }
 
 				return $available_data;
 			}		
@@ -749,7 +760,7 @@ if ( ! class_exists('XmlExportWooCommerce') )
 							}
 						}
 
-						if($this->wooCommerceVersion->isWooCommerceNewerThan('3.0')) {
+						if(\Wpae\App\Service\WooCommerceVersion::isWooCommerceNewerThan('3.0')) {
 							if($element_value == '_featured') {
 								if($record->post_type == 'product_variation') {
 									$product = new WC_Product($record->post_parent);
