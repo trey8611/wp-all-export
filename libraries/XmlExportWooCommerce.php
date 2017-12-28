@@ -337,10 +337,10 @@ if ( ! class_exists('XmlExportWooCommerce') )
 				}
 
                 if(\Wpae\App\Service\WooCommerceVersion::isWooCommerceNewerThan('3.0')) {
-                    $available_data['existing_taxonomies'][] = array(
+                    $available_data['product_fields'][] = array(
                         'name' => 'Product Visibility',
                         'label' => 'product_visibility',
-                        'type' => 'cats',
+                        'type' => 'woo',
                         'auto' => true
                     );
                 }
@@ -656,7 +656,12 @@ if ( ! class_exists('XmlExportWooCommerce') )
 						}
 
 						break;
-					
+
+                    case 'product_visibility':
+                        $product = wc_get_product( $record->ID );
+                        $data[$element_name] = apply_filters('pmxe_woo_field', pmxe_filter($product->get_catalog_visibility(), $fieldSnipped), $element_value, $record->ID);
+                        break;
+
 					default:
 
 						$cur_meta_values = get_post_meta($record->ID, $element_value);
@@ -1045,6 +1050,10 @@ if ( ! class_exists('XmlExportWooCommerce') )
                     $templateOptions['custom_name'][] = $element_key;
                     $templateOptions['custom_value'][] = '{'. $element_name .'[1]}';
                     $templateOptions['custom_format'][] = 0;
+                    break;
+                case 'product_visibility':
+                    $templateOptions['is_product_visibility'] = 'xpath';
+                    $templateOptions['single_product_visibility'] = '{'. $element_name .'[1]}';
                     break;
 				case 'attributes':
 						
