@@ -16,6 +16,8 @@
 			return this.hasVariations;
 		},
 		'hasVariations' : false,
+		'availableDataSelector': $('.right.template-sidebar .wpae_available_data'),
+		'availableDataSelectorInModal' : $('fieldset.optionsset .wpae_available_data'),
 		'modeEnabled' : true
 	};
 
@@ -79,17 +81,19 @@
 
 	var dragHelper = function(e, ui) {
 
-		if(!vm.isGoogleMerchantsExport) {
-			return $(this).clone().css("pointer-events","none").appendTo("body").show();
+
+		if(!vm.isGoogleMerchantsExport && !isEditingField) {
+			return $(this).clone().css("pointer-events","none").css('z-index', '99999999999999999').appendTo("body").show();
 		}
-		if(!$(this).find('.custom_column').length) {
-			return $(this).clone().css("pointer-events","none").appendTo("body").show();
+		if(!$(this).find('.custom_column').length && !isEditingField) {
+			return $(this).clone().css("pointer-events","none").css('z-index', '999999999999999999').appendTo("body").show();
 		}
+
 		var elementName = $(this).find('.custom_column').find('input[name^=cc_name]').val();
 		elementName = helpers.sanitizeElementName(elementName);
 		elementName = processElementName($(this), elementName);
 
-		return $('<div>{' + elementName + '}</div>').css("pointer-events","none").appendTo("body").show();
+		return $('<div>{' + elementName + '}</div>').css("pointer-events","none").css('z-index', 9999999999999999).appendTo("body").show();
 
 	};
 
@@ -215,7 +219,7 @@
 	}, 10);
 
 	// help icons
-	$('a.wpallexport-help').tipsy({
+	$('.wpallexport-help').tipsy({
 		gravity: function() {
 			var ver = 'n';
 			if ($(document).scrollTop() < $(this).offset().top - $('.tipsy').height() - 2) {
@@ -249,6 +253,7 @@
 	        lineWrapping: true
 	    });
 	    editor.setCursor(1);
+
 	    $('.CodeMirror').resizable({
 		  resize: function() {
 		    editor.setSize("100%", $(this).height());
@@ -361,7 +366,9 @@
 	});
 
 	$('.wpallexport-collapsed').find('.wpallexport-collapsed-header:not(.disable-jquery)').live('click', function(){
-			var $parent = $(this).parents('.wpallexport-collapsed:first');
+
+		var $parent = $(this).parents('.wpallexport-collapsed:first');
+
 		if ($parent.hasClass('closed')){
 			$parent.find('hr').show();
 			$parent.removeClass('closed');
@@ -858,7 +865,7 @@
 		    	$('.wpallexport-taxonomies-export-notice').hide();
 
 		    	if (selectedData.selectedData.value != ""){
-		    		
+
 		    		$('#file_selector').find('.dd-selected').css({'color':'#555'});
 
 		    		var i = 0;
@@ -1066,6 +1073,10 @@
 			hoverClass: "pmxe-state-hover",
 			accept: ":not(.ui-sortable-helper)",
 			drop: function( event, ui ) {
+
+				if(event.originalEvent.target.nodeName == 'TEXTAREA') {
+					return;
+				}
 				$( this ).find( ".placeholder" ).hide();
 
 				if (ui.draggable.find('input[name^=rules]').length){
@@ -1664,12 +1675,12 @@
                 $(this).find('span').html("+");
             });
             if ( $action == "+" ) {
-                $('.wp_all_export_help_tab').slideUp();
-                $('.wp_all_export_help_tab[rel=' + $(this).attr('id') + ']').slideDown();
+                $('.wp_all_export_help_tab').slideUp({queue:false});
+                $('.wp_all_export_help_tab[rel=' + $(this).attr('id') + ']').slideDown({queue: false});
                 $(this).find('span').html("-");
             }
             else{
-                $('.wp_all_export_help_tab[rel=' + $(this).attr('id') + ']').slideUp();
+                $('.wp_all_export_help_tab[rel=' + $(this).attr('id') + ']').slideUp({queue: false});
                 $(this).find('span').html("+");
             }
         });
@@ -1772,9 +1783,10 @@
 	    	$('ol#columns').find('li:not(.placeholder)').fadeOut().remove();
 	    	$('ol#columns').find('li.placeholder').fadeOut();
 
-	    	if ($('#available_data').find('li.wp_all_export_auto_generate').length)
+
+            if (vm.availableDataSelector.find('li.wp_all_export_auto_generate').length)
 	    	{
-	    		$('#available_data').find('li.wp_all_export_auto_generate, li.pmxe_cats').each(function(i, e){
+	    		vm.availableDataSelector.find('li.wp_all_export_auto_generate, li.pmxe_cats').each(function(i, e){
 		    		var $clone = $(this).clone();
 		    		$clone.attr('rel', i);
 		    		$( "<li></li>" ).html( $clone.html() ).appendTo( $( "#columns_to_export ol" ) );
@@ -1782,7 +1794,7 @@
 	    	}
 	    	else
 	    	{
-	    		$('#available_data').find('div.custom_column').each(function(i, e){
+	    		vm.availableDataSelector.find('div.custom_column').each(function(i, e){
 	    			var $parent = $(this).parent('li');
 		    		var $clone = $parent.clone();
 		    		$clone.attr('rel', i);
@@ -1994,7 +2006,7 @@
 		});
 
 		var height = $(window).height();
-		$('#available_data').find('.wpallexport-xml').css({'max-height': height - 125});
+		vm.availableDataSelector.find('.wpallexport-xml').css({'max-height': height - 125});
 
         // dismiss export template warnings
         $('.wp-all-export-warning').find('.notice-dismiss').click(function(){
@@ -2040,15 +2052,9 @@
     		var postType = $('input[name^=selected_post_type]').val();
 
     		init_filtering_fields();
+			liveFiltering();
 
-    		// if ($('form.edit').length){
-
-    			liveFiltering();
-
-    		// }
-
-		    $('form.choose-export-options').find('input[type=submit]').click(function(e){
-				e.preventDefault();
+		    $(document).on('wpae-scheduling-options-form:submit', function(e){
 
 				$('.hierarhy-output').each(function(){
 					var sortable = $('.wp_all_export_filtering_rules.ui-sortable');
@@ -2057,14 +2063,9 @@
 					}
 				});
 
-				$(this).parents('form:first').submit();
+				$('#wpae-options-form').submit();
 			});
     	}
-
-    	$('.wp_all_export_confirm_and_run').click(function(e){
-			e.preventDefault();
-			$('form.choose-export-options').submit();
-		});
 
     }
 	$('#export_only_new_stuff').click(function(){
@@ -2336,6 +2337,9 @@
 		$('#columns').find('div.active').removeClass('active');
 		$('fieldset.wp-all-export-edit-column').hide();
         $('fieldset.wp-all-export-custom-xml-help').hide();
+        $('fieldset.wp-all-export-scheduling-help').hide();
+
+
 		$(this).hide();
 	});
 
@@ -2459,4 +2463,181 @@
 	}
 
 
+	window.openSchedulingDialog = function(itemId, element, preloaderSrc) {
+		$('.wpallexport-overlay').show();
+		$('.wpallexport-loader').show();
+
+		var $self = element;
+		$.ajax({
+			type: "POST",
+			url: ajaxurl,
+			context: element,
+			data: {
+				'action': 'scheduling_dialog_content',
+				'id': itemId,
+				'security' : wp_all_export_security
+			},
+			success: function (data) {
+
+                $('.wpallexport-loader').hide();
+                $(this).pointer({
+					content: '<div id="scheduling-popup">' + data + '</div>',
+					position: {
+						edge: 'right',
+						align: 'center'
+					},
+					pointerWidth: 815,
+					show: function (event, t) {
+
+						$('.timepicker').timepicker();
+
+						var $leftOffset = ($(window).width() - 715) / 2;
+
+						var $pointer = $('.wp-pointer').last();
+						$pointer.css({'position': 'fixed', 'top': '10%', 'left': $leftOffset + 'px'});
+
+						$pointer.find('a.close').remove();
+						$pointer.find('.wp-pointer-buttons').append('<button class="save-changes button button-primary button-hero wpallexport-large-button" style="float: right; background-image: none;">Save</button>');
+						$pointer.find('.wp-pointer-buttons').append('<button class="close-pointer button button-primary button-hero wpallexport-large-button" style="float: right; background: #F1F1F1 none;text-shadow: 0 0 black; color: #777; margin-right: 10px;">Cancel</button>');
+
+						$(".close-pointer, .wpallexport-overlay").unbind('click').click(function () {
+							$self.pointer('close');
+							$self.pointer('destroy');
+						});
+
+                        if(!window.pmxeHasSchedulingSubscription) {
+                            $('.save-changes ').addClass('disabled');
+                        }
+
+						$(".save-changes").unbind('click').click(function () {
+							if($(this).hasClass('disabled')) {
+								return false;
+							}
+
+							var formValid = pmxeValidateSchedulingForm();
+
+							if (formValid.isValid) {
+
+								var schedulingEnable = $('input[name="scheduling_enable"]:checked').val();
+
+								var formData = $('#scheduling-form').serializeArray();
+								formData.push({name: 'security', value: wp_all_export_security});
+								formData.push({name: 'action', value: 'save_scheduling'});
+								formData.push({name: 'element_id', value: itemId});
+								formData.push({name: 'scheduling_enable', value: schedulingEnable});
+
+								$('.close-pointer').hide();
+								$('.save-changes').hide();
+
+								$('.wp-pointer-buttons').append('<img id="pmxe_button_preloader" style="float:right" src="' + preloaderSrc + '" /> ');
+								$.ajax({
+									type: "POST",
+									url: ajaxurl,
+									data: formData,
+									dataType: "json",
+									success: function (data) {
+										$('#pmxe_button_preloader').remove();
+										$('.close-pointer').show();
+										$(".wpallexport-overlay").trigger('click');
+									},
+									error: function () {
+										alert('There was a problem saving the schedule');
+										$('#pmxe_button_preloader').remove();
+										$('.close-pointer').show();
+										$(".wpallexport-overlay").trigger('click');
+									}
+								});
+
+							} else {
+								alert(formValid.message);
+							}
+							return false;
+						});
+					},
+					close: function () {
+						jQuery('.wpallexport-overlay').hide();
+					}
+				}).pointer('open');
+			},
+			error: function () {
+				alert('There was a problem saving the schedule');
+				$('#pmxe_button_preloader').remove();
+				$('.close-pointer').show();
+				$(".wpallexport-overlay").trigger('click');
+                $('.wpallexport-loader').hide();
+			}
+		});
+	};
+
+    window.pmxeValidateSchedulingForm = function () {
+
+        var schedulingEnabled = $('input[name="scheduling_enable"]:checked').val() == 1;
+
+        if (!schedulingEnabled) {
+            return {
+                isValid: true
+            };
+        }
+
+        var runOn = $('input[name="scheduling_run_on"]:checked').val();
+
+        // Validate weekdays
+        if (runOn == 'weekly') {
+            var weeklyDays = $('#weekly_days').val();
+
+            if (weeklyDays == '') {
+                $('#weekly li').addClass('error');
+                return {
+                    isValid: false,
+                    message: 'Please select at least a day on which the export should run'
+                }
+            }
+        } else if (runOn == 'monthly') {
+            var monthlyDays = $('#monthly_days').val();
+
+            if (monthlyDays == '') {
+                $('#monthly li').addClass('error');
+                return {
+                    isValid: false,
+                    message: 'Please select at least a day on which the export should run'
+                }
+            }
+        }
+
+        // Validate times
+        var timeValid = true;
+        var timeMessage = 'Please select at least a time for the export to run';
+        var timeInputs = $('.timepicker');
+        var timesHasValues = false;
+
+        timeInputs.each(function (key, $elem) {
+
+            if($(this).val() !== ''){
+                timesHasValues = true;
+            }
+
+            if (!$(this).val().match(/^(0?[1-9]|1[012])(:[0-5]\d)[APap][mM]$/) && $(this).val() != '') {
+                $(this).addClass('error');
+                timeValid = false;
+            } else {
+                $(this).removeClass('error');
+            }
+        });
+
+        if(!timesHasValues) {
+            timeValid = false;
+            $('.timepicker').addClass('error');
+        }
+
+        if (!timeValid) {
+            return {
+                isValid: false,
+                message: timeMessage
+            };
+        }
+
+        return {
+            isValid: true
+        };
+    };
 });})(jQuery, window.EventService);

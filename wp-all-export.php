@@ -23,6 +23,13 @@ define('PMXE_ROOT_DIR', str_replace('\\', '/', dirname(__FILE__)));
  */
 define('PMXE_ROOT_URL', rtrim(plugin_dir_url(__FILE__), '/'));
 
+// Enable error reporting in development
+if(getenv('WPAE_DEV')) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    xdebug_disable();
+}
+
 if ( class_exists('PMXE_Plugin') and PMXE_EDITION == "paid"){
 
 	function pmxe_notice(){
@@ -140,11 +147,15 @@ else {
 		 */
 		const CRON_DIRECTORY =  WP_ALL_EXPORT_CRON_DIRECTORY;
 
-		public static $session = null;		
+        const LANGUAGE_DOMAIN = 'wp_all_export_plugin';
+
+        public static $session = null;
 
 		public static $capabilities = 'manage_options';
-		
-		/**
+
+        private static $hasActiveSchedulingLicense = null;
+
+        /**
 		 * Return singletone instance
 		 * @return PMXE_Plugin
 		 */
@@ -155,9 +166,20 @@ else {
 			return self::$instance;
 		}
 
-		static public function getEddName(){
-			return 'WP All Export';
-		}
+        static public function getSchedulingName(){
+            return 'Automatic Scheduling';
+        }
+
+        static public function hasActiveSchedulingLicense() {
+
+            if(is_null(self::$hasActiveSchedulingLicense)) {
+                $scheduling = \Wpae\Scheduling\Scheduling::create();
+                $hasActiveSchedulingLicense = $scheduling->checkLicense();
+                self::$hasActiveSchedulingLicense = $hasActiveSchedulingLicense;
+            }
+
+            return self::$hasActiveSchedulingLicense;
+        }
 
 		/**
 		 * Common logic for requestin plugin info fields
@@ -800,9 +822,17 @@ else {
 			return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') ? true : false ;
 		}
 
-	}
+        public static function encode( $value ){
+            return base64_encode(md5(AUTH_SALT) . $value . md5(md5(AUTH_SALT)));
+        }
 
-	PMXE_Plugin::getInstance();	
+        public static function decode( $encoded ){
+            return preg_match('/^[a-f0-9]{32}$/', $encoded) ? $encoded : str_replace(array(md5(AUTH_SALT), md5(md5(AUTH_SALT))), '', base64_decode($encoded));
+        }
+
+    }
+
+	PMXE_Plugin::getInstance();
 
 	// Include the api front controller
 	include_once('wpae_api.php');

@@ -1,5 +1,4 @@
 <h2 class="wpallexport-wp-notices"></h2>
-
 <div class="wpallexport-wrapper">
     <div class="wpallexport-header">
         <div class="wpallexport-logo"></div>
@@ -615,8 +614,8 @@
             class="wpallexport-add-row-title"><?php _e('Add Field To Export', 'wp_all_export_plugin'); ?></span><span
             class="wpallexport-edit-row-title"><?php _e('Edit Export Field', 'wp_all_export_plugin'); ?></span></div>
 
-	<?php include_once 'template/add_new_field.php'; ?>
-	
+    <?php include_once 'template/add_new_field.php'; ?>
+
 </fieldset>
 
 <fieldset class="optionsset column rad4 wp-all-export-custom-xml-help">
