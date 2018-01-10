@@ -812,9 +812,15 @@ else {
 				'created_at_version' => '',
         		'export_variations' => XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION,
 				'export_variations_title' => XmlExportEngine::VARIATION_USE_PARENT_TITLE,
-				'show_cdata_in_preview' => 0,
 				'include_header_row' => 1,
-				'wpml_lang' => 'all'
+				'wpml_lang' => 'all',
+                'enable_export_scheduling' => 'false',
+                'scheduling_enable' => false,
+                'scheduling_weekly_days' => '',
+                'scheduling_run_on' => 'weekly',
+                'scheduling_monthly_day' => '',
+                'scheduling_times' => array(),
+                'scheduling_timezone' => 'UTC'
 			);
 		}		
 
