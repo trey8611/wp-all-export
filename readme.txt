@@ -1,11 +1,11 @@
 === Export WordPress data to XML/CSV ===
 Contributors: soflyy, wpallimport
 Requires at least: 4.1
-Tested up to: 4.7.4
-Stable tag: 1.1.4
+Tested up to: 4.9
+Stable tag: 1.1.5
 Tags: wordpress csv export, wordpress xml export, xml, csv, datafeed, export, migrate, export csv from wordpress, export xml from wordpress, advanced xml export, advanced csv export, export data, bulk csv export, export custom post type, export woocommerce products, export woocommerce orders, migrate woocommerce, csv export, export csv, xml export, export xml, csv exporter, datafeed
 
-WP All Export is an extremely powerful exporter that makes it easy to export any XML or CSV file from WordPress. 
+WP All Export is an extremely powerful exporter that makes it easy to export any XML or CSV file from WordPress.
 
 == Description ==
 
@@ -14,7 +14,7 @@ WP All Export features a three step export process and an intuitive drag & drop 
 With WP All Export you can: export data for easy editing, migrate content from WordPress to another site, create a WooCommerce affiliate feed, generate filtered lists of WooCommerce orders, export the email addresses of new customers, create and publish customized WordPress RSS feeds - and much more.
 [youtube https://www.youtube.com/watch?v=a-z0R-Ldkqo /]
 
-* **Turn your WordPress data into a customized CSV or XML** 
+* **Turn your WordPress data into a customized CSV or XML**
 
 * **Choose which data to export:** WP All Export's drag and drop interface makes it easy to select exactly which data you'd like to export
 
@@ -33,7 +33,7 @@ For technical support from the developers, please consider purchasing WP All Exp
 **WP All Export Pro** is a paid upgrade that includes premium support and adds the following features:
 
 * **Send your data to 500+ apps:** Full integration with Zapier allows you to send your exported WordPress data to services like Dropbox and Google Drive, to create and update reports in Google Sheets, send email updates, or anything else you can think of. This is especially useful when you export WooCommerce orders to CSV.
-	
+
 	[Read more about WP All Export Pro and Zapier.](https://zapier.com/zapbook/wp-all-export-pro/)
 
 * **Schedule exports to run automatically:** Exports can be configured via cron to run on any schedule you like. You can export new sales every week, recent user sign ups, new affiliate products added to your site, daily product stock reports, etc. Scheduled exports are incredibly powerful and flexible when combined with Zapier.
@@ -45,8 +45,6 @@ For technical support from the developers, please consider purchasing WP All Exp
 * **Export WordPress users:** WP All Export Pro adds the ability to export WordPress users and all custom data associated with them. Available data is organized and cleaned up so you don’t need to know anything about how WordPress stores users in order to export them.
 
 * **Export WooCommerce orders:** Export WooCommerce Order item data with WP All Export Pro. Just as with any other custom post type, you can export WooCommerce orders with the free version of WP All Export. However, the order item data is stored by WooCommerce in several custom database tables and this custom data is only accessible with WP All Export Pro.
-
-* **Export Comments:** Export WordPress comments, including WooCommerce reviews and ratings, with WP All Export Pro.
 
 * **Pass data through custom PHP functions:** With WP All Export Pro you can pass your data through a custom function before it is added to your export file. This will allow you to manipulate your data any way you see fit.
 
@@ -62,7 +60,7 @@ Very often you'll want to edit your data with Microsoft Excel, Google Sheets, Nu
 
 = WordPress XML Exports =
 
-Sometimes you'll want to export your data so that some other tool, software, or service can use it. Very often they will require your data to be formatted as an XML file. XML is very similar to HTML, but you don't need to know anything about that in order to set up an XML export with WP All Export. 
+Sometimes you'll want to export your data so that some other tool, software, or service can use it. Very often they will require your data to be formatted as an XML file. XML is very similar to HTML, but you don't need to know anything about that in order to set up an XML export with WP All Export.
 
 If you want to set up a WordPress XML export all you need to do is select 'XML' when configuring your export template. And just like a CSV export, an XML export will allow you to customize the element names and put them in any order you wish.
 
@@ -79,6 +77,22 @@ Either: -
 * Unzip wp-all-export.zip and upload the contents to /wp-content/plugins/, and then activate the plugin from the Plugins page in WordPress
 
 == Changelog ==
+
+= 1.1.5 =
+* improvement: removed autoload=true from wp_options
+* improvement: WPML options in separate section
+* bug fix: allow underscores in main xml tags
+* bug fix: prevent uploading import template into wpae
+* bug fix: ID column in CSV
+* bug fix: ACF repeater headers
+
+= 1.1.4 =
+* improvement: removed autoload=true from wp_options
+* improvement: WPML options in separate section
+* bug fix: allow underscores in main xml tags
+* bug fix: prevent uploading import template into wpae
+* bug fix: ID column in CSV
+* bug fix: ACF repeater headers
 
 = 1.1.3 =
 * improvement: added post_modified field
@@ -139,9 +153,9 @@ Either: -
 = 1.0.6 =
 * added new filters 'wp_all_export_is_wrap_value_into_cdata', 'wp_all_export_add_before_element', 'wp_all_export_add_after_element'
 * added 'WPML Translation ID' element to available data
-* modified preview to show first 10 records   
+* modified preview to show first 10 records
 * fixed csv export with non comma delimiter
-* fixed conflict with WP Google Maps Pro plugin 
+* fixed conflict with WP Google Maps Pro plugin
 
 = 1.0.5 =
 * fixed misaligned columns on exporting product attributes
@@ -184,7 +198,7 @@ Either: -
 * fixed import template for custom product attributes
 * added new option 'include BOM to export file
 * added RU translation
-* removed hidden post types from dropdown in step 1    
+* removed hidden post types from dropdown in step 1
 
 = 1.0.1 =
 * fixed export taxonomy: name instead of slug
