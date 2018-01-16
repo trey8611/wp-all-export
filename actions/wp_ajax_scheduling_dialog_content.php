@@ -462,7 +462,7 @@ function pmxe_wp_ajax_scheduling_dialog_content()
                         formData.push({name: 'action', value: 'save_scheduling'});
                         formData.push({name: 'element_id', value: <?php echo $export_id; ?>});
                         formData.push({name: 'scheduling_enable', value: schedulingEnable});
-                        console.log(formData);
+
                         $.ajax({
                             type: 'POST',
                             url: ajaxurl,
@@ -714,7 +714,7 @@ function pmxe_wp_ajax_scheduling_dialog_content()
                             </label>
                         </div>
                         <input type="hidden" name="scheduling_monthly_days"
-                               value="<?php echo isset($post['scheduling_monthly_days']) ? $post['scheduling_monthly_days'] : ''; ?>" id="monthly_days"/>
+                               value="<?php echo $post['scheduling_monthly_days']; ?>" id="monthly_days"/>
                         <?php
                         if (isset($post['scheduling_monthly_days'])) {
                             $monthlyArray = explode(',', $post['scheduling_monthly_days']);

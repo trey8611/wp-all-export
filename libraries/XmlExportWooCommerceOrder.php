@@ -200,14 +200,15 @@ if ( ! class_exists('XmlExportWooCommerceOrder') )
 
 			if ( ! self::$is_active || empty(XmlExportEngine::$exportQuery)) return;
 
-            $in_orders = preg_replace("%(SQL_CALC_FOUND_ROWS|LIMIT.*)%", "", XmlExportEngine::$exportQuery->request);
+			global $wpdb;
+
+			$table_prefix = $wpdb->prefix;
+
+			$in_orders = preg_replace("%(SQL_CALC_FOUND_ROWS|LIMIT.*)%", "", XmlExportEngine::$exportQuery->request);
+			$in_orders = str_replace("{$table_prefix}posts.*", "{$table_prefix}posts.ID", $in_orders);
 
             if ( ! empty($in_orders) ){
-
-                global $wpdb;
-
-                $table_prefix = $wpdb->prefix;
-
+				
                 if ( empty(self::$orders_data['line_items_max_count']) ){
                     self::$orders_data['line_items_max_count'] = $wpdb->get_var($wpdb->prepare("SELECT max(cnt) as line_items_count FROM ( 
 					SELECT order_id, COUNT(*) as cnt FROM {$table_prefix}woocommerce_order_items 

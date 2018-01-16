@@ -339,6 +339,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin
                     if(isset($this->default_language)){
                         if ($code == $this->default_language) $language_list[$code] .= ' ( <strong>default</strong> )';
                     }
+
                 }
             }
             $this->data['wpml_options'] = $language_list;
@@ -364,7 +365,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin
             } else {
                 $exportId = false;
             }
-
+            
             if(!$exportId) {
                 $export = $this->data['update_previous'];
                 $export->set(

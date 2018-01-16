@@ -421,8 +421,6 @@ $options = \PMXE_Plugin::getInstance()->getOption();
                     formData.push({name: 'element_id', value: <?php echo $export_id; ?>});
                     formData.push({name: 'scheduling_enable', value: $('input[name="scheduling_enable"]:checked').val()});
 
-                    $(this).find('.easing-spinner').toggle();
-
                     $.ajax({
                         type: 'POST',
                         url: ajaxurl,
