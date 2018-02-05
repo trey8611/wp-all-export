@@ -82,6 +82,8 @@
 	var dragHelper = function(e, ui) {
 
 
+		var isEditingField = $('#combine_multiple_fields_data').find(e.currentTarget).length;
+
 		if(!vm.isGoogleMerchantsExport && !isEditingField) {
 			return $(this).clone().css("pointer-events","none").css('z-index', '99999999999999999').appendTo("body").show();
 		}
@@ -158,27 +160,34 @@
 	}
 
 	var initDraggable = function() {
-		$( "#available_data li:not(.available_sub_section, .wpallexport_disabled)").draggable({
-			appendTo: "body",
-			containment: "document",
-			helper: dragHelper,
-			drag: onDrag,
-			start: function() {
-				$('.google-merchants-droppable').css('cursor', 'copy');
-				$('#columns').css('cursor', 'copy');
-				$('.CodeMirror-lines').css('cursor', 'copy');
-			},
-			stop: function() {
-				$('#columns').css('cursor', 'initial');
-				$('.CodeMirror-lines').css('cursor', 'text');
-				$('.google-merchants-droppable').css('cursor', 'initial');
-			}
-		});
+		function initGeneralDraggable($element) {
+			$element.find("li:not(.available_sub_section)").draggable({
+				appendTo: "body",
+				containment: "document",
+				helper: dragHelper,
+				drag: onDrag,
+				start: function () {
+					$('.google-merchants-droppable').css('cursor', 'copy');
+					$('#columns').css('cursor', 'copy');
+					$('.CodeMirror-lines').css('cursor', 'copy');
+					$('#combine_multiple_fields_value').css('cursor', 'copy');
+				},
+				stop: function () {
+					$('#columns').css('cursor', 'initial');
+					$('.CodeMirror-lines').css('cursor', 'text');
+					$('.google-merchants-droppable').css('cursor', 'initial');
+					$('#combine_multiple_fields_value').css('cursor', 'initial');
+				}
+			});
+		}
+
+		initGeneralDraggable(vm.availableDataSelector);
+		initGeneralDraggable(vm.availableDataSelectorInModal);
 	};
 
 	var resetDraggable = function() {
 
-		var $draggableSelector = $("#available_data li:not(.available_sub_section, .wpallexport_disabled)");
+		var $draggableSelector = vm.availableDataSelector.find("li:not(.available_sub_section)");
 
 		if($draggableSelector.data('ui-draggable')){
 			$draggableSelector.draggable('destroy');
@@ -1202,7 +1211,17 @@
 		$addAnother.click(function(){
 
 			$addAnotherForm.find('form')[0].reset();
-			$addAnotherForm.find('input[type=checkbox]').removeAttr('checked');
+			$addAnotherForm.find('.column_name').val('ID');
+
+            $addAnotherForm.find('input[name="combine_multiple_fields"][value="0"]').prop('checked',true).trigger('click');
+            //$addAnotherForm.find('input[name="combine_multiple_fields"]').trigger('change');
+
+            // Reset custom field
+            $('#combine_multiple_fields_value_container').hide();
+            $('#combine_multiple_fields_data').hide();
+            $('.export-single').show();
+            $('.single-field-options').show();
+            $('.php_snipped').show();
 
 			$addAnotherForm.removeAttr('rel');
 			$addAnotherForm.removeClass('dc').addClass('cc');
@@ -1442,6 +1461,24 @@
 				$addAnotherForm.find('#coperate_php').parents('div.input:first').find('div[class^=switcher-target]').hide();
 			}
 
+			var $isCombineMultipleFieldsIntoOne = $(this).find('input[name^=cc_combine_multiple_fields]').val();
+
+			if($isCombineMultipleFieldsIntoOne == "1") {
+				$addAnotherForm.find('input[name="combine_multiple_fields"][value="1"]').attr('checked', true);
+				$addAnotherForm.find('#combine_multiple_fields_value').val($(this).find('input[name^=cc_combine_multiple_fields_value]').val());
+
+				$('#combine_multiple_fields_value_container').show();
+				$('#combine_multiple_fields_data').show();
+				$('.export-single').hide();
+			} else {
+				$addAnotherForm.find('input[name="combine_multiple_fields"][value="0"]').attr('checked', true);
+
+				$('#combine_multiple_fields_value_container').hide();
+				$('#combine_multiple_fields_data').hide();
+				$('.export-single').show();
+
+			}
+
 			$addAnotherForm.find('#coperate_php').parents('div.input:first').find('.php_code').val($php_code.val());
 
 			var $options = $(this).find('input[name^=cc_options]').val();
@@ -1561,6 +1598,9 @@
 			$addAnotherForm.show();
 			$('.wpallexport-overlay').show();
 
+			var availableDataHeight = $('.wp-all-export-edit-column.cc').height()- 200;
+			$addAnotherForm.find('.wpallexport-pointer-data.available-data').css('max-height', availableDataHeight);
+
 		});
 
 		// Preview export file
@@ -1574,7 +1614,7 @@
 	                edge: 'right',
 	                align: 'center'
 	            },
-	            pointerWidth: 715,
+	            pointerWidth: 850,
 	            close: function() {
 	                $.post( ajaxurl, {
 	                    pointer: 'pksn1',
@@ -1586,9 +1626,9 @@
 
 	        var $pointer = $('.wpallexport-pointer-preview').parents('.wp-pointer').first();
 
-	        var $leftOffset = ($(window).width() - 715)/2;
+	        var $leftOffset = ($(window).width() - 850)/2;
 
-	        $pointer.css({'position':'absolute', 'top' : '15%', 'left' : $leftOffset + 'px'});
+	        $pointer.css({'position':'fixed', 'top' : '15%', 'left' : $leftOffset + 'px'});
 
 			var request = {
 				action: 'wpae_preview',
@@ -1725,7 +1765,7 @@
 			var $tr = $(this).parent().parent().filter('tr.xml-element').next()[method]('collapsed');
 		});
 
-		$('.wp-all-export-edit-column').css('left', ($( document ).width()/2) - 355 );
+		$('.wp-all-export-edit-column').css('left', ($( document ).width()/2) - 432);
 
 	    var wp_all_export_config = {
 	      '.wp-all-export-chosen-select' : {width:"50%"}
@@ -1745,6 +1785,9 @@
 						break;
 					case 'sql':
 						$('.sql_field_type').show();
+						break;
+					case 'content':
+						$('.content_field_type').show();
 						break;
 					case 'woo':
 							switch (selected_value){

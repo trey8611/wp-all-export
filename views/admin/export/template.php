@@ -588,7 +588,7 @@
 		
 		<td class="right template-sidebar" style="position: relative; width: 18%; right: 0px; padding: 0;">										
 
-			<fieldset id="available_data" class="optionsset rad4">
+			<fieldset id="available_data" class="optionsset rad4 wpae_available_data">
 
 				<div class="title"><?php _e('Available Data', 'wp_all_export_plugin'); ?></div>				
 
