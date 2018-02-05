@@ -619,7 +619,7 @@ function pmxe_wp_ajax_scheduling_dialog_content()
     <?php require __DIR__.'/../src/Scheduling/views/CommonJs.php'; ?>
     <div id="post-preview" class="wpallexport-preview wpallexport-scheduling-dialog">
         <p class="wpallexport-preview-title"><strong>Scheduling Options</strong></p>
-        <div class="wpallexport-preview-content" style="max-height: 500px; overflow: visible;">
+        <div class="wpallexport-preview-content" style="max-height: 600px; overflow: visible;">
 
             <div style="margin-bottom: 20px;">
                 <label>
