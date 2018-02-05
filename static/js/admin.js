@@ -1252,7 +1252,7 @@
 		// Add/Edit custom column action
 		$addAnotherForm.find('.save_action').click(function(event){
 
-			if($(this).hasClaass('disabled')) {
+			if($(this).hasClass('disabled')) {
 				event.preventDefault();
 				event.stopImmediatePropagation();
 				return false;
