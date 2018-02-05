@@ -46,22 +46,6 @@
 
 <form name="settings" class="settings" method="post" action="<?php echo $this->baseUrl ?>">
 
-	<h3><?php _e('Cron Exports', 'wp_all_export_plugin') ?></h3>
-	
-	<table class="form-table">
-		<tbody>
-			<tr>
-				<th scope="row"><label><?php _e('Secret Key', 'wp_all_export_plugin'); ?></label></th>
-				<td>
-					<input type="text" class="regular-text" name="cron_job_key" value="<?php echo esc_attr($post['cron_job_key']); ?>"/>
-					<p class="description"><?php _e('Changing this will require you to re-create your existing cron jobs.', 'wp_all_export_plugin'); ?></p>
-				</td>
-			</tr>			
-		</tbody>
-	</table>	
-
-	<div class="clear"></div>
-	
 	<h3><?php _e('Files', 'wp_all_export_plugin') ?></h3>
 	
 	<table class="form-table">
