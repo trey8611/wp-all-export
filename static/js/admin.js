@@ -316,9 +316,6 @@
 		var is_show = $(this).is(':checked'); if ($(this).is('.switcher-reversed')) is_show = ! is_show;
 		if (is_show) {
 			$targets.fadeIn('fast', function(){
-				if ($switcherID == 'coperate_php'){
-					editor.setCursor(1);
-				}
 			});
 		} else {
 			$targets.hide().find('.clear-on-switch').add($targets.filter('.clear-on-switch')).val('');
@@ -1253,8 +1250,13 @@
 		});
 
 		// Add/Edit custom column action
-		$addAnotherForm.find('.save_action').click(function(){
+		$addAnotherForm.find('.save_action').click(function(event){
 
+			if($(this).hasClaass('disabled')) {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				return false;
+			}
 			var $save = true;
 
 			// element name in exported file
@@ -1586,7 +1588,7 @@
 
 	        var $leftOffset = ($(window).width() - 715)/2;
 
-	        $pointer.css({'position':'fixed', 'top' : '15%', 'left' : $leftOffset + 'px'});
+	        $pointer.css({'position':'absolute', 'top' : '15%', 'left' : $leftOffset + 'px'});
 
 			var request = {
 				action: 'wpae_preview',
@@ -2494,7 +2496,7 @@
 						var $leftOffset = ($(window).width() - 715) / 2;
 
 						var $pointer = $('.wp-pointer').last();
-						$pointer.css({'position': 'fixed', 'top': '10%', 'left': $leftOffset + 'px'});
+						$pointer.css({'position': 'absolute', 'top': '50px', 'left': $leftOffset + 'px'});
 
 						$pointer.find('a.close').remove();
 						$pointer.find('.wp-pointer-buttons').append('<button class="save-changes button button-primary button-hero wpallexport-large-button" style="float: right; background-image: none;">Save</button>');

@@ -3506,6 +3506,22 @@ a.wpallexport-import-to-format span.wpallexport-import-to-title {
 	color: #777 !important;
 	padding: 9px 15px 9px 30px;
 }
+
+.wpallexport-plugin .save_action.disabled,
+.wpallexport-plugin .delete_action.disabled,
+.wpallexport-plugin .preview_action.disabled,
+.wpallexport-plugin .close_action.disabled{
+	background: #e4e6e6;
+	cursor: default !important;
+	color: #777 !important
+}
+
+.wpallexport-plugin .save_action.disabled:focus,
+.wpallexport-plugin .preview_action.disabled:focus
+{
+	outline: none;
+}
+
 .wpallexport-plugin .wpae-custom-field ul li{
 	margin-left: 15px;
 }

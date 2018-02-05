@@ -25,9 +25,9 @@ define('PMXE_ROOT_URL', rtrim(plugin_dir_url(__FILE__), '/'));
 
 // Enable error reporting in development
 if(getenv('WPAE_DEV')) {
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-    xdebug_disable();
+    //error_reporting(E_ALL);
+    //ini_set('display_errors', 1);
+    //xdebug_disable();
 }
 
 if ( class_exists('PMXE_Plugin') and PMXE_EDITION == "paid"){

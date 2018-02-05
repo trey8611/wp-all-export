@@ -70,23 +70,6 @@
 				$uploads = wp_upload_dir();
 				$functions = $uploads['basedir'] . DIRECTORY_SEPARATOR . WP_ALL_EXPORT_UPLOADS_BASE_DIRECTORY . DIRECTORY_SEPARATOR . 'functions.php';				
 			?>
-
-			<div class="input" style="margin-top: 10px;">
-
-				<h4><?php _e('Function Editor', 'wp_all_export_plugin');?><a href="#help" class="wpallexport-help" title="<?php printf(__("Add functions here for use during your export. You can access this file at %s", "wp_all_export_plugin"), preg_replace("%.*wp-content%", "wp-content", $functions));?>" style="top: 0;">?</a></h4>
-				
-			</div>									
-
-			<textarea id="wp_all_export_code" name="wp_all_export_code"><?php echo "<?php\n\n?>";?></textarea>						
-
-			<div class="input" style="margin-top: 10px;">
-
-				<div class="input" style="display:inline-block; margin-right: 20px;">
-					<input type="button" class="button-primary wp_all_export_save_functions" disabled="disabled" value="<?php _e("Save Functions", 'wp_all_export_plugin'); ?>"/>							
-					<div class="wp_all_export_functions_preloader"></div>
-				</div>						
-				<div class="input wp_all_export_saving_status" style="display:inline-block;"></div>
-			</div>					
 		</div>												
 	</div>				
 </div>
