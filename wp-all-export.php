@@ -469,71 +469,77 @@ else {
 			return $this->_admin_current_screen;
 		}
 
-		/**
-		 * Autoloader
-		 * It's assumed class name consists of prefix folloed by its name which in turn corresponds to location of source file
-		 * if `_` symbols replaced by directory path separator. File name consists of prefix folloed by last part in class name (i.e.
-		 * symbols after last `_` in class name)
-		 * When class has prefix it's source is looked in `models`, `controllers`, `shortcodes` folders, otherwise it looked in `core` or `library` folder
-		 *
-		 * @param string $className
-		 * @return bool
-		 */
-		public function autoload($className) {
+        /**
+         * Autoloader
+         * It's assumed class name consists of prefix folloed by its name which in turn corresponds to location of source file
+         * if `_` symbols replaced by directory path separator. File name consists of prefix folloed by last part in class name (i.e.
+         * symbols after last `_` in class name)
+         * When class has prefix it's source is looked in `models`, `controllers`, `shortcodes` folders, otherwise it looked in `core` or `library` folder
+         *
+         * @param string $className
+         * @return bool
+         */
+        public function autoload($className) {
 
-			$is_prefix = false;
-			$filePath = str_replace('_', '/', preg_replace('%^' . preg_quote(self::PREFIX, '%') . '%', '', strtolower($className), 1, $is_prefix)) . '.php';
-			if ( ! $is_prefix) { // also check file with original letter case
-				$filePathAlt = $className . '.php';
-			}
-			foreach ($is_prefix ? array('models', 'controllers', 'shortcodes', 'classes') : array('libraries') as $subdir) {
-				$path = self::ROOT_DIR . '/' . $subdir . '/' . $filePath;
-				if (is_file($path)) {
-					require $path;
-					return TRUE;
-				}
-				if ( ! $is_prefix) {
-					$pathAlt = self::ROOT_DIR . '/' . $subdir . '/' . $filePathAlt;
-					if(strpos($className, '_') !== false) {
-						$pathAlt = str_replace('_',DIRECTORY_SEPARATOR, $pathAlt);
-					}
-					if (is_file($pathAlt)) {
-						require $pathAlt;
-						return TRUE;
-					}
-				}
-			}
+            $is_prefix = false;
+            $filePath = str_replace('_', '/', preg_replace('%^' . preg_quote(self::PREFIX, '%') . '%', '', strtolower($className), 1, $is_prefix)) . '.php';
+            if ( ! $is_prefix) { // also check file with original letter case
+                $filePathAlt = $className . '.php';
+            }
+            foreach ($is_prefix ? array('models', 'controllers', 'shortcodes', 'classes') : array('libraries') as $subdir) {
+                $path = self::ROOT_DIR . '/' . $subdir . '/' . $filePath;
+                if (is_file($path)) {
+                    require_once $path;
+                    return TRUE;
+                }
+                if ( ! $is_prefix) {
+                    $pathAlt = self::ROOT_DIR . '/' . $subdir . '/' . $filePathAlt;
+                    if(strpos($className, '_') !== false) {
+                        $pathAlt = $this->lreplace('_',DIRECTORY_SEPARATOR, $pathAlt);
+                    }
+                    if (is_file($pathAlt)) {
+                        require_once $pathAlt;
+                        return TRUE;
+                    }
+                }
+            }
+            if($className === 'CdataStrategyFactory') {
+                //TODO: Move this to a namespace
+                require_once (self::ROOT_DIR . '/classes/CdataStrategyFactory.php');
+            }
 
-			if(strpos($className, '\\') !== false){
-				// project-specific namespace prefix
-				$prefix = 'Wpae\\';
 
-				// base directory for the namespace prefix
-				$base_dir = self::ROOT_DIR . '/src/';
+            if(strpos($className, '\\') !== false){
 
-				// does the class use the namespace prefix?
-				$len = strlen($prefix);
-				if (strncmp($prefix, $className, $len) !== 0) {
-					// no, move to the next registered autoloader
-					return;
-				}
+                // project-specific namespace prefix
+                $prefix = 'Wpae\\';
 
-				// get the relative class name
-				$relative_class = substr($className, $len);
+                // base directory for the namespace prefix
+                $base_dir = self::ROOT_DIR . '/src/';
 
-				// replace the namespace prefix with the base directory, replace namespace
-				// separators with directory separators in the relative class name, append
-				// with .php
-				$file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+                // does the class use the namespace prefix?
+                $len = strlen($prefix);
+                if (strncmp($prefix, $className, $len) !== 0) {
+                    // no, move to the next registered autoloader
+                    return;
+                }
 
-				// if the file exists, require it
-				if (file_exists($file)) {
-					require $file;
-				}
-			}
-			
-			return FALSE;
-		}
+                // get the relative class name
+                $relative_class = substr($className, $len);
+
+                // replace the namespace prefix with the base directory, replace namespace
+                // separators with directory separators in the relative class name, append
+                // with .php
+                $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+
+                // if the file exists, require it
+                if (file_exists($file)) {
+                    require_once $file;
+                }
+            }
+
+            return FALSE;
+        }
 
 		/**
 		 * Get plugin option
@@ -836,6 +842,23 @@ else {
             return preg_match('/^[a-f0-9]{32}$/', $encoded) ? $encoded : str_replace(array(md5(AUTH_SALT), md5(md5(AUTH_SALT))), '', base64_decode($encoded));
         }
 
+
+        /**
+         * Replace last occurence of string
+         * Used in autoloader, that's not muved in string class
+         *
+         * @param $search
+         * @param $replace
+         * @param $subject
+         * @return mixed
+         */
+        private function lreplace($search, $replace, $subject){
+            $pos = strrpos($subject, $search);
+            if($pos !== false){
+                $subject = substr_replace($subject, $replace, $pos, strlen($search));
+            }
+            return $subject;
+        }
     }
 
 	PMXE_Plugin::getInstance();
