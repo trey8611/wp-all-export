@@ -668,9 +668,10 @@ $options = \PMXE_Plugin::getInstance()->getOption();
                                 </span>
                                 <?php if (!$scheduling->checkConnection() && $hasActiveLicense) { ?>
                                     <span style="margin-left: 25px; display: inline-block; font-weight: normal;">
-                                Unable to connect to the scheduling Service. Please contact support at <a
-                                                href="http://wpallimport.com/support"
-                                                onclick="return false;">http://wpallimport.com/support</a>
+                                                                    <span <?php if (!$scheduling->checkConnection() && $scheduling->checkLicense()) { ?> style="color: #f2b03d;" <?php } ?>>Unable to connect -</span>
+<a style="text-decoration: underline; color: #0073aa;"
+   href="http://wpallimport.com/support"
+   target="_blank">please contact support</a>.
                             </span>
                                 <?php } ?>
                             </h4>
@@ -679,12 +680,6 @@ $options = \PMXE_Plugin::getInstance()->getOption();
                     <div style="margin-bottom: 10px; margin-left:26px;">
                         <label>
                             <?php _e('Run this export on a schedule.'); ?>
-                            <?php if($hasActiveLicense) { ?>
-                            <a href="#" class="help_scheduling"
-                               style="margin-left: 2px; position: relative;">
-                                <img style="width: 17px; top: -1px; position: absolute;" src="<?php echo PMXE_ROOT_URL; ?>/static/img/s-question.png" />
-                            </a>
-                            <?php } ?>
                         </label>
                     </div>
                     <div id="automatic-scheduling"
