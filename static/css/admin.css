@@ -3513,7 +3513,7 @@ a.wpallexport-import-to-format span.wpallexport-import-to-title {
 .wpallexport-plugin .close_action.disabled{
 	background: #e4e6e6;
 	cursor: default !important;
-	color: #777 !important
+	color: #B3B3B3 !important
 }
 
 .wpallexport-plugin .save_action.disabled:focus,

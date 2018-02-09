@@ -177,8 +177,6 @@
     <div class="input wp-all-export-edit-column-buttons">
         <input type="button" class="close_action" value="<?php _e("Cancel", "wp_all_export_plugin"); ?>"
                style="border: none;"/>
-        <input type="button" class="preview_action disabled" value="<?php _e("Preview", "wp_all_export_plugin"); ?>"
-               style="border: none; margin-left: 195px;"/>
         <input type="button" class="delete_action" value="<?php _e("Delete", "wp_all_export_plugin"); ?>"
                style="border: none;"/>
         <input type="button" class="save_action" value="<?php _e("Save", "wp_all_export_plugin"); ?>"
