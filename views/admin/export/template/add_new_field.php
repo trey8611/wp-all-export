@@ -64,7 +64,7 @@
                     $('.php_snipped').slideDown();
                     $('.single-field-options').slideDown();
                     $('.column_name').val($('select[name="column_value_type"]').find('option:selected').text());
-                    $('.wp-all-export-advanced-field-options-content').hide();
+                    $('.wp-all-export-advanced-field-options-content').show();
 
                     $('.wpallexport-plugin .save_action').removeClass('disabled');
                 }
