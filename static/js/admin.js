@@ -2227,30 +2227,37 @@
 		else
 			$('#wp_all_export_value').show();
 	});
-    
+
     // auot-generate zapier API key
     $('input[name=pmxe_generate_zapier_api_key]').click(function(e){
 
     	e.preventDefault();
 
-    	var request = {
-			action: 'generate_zapier_api_key',
-			security: wp_all_export_security
-	    };
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        $(this).addClass('ahashakeheartache');
+        setTimeout(function(){
+            $('.generate-zapier-api-key').removeClass('ahashakeheartache');
+            return false;
+        },200);
 
-		$.ajax({
-			type: 'POST',
-			url: get_valid_ajaxurl(),
-			data: request,
-			success: function(response) {
-				$('input[name=zapier_api_key]').val(response.api_key);
-			},
-			error: function( jqXHR, textStatus ) {
+        $('.zapier-upgrade').slideDown();
 
-			},
-			dataType: "json"
-		});
     });
+
+    $('.CodeMirror').click(function(e){
+    	e.preventDefault();
+        $('.php-functions-upgrade').slideDown();
+	});
+
+    $('.wp_all_export_save_functions').click(function(e){
+        $('.wp_all_export_save_functions_container').addClass('ahashakeheartache');
+        setTimeout(function(){
+            $('.wp_all_export_save_functions_container').removeClass('ahashakeheartache');
+            $('.php-functions-upgrade').slideDown();
+            return false;
+        },200);
+	});
 
     var $tmp_xml_template = '';
     var $xml_template_first_load = true;

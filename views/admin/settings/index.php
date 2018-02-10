@@ -1,3 +1,43 @@
+<style type="text/css">
+    .ahashakeheartache {
+        -webkit-animation: kf_shake 0.4s 1 linear;
+        -moz-animation: kf_shake 0.4s 1 linear;
+        -o-animation: kf_shake 0.4s 1 linear;
+    }
+    @-webkit-keyframes kf_shake {
+        0% { -webkit-transform: translate(30px); }
+        20% { -webkit-transform: translate(-30px); }
+        40% { -webkit-transform: translate(15px); }
+        60% { -webkit-transform: translate(-15px); }
+        80% { -webkit-transform: translate(8px); }
+        100% { -webkit-transform: translate(0px); }
+    }
+    @-moz-keyframes kf_shake {
+        0% { -moz-transform: translate(30px); }
+        20% { -moz-transform: translate(-30px); }
+        40% { -moz-transform: translate(15px); }
+        60% { -moz-transform: translate(-15px); }
+        80% { -moz-transform: translate(8px); }
+        100% { -moz-transform: translate(0px); }
+    }
+    @-o-keyframes kf_shake {
+        0% { -o-transform: translate(30px); }
+        20% { -o-transform: translate(-30px); }
+        40% { -o-transform: translate(15px); }
+        60% { -o-transform: translate(-15px); }
+        80% { -o-transform: translate(8px); }
+        100% { -o-origin-transform: translate(0px); }
+    }
+</style>
+<script>
+    jQuery(document).ready(function(){
+        var $ = jQuery;
+        $('.generate-zapier-api-key').click(function(event){
+
+
+        })
+    });
+</script>
 <form class="settings" method="post" action="<?php echo $this->baseUrl ?>" enctype="multipart/form-data">
 
     <div class="wpallexport-header">
@@ -67,7 +107,12 @@
 				</td>
 			</tr>			
 		</tbody>
-	</table>	
+	</table>
+    <p class="submit-buttons">
+        <?php wp_nonce_field('edit-settings', '_wpnonce_edit-settings') ?>
+        <input type="hidden" name="is_settings_submitted" value="1" />
+        <input type="submit" class="button-primary" value="Save Settings" />
+    </p>
 
 	<h3><?php _e('Zapier Integration', 'wp_all_export_plugin') ?></h3>
 	
@@ -82,27 +127,20 @@
 			<tr>
 				<th scope="row"><label><?php _e('API Key', 'wp_all_export_plugin'); ?></label></th>
 				<td>
-					<input type="text" class="regular-text" name="zapier_api_key" readOnly="readOnly" value="<?php if (!empty($post['zapier_api_key'])) esc_attr_e( $post['zapier_api_key'] ); ?>"/>					
-					<input type="submit" class="button-secondary" name="pmxe_generate_zapier_api_key" value="<?php _e('Generate New API Key', 'wp_all_export_plugin'); ?>"/>
+					<input type="text" class="regular-text" name="zapier_api_key" readOnly="readOnly" value=""/>
+					<input type="submit" class="button-secondary generate-zapier-api-key" name="pmxe_generate_zapier_api_key" value="<?php _e('Generate API Key', 'wp_all_export_plugin'); ?>"/>
 					<p class="description"><?php _e('Changing the key will require you to update your existing Zaps on Zapier.', 'wp_all_export_plugin'); ?></p>
 				</td>
 			</tr>											
 		</tbody>
 	</table>	
 
-	<div class="wpallexport-free-edition-notice" style="margin: 15px 0; padding: 20px;">
+	<div class="wpallexport-free-edition-notice zapier-upgrade" style="margin: 15px 0; padding: 20px; display: none;">
 		<a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=custom-php&utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export for Zapier Integration','wp_all_export_plugin');?></a>
 		<p><?php _e('If you already own it, remove the free edition and install the Pro edition.', 'wp_all_export_plugin'); ?></p>
 	</div>
 
-	<div class="clear"></div>	
-
-	<p class="submit-buttons">
-		<?php wp_nonce_field('edit-settings', '_wpnonce_edit-settings') ?>
-		<input type="hidden" name="is_settings_submitted" value="1" />
-		<input type="submit" class="button-primary" value="Save Settings" />
-	</p>
-
+	<div class="clear"></div>
 </form>
 
 <form name="settings" method="post" action="" class="settings">
@@ -157,15 +195,15 @@
 <h3><?php _e('Function Editor', 'pmxe_plugin') ?></h3>
 
 <textarea id="wp_all_export_code" name="wp_all_export_code"><?php echo "<?php\n\n?>";?></textarea>						
-<div class="wpallexport-free-edition-notice" style="margin: 15px 0; padding: 20px;">
+<div class="wpallexport-free-edition-notice php-functions-upgrade" style="margin: 15px 0; padding: 20px; display: none;">
 	<a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=custom-php&utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to enable the Function Editor','wp_all_export_plugin');?></a>
 	<p><?php _e('If you already own it, remove the free edition and install the Pro edition.', 'wp_all_export_plugin'); ?></p>
 </div>
 
 <div class="input" style="margin-top: 10px;">
 
-	<div class="input" style="display:inline-block; margin-right: 20px;">
-		<input type="button" class="button-primary wp_all_export_save_functions" disabled="disabled" value="<?php _e("Save Functions", 'wp_all_export_plugin'); ?>"/>
+	<div class="input wp_all_export_save_functions_container" style="display:inline-block; margin-right: 20px;">
+		<input type="button" class="button-primary wp_all_export_save_functions" value="<?php _e("Save Functions", 'wp_all_export_plugin'); ?>"/>
 		<a href="#help" class="wpallexport-help" title="<?php printf(__("Add functions here for use during your export. You can access this file at %s", "wp_all_export_plugin"), preg_replace("%.*wp-content%", "wp-content", $functions));?>" style="top: 0;">?</a>
 		<div class="wp_all_export_functions_preloader"></div>
 	</div>						
