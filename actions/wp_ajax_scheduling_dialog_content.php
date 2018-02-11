@@ -649,7 +649,7 @@ function pmxe_wp_ajax_scheduling_dialog_content()
             </div>
             <form id="scheduling-form">
                 <div style="margin-bottom: 10px; margin-left:26px;">
-                    <label>
+                    <label style="font-size: 13px;">
                         <?php _e('Run this export on a schedule.'); ?>
                     </label>
                 </div>

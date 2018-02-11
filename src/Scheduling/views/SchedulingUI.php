@@ -555,13 +555,13 @@ $export_id = $export->id;
    href="http://wpallimport.com/support"
    target="_blank">please contact support</a>.
                             </span>
-                            <?php } ?>
+                            <?php } ?>Run this
                         </h4>
                     </label>
                 </div>
 
                 <div style="margin-bottom: 10px; margin-left:26px;">
-                    <label>
+                    <label style="font-size: 13px;">
                         <?php _e('Run this export on a schedule.'); ?>
                     </label>
                 </div>

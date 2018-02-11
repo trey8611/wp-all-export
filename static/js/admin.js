@@ -228,7 +228,7 @@
 	}, 10);
 
 	// help icons
-	$('.wpallexport-help').tipsy({
+	$('.wpallexport-help, .help_scheduling').tipsy({
 		gravity: function() {
 			var ver = 'n';
 			if ($(document).scrollTop() < $(this).offset().top - $('.tipsy').height() - 2) {

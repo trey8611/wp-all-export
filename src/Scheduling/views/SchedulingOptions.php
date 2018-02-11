@@ -678,7 +678,7 @@ $options = \PMXE_Plugin::getInstance()->getOption();
                         </label>
                     </div>
                     <div style="margin-bottom: 10px; margin-left:26px;">
-                        <label>
+                        <label style="font-size: 13px;">
                             <?php _e('Run this export on a schedule.'); ?>
                         </label>
                     </div>
