@@ -152,8 +152,7 @@
         <div class="elements export-multiple" id="combine_multiple_fields_value_container" style="margin-top: 10px; margin-left: 25px; display: none;">
             <div class="wpallexport-free-edition-notice" style="margin: 15px 0;">
                 <a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=custom-fields&utm_campaign=free+wp+all+export+plugin">
-                    <?php _e('Upgrade to the Pro edition of WP All Export to use Custom Export Fields','wp_all_export_plugin');?></a>
-                <p><?php _e('If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></p>
+                    <?php _e('Upgrade to Pro to use Custom Export Fields','wp_all_export_plugin');?></a>
             </div>
             <textarea placeholder="<?php _e('You can drag and drop fields from Available Data, add static text, and use PHP functions', PMXE_Plugin::LANGUAGE_DOMAIN); ?>" id="combine_multiple_fields_value" style="width: 100%;" rows="7"></textarea>
         </div>
