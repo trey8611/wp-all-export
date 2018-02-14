@@ -53,7 +53,7 @@
 		</select>				
 	</div>
 	<!-- PHP snippet options -->
-	<div class="input php_snipped" style="margin-top:10px;">
+	<div class="input php_snipped" style="margin-top:0;margin-left:24px;">
 		<input type="checkbox" id="coperate_php" name="coperate_php" value="1" class="switcher" style="margin: 2px;"/>
 		<label for="coperate_php"><?php _e("Export the value returned by a PHP function", "wp_all_export_plugin"); ?></label>								
 		<a href="#help" class="wpallexport-help" title="<?php _e('The value of the field chosen for export will be passed to the PHP function.', 'wp_all_export_plugin'); ?>" style="top: 0;">?</a>								
