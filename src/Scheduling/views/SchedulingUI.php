@@ -537,7 +537,7 @@ $export_id = $export->id;
             <div class="wpallexport-collapsed-content-inner" style="padding-bottom: 0; overflow: auto; padding-right: 0;">
                 <div style="margin-bottom: 20px;">
                     <label>
-                        <input type="radio" name="scheduling_enable" value="0" <?php if(!$post['scheduling_enable']) { ?> checked="checked" <?php } ?>/>
+                        <input type="radio" name="scheduling_enable" value="0" <?php if($post['scheduling_enable'] == 0) { ?> checked="checked" <?php } ?>/>
                         <h4 style="display: inline-block;"><?php _e('Do Not Schedule'); ?></h4>
                     </label>
                 </div>
@@ -550,23 +550,25 @@ $export_id = $export->id;
                                 </span>
                             <?php if (!$scheduling->checkConnection() && $hasActiveLicense) { ?>
                                 <span style="margin-left: 25px; display: inline-block; font-weight: normal;">
-                                                                    <span <?php if (!$scheduling->checkConnection() && $scheduling->checkLicense()) { ?> style="color: #f2b03d;" <?php } ?>>Unable to connect -</span>
-<a style="text-decoration: underline; color: #0073aa;"
-   href="http://wpallimport.com/support"
-   target="_blank">please contact support</a>.
-                            </span>
-                            <?php } ?>Run this
+                                    <span <?php if(!$scheduling->checkConnection() && $scheduling->checkLicense() ) { ?> style="color: #f2b03d;" <?php } ?>>Unable to connect -</span>
+                                 <a style="text-decoration: underline; color: #0073aa;"
+                                                       href="http://wpallimport.com/support"
+                                                       target="_blank">please contact support</a>.
+                                </span>
+                            <?php } ?>
                         </h4>
                     </label>
                 </div>
 
                 <div style="margin-bottom: 10px; margin-left:26px;">
-                    <label style="font-size: 13px;">
+                    <label>
                         <?php _e('Run this export on a schedule.'); ?>
+                        <?php if($hasActiveLicense) { ?>
+                        <?php } ?>
                     </label>
                 </div>
                 <div id="automatic-scheduling"
-                     style="margin-left: 21px; <?php if (!$post['scheduling_enable']) { ?> display: none; <?php } ?>">
+                     style="margin-left: 21px; <?php if ($post['scheduling_enable'] != 1) { ?> display: none; <?php } ?>">
                     <div>
                         <div class="input">
                             <label style="color: rgb(68,68,68);">

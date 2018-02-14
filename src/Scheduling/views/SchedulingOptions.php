@@ -409,9 +409,7 @@ $options = \PMXE_Plugin::getInstance()->getOption();
                         e.preventDefault();
                         return false;
                     }
-
-                    $(this).find('.easing-spinner').toggle();
-
+                    
                     var $button = $(this);
 
                     var formData = $('#scheduling-form :input').serializeArray();
@@ -420,6 +418,8 @@ $options = \PMXE_Plugin::getInstance()->getOption();
                     formData.push({name: 'action', value: 'save_scheduling'});
                     formData.push({name: 'element_id', value: <?php echo $export_id; ?>});
                     formData.push({name: 'scheduling_enable', value: $('input[name="scheduling_enable"]:checked').val()});
+
+                    $button.find('.easing-spinner').toggle();
 
                     $.ajax({
                         type: 'POST',
@@ -668,10 +668,11 @@ $options = \PMXE_Plugin::getInstance()->getOption();
                                 </span>
                                 <?php if (!$scheduling->checkConnection() && $hasActiveLicense) { ?>
                                     <span style="margin-left: 25px; display: inline-block; font-weight: normal;">
-                                                                    <span <?php if (!$scheduling->checkConnection() && $scheduling->checkLicense()) { ?> style="color: #f2b03d;" <?php } ?>>Unable to connect -</span>
-<a style="text-decoration: underline; color: #0073aa;"
-   href="http://wpallimport.com/support"
-   target="_blank">please contact support</a>.
+
+                                        <span <?php if(!$scheduling->checkConnection() && $scheduling->checkLicense() ) { ?> style="color: #f2b03d;" <?php } ?>>Unable to connect to the scheduling Service. Please contact support at</span>
+                                        <a style="text-decoration: underline; color: #0073aa;"
+                                                href="http://wpallimport.com/support"
+                                                target="_blank">http://wpallimport.com/support</a>
                             </span>
                                 <?php } ?>
                             </h4>
@@ -683,7 +684,7 @@ $options = \PMXE_Plugin::getInstance()->getOption();
                         </label>
                     </div>
                     <div id="automatic-scheduling"
-                         style="margin-left: 21px; <?php if (!$post['scheduling_enable']) { ?> display: none; <?php } ?>">
+                         style="margin-left: 21px; <?php if ($post['scheduling_enable'] != 1) { ?> display: none; <?php } ?>">
                         <div>
                             <div class="input">
                                 <label style="color: rgb(68,68,68);">
