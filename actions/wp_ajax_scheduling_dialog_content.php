@@ -27,19 +27,19 @@ function pmxe_wp_ajax_scheduling_dialog_content()
 
     $cron_job_key = PMXE_Plugin::getInstance()->getOption('cron_job_key');
 
-    if(!isset($post['scheduling_enable'])) {
+    if (!isset($post['scheduling_enable'])) {
         $post['scheduling_enable'] = 0;
     }
 
-    if(!isset($post['scheduling_timezone'])) {
+    if (!isset($post['scheduling_timezone'])) {
         $post['scheduling_timezone'] = 'UTC';
     }
 
-    if(!isset($post['scheduling_run_on'])) {
+    if (!isset($post['scheduling_run_on'])) {
         $post['scheduling_run_on'] = 'weekly';
     }
 
-    if(!isset($post['scheduling_times'])) {
+    if (!isset($post['scheduling_times'])) {
         $post['scheduling_times'] = array();
     }
     ?>
@@ -616,10 +616,10 @@ function pmxe_wp_ajax_scheduling_dialog_content()
         })(jQuery);
 
     </script>
-    <?php require __DIR__.'/../src/Scheduling/views/CommonJs.php'; ?>
+    <?php require __DIR__ . '/../src/Scheduling/views/CommonJs.php'; ?>
     <div id="post-preview" class="wpallexport-preview wpallexport-scheduling-dialog">
         <p class="wpallexport-preview-title"><strong>Scheduling Options</strong></p>
-        <div class="wpallexport-preview-content" style="max-height: 675px; overflow: visible;">
+        <div class="wpallexport-preview-content" style="max-height: 900px; overflow: visible;">
 
             <div style="margin-bottom: 20px;">
                 <label>
@@ -654,7 +654,7 @@ function pmxe_wp_ajax_scheduling_dialog_content()
                     </label>
                 </div>
                 <div id="automatic-scheduling"
-                     style="margin-left: 21px; <?php if (!$post['scheduling_enable']) { ?> display: none; <?php } ?>">
+                     style="margin-left: 21px; <?php if ($post['scheduling_enable'] != 1) { ?> display: none; <?php } ?>">
                     <div>
                         <div class="input">
                             <label style="color: rgb(68,68,68);">
@@ -774,7 +774,8 @@ function pmxe_wp_ajax_scheduling_dialog_content()
                             echo $timezoneSelect->getTimezoneSelect($timezoneValue);
                             ?>
                         </div>
-                    </div>                    <div style="height: 60px; margin-top: 30px; <?php if (!$hasActiveLicense) { ?>display: none; <?php } ?>"
+                    </div>
+                    <div style="height: 60px; margin-top: 30px; <?php if (!$hasActiveLicense) { ?>display: none; <?php } ?>"
                          id="subscribe-filler">&nbsp;
                     </div>
                     <?php
@@ -820,9 +821,11 @@ function pmxe_wp_ajax_scheduling_dialog_content()
                                     <a href="#" class="help_scheduling">Read more.</a>
                                 </p>
                                 <input type="password" id="add-subscription-field"
-                                       style="position: absolute; z-index: 2; top: -4px; font-size:14px;" placeholder="<?php _e('Enter your license',PMXE_Plugin::LANGUAGE_DOMAIN); ?>"/>
+                                       style="position: absolute; z-index: 2; top: -4px; font-size:14px;"
+                                       placeholder="<?php _e('Enter your license', PMXE_Plugin::LANGUAGE_DOMAIN); ?>"/>
                                 <div style="position: absolute;" id="find-subscription-link"><a
-                                            href="http://www.wpallimport.com/portal/automatic-scheduling/" target="_blank"><?php _e('Find your license.'); ?></a></div>
+                                            href="http://www.wpallimport.com/portal/automatic-scheduling/"
+                                            target="_blank"><?php _e('Find your license.'); ?></a></div>
                             </div>
                         </div>
                         <?php
@@ -830,7 +833,7 @@ function pmxe_wp_ajax_scheduling_dialog_content()
                 </div>
 
             </form>
-            <?php require __DIR__.'/../src/Scheduling/views/ManualScheduling.php'; ?>
+            <?php require __DIR__ . '/../src/Scheduling/views/ManualScheduling.php'; ?>
         </div>
     </div>
     <?php

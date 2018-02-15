@@ -73,33 +73,21 @@
             $('#combine_multiple_fields_value').droppable({
                 drop: function (event, ui) {
 
-                    function getCodeToPlace($elementName) {
-                        return "{" + $elementName + "}";
-                    }
-
-                    if (ui.draggable.find('input[name^=rules]').length) {
-                        var content = "";
-                        $('li.' + ui.draggable.find('input[name^=rules]').val()).each(function () {
-                            var $elementName = $(this).find('input[name^=cc_name]').val();
-                            $elementName = processElementName($(this), $elementName);
-                            content = content + getCodeToPlace($elementName);
-                        });
-
-                    }
-                    else {
-                        var $elementName = ui.draggable.find('.custom_column').find('input[name^=cc_name]').val();
-                        var $element = ui.draggable.find('.custom_column');
-                        $elementName = processElementName($element, $elementName);
-
-                        $(this).val($(this).val() + getCodeToPlace($elementName));
-                    }
-
+                    $('.add-new-field-notice').slideDown();
                     event.preventDefault();
                     event.stopPropagation();
                     return false;
                 }
 
             });
+
+            $('#combine_multiple_fields_value').keydown(function (event, ui) {
+
+                    $('.add-new-field-notice').slideDown();
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return false;
+                });
 
             var availableNames = [
             ];
@@ -150,7 +138,7 @@
         </div>
 
         <div class="elements export-multiple" id="combine_multiple_fields_value_container" style="margin-top: 10px; margin-left: 25px; display: none;">
-            <div class="wpallexport-free-edition-notice" style="margin: 15px 0;">
+            <div class="wpallexport-free-edition-notice add-new-field-notice" style="margin: 15px 0; display: none;">
                 <a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=custom-fields&utm_campaign=free+wp+all+export+plugin">
                     <?php _e('Upgrade to Pro to use Custom Export Fields','wp_all_export_plugin');?></a>
             </div>
