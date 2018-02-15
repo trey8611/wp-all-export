@@ -285,6 +285,12 @@ if ( ! class_exists('XmlExportEngine') ){
 									'type'  => 'image_alt',
 									'auto'  => 1
 								),
+                                array(
+                                    'name'  => 'Featured',
+                                    'label' => 'featured',
+                                    'type'  => 'image_featured',
+                                    'auto'  => 1
+                                ),
 							)
 						),
 						'attachments' => array(

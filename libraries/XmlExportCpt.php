@@ -163,6 +163,7 @@ final class XmlExportCpt
                     case 'image_caption':
                     case 'image_description':
                     case 'image_alt':
+                    case 'image_featured':
 
                         $field_options = json_decode($fieldOptions, true);
 
@@ -175,6 +176,7 @@ final class XmlExportCpt
                         wp_all_export_write_article($article, $element_name, apply_filters('pmxe_' . $fieldType, pmxe_filter(implode($images_separator, $images_data), $fieldSnippet), $entry->ID));
 
                         break;
+
 
                     case 'date':
                         $post_date = prepare_date_field_value($fieldSettings, get_post_time('U', true, $entry->ID), "Ymd");
