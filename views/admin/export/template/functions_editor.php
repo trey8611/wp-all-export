@@ -21,7 +21,9 @@
         </div>
         <div class="wpallexport-collapsed-content" style="padding: 0; overflow: hidden; height: auto; display: none;">
             <div class="wpallexport-collapsed-content-inner" style="padding-top:0;">
-                <div class="wpallexport-free-edition-notice" style="margin: 15px 0;">
+                <textarea id="wp_all_export_code" name="wp_all_export_code"><?php echo (empty($functions_content)) ? "<?php\n\n?>": esc_textarea($functions_content);?></textarea>
+
+                <div class="wpallexport-free-edition-notice php-functions-upgrade" style="margin: 15px 0; display: none;">
                     <a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=custom-php&utm_campaign=free+wp+all+export+plugin" style="font-size: 1.3em;"><?php _e('Upgrade to the Pro edition of WP All Export to use Custom PHP Functions','wp_all_export_plugin');?></a>
                     <p><?php _e('If you already own it, remove the free edition and install the Pro edition.','wp_all_export_plugin');?></p>
                 </div>

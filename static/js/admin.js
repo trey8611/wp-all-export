@@ -259,7 +259,8 @@
 	        mode: "application/x-httpd-php",
 	        indentUnit: 4,
 	        indentWithTabs: true,
-	        lineWrapping: true
+	        lineWrapping: true,
+			autoRefresh: true
 	    });
 	    editor.setCursor(1);
 
@@ -1214,7 +1215,6 @@
 			$addAnotherForm.find('.column_name').val('ID');
 
             $addAnotherForm.find('input[name="combine_multiple_fields"][value="0"]').prop('checked',true).trigger('click');
-            //$addAnotherForm.find('input[name="combine_multiple_fields"]').trigger('change');
 
             // Reset custom field
             $('#combine_multiple_fields_value_container').hide();
@@ -1222,6 +1222,7 @@
             $('.export-single').show();
             $('.single-field-options').show();
             $('.php_snipped').show();
+            $('.add-new-field-notice').hide();
 
 			$addAnotherForm.removeAttr('rel');
 			$addAnotherForm.removeClass('dc').addClass('cc');
@@ -1246,6 +1247,7 @@
 			$('.wp_all_export_saving_status').html('');
 
 			$('.wpallexport-overlay').show();
+
 			$addAnotherForm.find('input.switcher').change();
 			$addAnotherForm.show();
 
@@ -1329,7 +1331,9 @@
 			// save element options
 			$clone.find('input[name^=cc_options]').val( $elementDetails.attr('options') );
 
-			// if new field adding append element to the export template
+            $('.add-new-field-notice').hide();
+
+            // if new field adding append element to the export template
 			if ( ! parseInt( $elementIndex ) )
 			{
 				$( "#columns" ).find( ".placeholder" ).hide();
@@ -1418,7 +1422,9 @@
 		// Clicking on column for edit
 		$('#columns').find('.custom_column').live('click', function(){
 
-			$addAnotherForm.find('form')[0].reset();
+            $('.add-new-field-notice').hide();
+
+            $addAnotherForm.find('form')[0].reset();
 			$addAnotherForm.find('input[type=checkbox]').removeAttr('checked');
 
 			$addAnotherForm.removeClass('dc').addClass('cc');
@@ -2235,9 +2241,9 @@
 
         event.preventDefault();
         event.stopImmediatePropagation();
-        $(this).addClass('ahashakeheartache');
+        $(this).addClass('wpae-shake');
         setTimeout(function(){
-            $('.generate-zapier-api-key').removeClass('ahashakeheartache');
+            $('.generate-zapier-api-key').removeClass('wpae-shake');
             return false;
         },200);
 
@@ -2251,9 +2257,9 @@
 	});
 
     $('.wp_all_export_save_functions').click(function(e){
-        $('.wp_all_export_save_functions_container').addClass('ahashakeheartache');
+        $('.wp_all_export_save_functions_container').addClass('wpae-shake');
         setTimeout(function(){
-            $('.wp_all_export_save_functions_container').removeClass('ahashakeheartache');
+            $('.wp_all_export_save_functions_container').removeClass('wpae-shake');
             $('.php-functions-upgrade').slideDown();
             return false;
         },200);
