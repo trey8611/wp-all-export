@@ -1605,7 +1605,6 @@
 			$('.wpallexport-overlay').show();
 
 			var availableDataHeight = $('.wp-all-export-edit-column.cc').height()- 200;
-			$addAnotherForm.find('.wpallexport-pointer-data.available-data').css('max-height', availableDataHeight);
 
 		});
 
