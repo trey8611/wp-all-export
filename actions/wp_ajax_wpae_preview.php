@@ -206,13 +206,6 @@ function pmxe_wp_ajax_wpae_preview(){
 			exit( json_encode(array('html' => ob_get_clean())) );
 		}
 
-		$wp_uploads = wp_upload_dir();
-
-		$functions = $wp_uploads['basedir'] . DIRECTORY_SEPARATOR . WP_ALL_EXPORT_UPLOADS_BASE_DIRECTORY . DIRECTORY_SEPARATOR . 'functions.php';
-		if ( @file_exists($functions) ) {
-			require_once $functions;
-		}
-
 		switch ($exportOptions['export_to']) {
 
 			case 'xml':

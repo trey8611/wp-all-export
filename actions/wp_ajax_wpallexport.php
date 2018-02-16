@@ -172,10 +172,6 @@ function pmxe_wp_ajax_wpallexport()
         PMXE_Plugin::$session->save_data();
     }
 
-    $functions = $wp_uploads['basedir'] . DIRECTORY_SEPARATOR . WP_ALL_EXPORT_UPLOADS_BASE_DIRECTORY . DIRECTORY_SEPARATOR . 'functions.php';
-    if (@file_exists($functions))
-        require_once $functions;
-
     // Export posts
     XmlCsvExport::export();
 

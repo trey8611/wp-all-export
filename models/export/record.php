@@ -27,12 +27,6 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 
 		wp_reset_postdata();
 
-		$functions = $wp_uploads['basedir'] . DIRECTORY_SEPARATOR . WP_ALL_EXPORT_UPLOADS_BASE_DIRECTORY . DIRECTORY_SEPARATOR . 'functions.php';
-
-		if (@file_exists($functions)) {
-			require_once $functions;
-		}
-
 		XmlExportEngine::$exportOptions  	 = $this->options;
 		XmlExportEngine::$is_user_export 	 = $this->options['is_user_export'];
 		XmlExportEngine::$is_comment_export  = $this->options['is_comment_export'];
