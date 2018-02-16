@@ -247,6 +247,11 @@ function pmxe_wp_ajax_scheduling_dialog_content()
         .manual-scheduling {
             margin-left: 26px;
         }
+
+        .chosen-container .chosen-results {
+
+            margin: 0 4px 4px 0 !important;
+        }
     </style>
 
 
