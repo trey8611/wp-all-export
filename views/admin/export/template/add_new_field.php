@@ -111,7 +111,7 @@
     })(jQuery);
 </script>
 <form>
-    <div class="wp-all-export-field-options" style="width: 54%; float:left; max-height: 770px;">
+    <div class="wp-all-export-field-options" style="width: 54%; float:left; max-height: 70vh;">
         <div class="input" style="margin-bottom: 15px;">
             <label style="padding:4px; display: block;" class="wpae_column_name"><?php _e('Column name', 'wp_all_export_plugin'); ?></label>
             <label style="padding:4px; display: none;" class="wpae_element_name"><?php _e('Element name', 'wp_all_export_plugin'); ?></label>
