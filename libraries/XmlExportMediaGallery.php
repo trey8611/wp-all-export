@@ -333,7 +333,7 @@ final class XmlExportMediaGallery
 				}
 				break;
             case 'image_featured':
-                $templateOptions['is_featured'] = 0;
+                $templateOptions['is_featured'] = 1;
                 $templateOptions['is_featured_xpath'] = '{'. $element_name .'[1]}';
                 break;
 			case 'attachments':					
