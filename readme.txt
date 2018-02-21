@@ -2,7 +2,7 @@
 Contributors: soflyy, wpallimport
 Requires at least: 4.1
 Tested up to: 4.9.4
-Stable tag: 1.1.5
+Stable tag: 1.2.0
 Tags: wordpress csv export, wordpress xml export, xml, csv, datafeed, export, migrate, export csv from wordpress, export xml from wordpress, advanced xml export, advanced csv export, export data, bulk csv export, export custom post type, export woocommerce products, export woocommerce orders, migrate woocommerce, csv export, export csv, xml export, export xml, csv exporter, datafeed
 
 WP All Export is an extremely powerful exporter that makes it easy to export any XML, CSV, or Excel file from WordPress.
@@ -85,6 +85,35 @@ Either: -
 * Unzip wp-all-export.zip and upload the contents to /wp-content/plugins/, and then activate the plugin from the Plugins page in WordPress
 
 == Changelog ==
+
+= 1.2.0 =
+* new feature: Automatic Scheduling - A new, optional service from Soflyy that makes scheduling exports incredibly easy.
+* improvement: Support migrating users & keeping passwords
+* improvement: Better error reporting for errors in custom functions
+* improvement: Support for WooCommerce Short Description
+* improvement: Better price formatting
+* improvement: Add author information to Available Data
+* improvement: Add Featured Image to Available Data › Media
+* new filter: Disable price formatting - wp_all_export_raw_prices
+* new filter: Called before each order item - wp_all_export_order_item
+* new filter: Use custom CSV writer when default affected by https://bugs.php.net/bug.php?id=43225 - wp_all_export_use_csv_compliant_line_endings
+* new filter: Output content before CSV headers - wp_all_export_pre_csv_headers
+* bugfix: Error thrown when uploads folder is not writable
+* bugfix: Autoloading broken when class names contain "_"
+* bugfix: Error when activating Pro version and Free version
+* bugfix: moment.js causes false positives for virus scanners
+* bugfix: Comment status updated by default and causes problems
+* bugfix: CSV Writer can't handle slash double quote - https://bugs.php.net/bug.php?id=43225
+* bugfix: WPAE prevents Jetpack from connecting to WordPress.com
+* bugfix: Exported Excel files are corrupted in some cases
+* bugfix: Plugin conflicts change the post order
+* bugfix: CSV headers broken when field names contain quotes
+* bugfix: Product visibility broken for old WooCommerce versions
+* bugfix: Preview is broken for date fields
+* bugfix: Custom Export Field values not saved in some cases
+* bugfix: Headers broken when Custom Export Fields contain special characters
+* bugfix: Loading order for styles optimized to reduce conflicts
+* bugfix: Available Data broken when there's more than 500 data elements
 
 = 1.1.5 =
 * improvement: removed autoload=true from wp_options
