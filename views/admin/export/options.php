@@ -92,7 +92,12 @@ $l10n = array(
 
                     <?php wp_nonce_field('options', '_wpnonce_options') ?>
                     <input type="hidden" name="is_submitted" value="1" />
-
+                    <div style="color: #425F9A; font-size: 14px; font-weight: bold; margin: 0 0 15px; line-height: 25px; text-align: center;">
+                        <div id="no-subscription" style="display: none;">
+                            <?php echo _e("Looks like you're trying out Automatic Scheduling!");?><br/>
+                            <?php echo _e("Your Automatic Scheduling settings won't be saved without a subscription.");?>
+                        </div>
+                    </div>
                     <div class="wpallexport-submit-buttons" style="text-align: center; <?php if ($this->isWizard) { ?> height: 60px; <?php } ?> ">
 
                         <?php if ($this->isWizard): ?>
