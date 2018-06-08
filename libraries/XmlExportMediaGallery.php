@@ -47,6 +47,8 @@ final class XmlExportMediaGallery
 					'post_type' => 'attachment',
 					'posts_per_page' => -1,
 					'post_parent' => self::$pid,
+                    'orderby' => 'ID',
+                    'order' => 'ASC'
 				) );
 
 				if ( ! empty($attachments)):
@@ -122,6 +124,8 @@ final class XmlExportMediaGallery
 						'post_type' => 'attachment',
 						'posts_per_page' => -1,
 						'post_parent' => self::$pid,
+                        'orderby' => 'ID',
+                        'order' => 'ASC'
 					) );
 
 					if ( ! empty($images)):
@@ -165,11 +169,11 @@ final class XmlExportMediaGallery
         return $data;
 	}
 
-    public static function get_images(  $field = 'image_url', $options = false )
-    {
-        self::init('images', $options);
+	public static function get_images(  $field = 'image_url', $options = false )
+	{
+		self::init('images', $options);
 
-        $data = array();
+		$data = array();
 
         switch ($field){
 
@@ -190,8 +194,8 @@ final class XmlExportMediaGallery
 
         }
 
-        return $data;
-    }
+		return $data;
+	}
 
 	private static function get_media( $field = 'url', $attachment = false )
 	{

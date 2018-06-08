@@ -96,7 +96,7 @@
 																	<input type="hidden" name="cc_type[]" value="<?php echo $field_type; ?>"/>
 																	<input type="hidden" name="cc_options[]" value="<?php echo (!empty($field_options)) ? $field_options : 0; ?>"/>
 																	<input type="hidden" name="cc_value[]" value="<?php echo esc_attr($post['cc_value'][$ID]); ?>"/>
-																	<input type="hidden" name="cc_name[]" value="<?php echo esc_attr($field_name); ?>"/>
+																	<input type="hidden" name="cc_name[]" value="<?php echo XmlExportEngine::sanitizeFieldName(esc_attr($field_name)); ?>"/>
 																	<input type="hidden" name="cc_settings[]" value="<?php echo (!empty($post['cc_settings'][$ID])) ? esc_attr($post['cc_settings'][$ID]) : 0; ?>"/>
 																</div>
 															</li>
@@ -120,7 +120,7 @@
 														?>
 														<li>
 															<div class="custom_column" rel="<?php echo ($i + 1);?>">
-																<label class="wpallexport-xml-element"><?php echo $field['name']; ?></label>
+																<label class="wpallexport-xml-element"><?php echo XmlExportEngine::sanitizeFieldName($field['name']); ?></label>
 																<input type="hidden" name="ids[]" value="1"/>
 																<input type="hidden" name="cc_label[]" value="<?php echo $field['label']; ?>"/>
 																<input type="hidden" name="cc_php[]" value="0"/>																		
@@ -582,37 +582,37 @@
                 <a href="http://soflyy.com/" target="_blank"
                    class="wpallexport-created-by"><?php _e('Created by', 'wp_all_export_plugin'); ?> <span></span></a>
 
-			</form>			
-			
-		</td>
-		
-		<td class="right template-sidebar" style="position: relative; width: 18%; right: 0px; padding: 0;">										
+            </form>
 
-			<fieldset id="available_data" class="optionsset rad4 wpae_available_data">
+        </td>
 
-				<div class="title"><?php _e('Available Data', 'wp_all_export_plugin'); ?></div>				
+        <td class="right template-sidebar" style="position: relative; width: 18%; right: 0px; padding: 0;">
 
-				<div class="wpallexport-xml resetable"> 					
+            <fieldset id="available_data" class="optionsset rad4 wpae_available_data">
 
-					<ul>
+                <div class="title"><?php _e('Available Data', 'wp_all_export_plugin'); ?></div>
 
-						<?php echo $available_data_view; ?>
+                <div class="wpallexport-xml resetable">
 
-					</ul>		
-										
-				</div>					
+                    <ul>
 
-			</fieldset>	
-		</td>	
-	</tr>
+                        <?php echo $available_data_view; ?>
 
-</table>	
+                    </ul>
+
+                </div>
+
+            </fieldset>
+        </td>
+    </tr>
+
+</table>
 
 <fieldset class="optionsset column rad4 wp-all-export-edit-column">
-				
+
     <div class="title"><span
-            class="wpallexport-add-row-title"><?php _e('Add Field To Export', 'wp_all_export_plugin'); ?></span><span
-            class="wpallexport-edit-row-title"><?php _e('Edit Export Field', 'wp_all_export_plugin'); ?></span></div>
+            class="wpallexport-add-row-title" style="font-size: 14px;"><?php _e('Add Field To Export', 'wp_all_export_plugin'); ?></span><span
+            class="wpallexport-edit-row-title" style="font-size: 14px;"><?php _e('Edit Export Field', 'wp_all_export_plugin'); ?></span></div>
 
     <?php include_once 'template/add_new_field.php'; ?>
 

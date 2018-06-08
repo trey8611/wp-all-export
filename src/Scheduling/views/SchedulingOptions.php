@@ -188,7 +188,7 @@ $options = \PMXE_Plugin::getInstance()->getOption();
     }
 
     .chosen-container.chosen-with-drop .chosen-drop {
-        margin-top: -3px;
+        margin-top: 0 !important;
     }
 
     .wpallexport-preview-content h4{
@@ -579,6 +579,9 @@ $options = \PMXE_Plugin::getInstance()->getOption();
                                         $('.subscribe').hide({queue: false});
                                         $('#subscribe-filler').show({queue: false});
                                     });
+
+                                    $('.wpai-no-license').hide();
+                                    $('.wpai-license').show();
                                 } else {
                                     $('#subscribe-button .easing-spinner').hide();
                                     $('#subscribe-button svg.error').show();
@@ -656,24 +659,19 @@ $options = \PMXE_Plugin::getInstance()->getOption();
                     <div style="margin-bottom: 20px;">
                         <label>
                             <input type="radio" name="scheduling_enable" value="0" <?php if(!$post['scheduling_enable']) { ?> checked="checked" <?php } ?>/>
-                            <h4 style="display: inline-block;"><?php _e('Do Not Schedule'); ?></h4>
+                            <h4 style="display: inline-block; margin-top:3px; margin-bottom:-2px;"><?php _e('Do Not Schedule'); ?></h4>
                         </label>
                     </div>
                     <div>
                         <label>
                         <input type="radio" name="scheduling_enable" value="1" <?php if($post['scheduling_enable'] == 1) {?> checked="checked" <?php }?>/>
-                            <h4 style="margin-top: 0; position: relative; display: inline-block;"><?php _e('Automatic Scheduling', PMXE_Plugin::LANGUAGE_DOMAIN); ?>
-                                <span class="connection-icon" style="position: absolute; top:-1px; left: 152px;">
-                                    <?php include 'ConnectionIcon.php'; ?>
-                                </span>
-                                <?php if (!$scheduling->checkConnection() && $hasActiveLicense) { ?>
-                                    <span style="margin-left: 25px; display: inline-block; font-weight: normal;">
 
-                                        <span <?php if(!$scheduling->checkConnection() && $scheduling->checkLicense() ) { ?> style="color: #f2b03d;" <?php } ?>>Unable to connect to the scheduling Service. Please contact support at</span>
-                                        <a style="text-decoration: underline; color: #0073aa;"
-                                                href="http://wpallimport.com/support"
-                                                target="_blank">http://wpallimport.com/support</a>
-                            </span>
+                            <h4 style="margin: 0; position: relative; display: inline-block;"><?php _e('Automatic Scheduling', PMXE_Plugin::LANGUAGE_DOMAIN); ?>
+                                <span class="connection-icon" style="position: absolute; top:-1px; left: 152px;">
+															<?php include_once('ConnectionIcon.php'); ?>
+														</span>
+                                <?php if (!$scheduling->checkConnection()) { ?>
+                                    <span class="wpai-license" style="margin-left: 25px; display: inline-block; font-weight: normal; <?php if(!$hasActiveLicense) { ?> display: none; <?php }?> color: #f2b03d;  ">Unable to connect - <a target="_blank" style="text-decoration: underline;" href="http://wpallimport.com/support">please contact support</a>.</span>
                                 <?php } ?>
                             </h4>
                         </label>

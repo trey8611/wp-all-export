@@ -2801,7 +2801,7 @@ a.wpallexport-import-to-format span.wpallexport-import-to-title {
 }
 .wpallexport-plugin form.options{
 	position: relative;
-	margin-top: 0px !important;
+	margin-top: 0 !important;
 	overflow: hidden;
 }
 .wpallexport-plugin form.edit{
@@ -3493,7 +3493,7 @@ a.wpallexport-import-to-format span.wpallexport-import-to-title {
 }
 
 .wpallexport-plugin .delete_action{
-	left: 110px;
+	left: 113px;
 	bottom: 14px;
 	background: #e14d43;
 	margin-left: 5px;

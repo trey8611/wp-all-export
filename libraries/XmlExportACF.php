@@ -172,8 +172,9 @@ if ( ! class_exists('XmlExportACF') )
 
 							$orderby = "order_no";
 
-							@array_multisort($sortArray[$orderby],SORT_ASC, $fields);
-
+                            if(is_array($sortArray[$orderby])) {
+                                @array_multisort($sortArray[$orderby], SORT_ASC, $fields);
+                            }
 							foreach ($fields as $field){
 								if (in_array($field['type'], array('tab'))) continue;
 								$this->_acf_groups[$key]['fields'][] = $field;
@@ -226,7 +227,7 @@ if ( ! class_exists('XmlExportACF') )
 			}
 
 
-			if ( ! empty($field_value) )
+			if ( ! empty($field_value))
 			{
 				$field_value = maybe_unserialize($field_value);
 
@@ -1074,6 +1075,9 @@ if ( ! class_exists('XmlExportACF') )
 				}
 				else
 				{
+				    if($field_value === 0 || $field_value === "0") {
+				        $val = 0;
+                    }
 
 					// $article[$element_name] = ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($val))) : $val;
 					wp_all_export_write_article( $article, $element_name, ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($val))) : $val);

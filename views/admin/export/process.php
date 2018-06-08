@@ -37,7 +37,7 @@
                 </div>
             </div>
             <?php
-            if (XmlExportWooCommerceOrder::$is_active && $update_previous->options['export_type'] == 'specific'):
+            if (XmlExportWooCommerceOrder::$is_active && $update_previous->options['export_type'] == 'specific') {
 
                 $exportList = new PMXE_Export_List();
                 foreach ($exportList->getBy('parent_id', $update_previous->id)->convertRecords() as $child_export) {
@@ -59,7 +59,7 @@
                     ?>
                     <div class="clear"></div>
                     <div
-                        class="wpallexport_process_wrapper_<?php echo $child_export->id; ?> wpallexport_process_child_wrapper">
+                            class="wpallexport_process_wrapper_<?php echo $child_export->id; ?> wpallexport_process_child_wrapper">
                         <div class="wpallexport_processbar rad14">
                             <div class="rad14"></div>
                         </div>
@@ -67,16 +67,15 @@
 							<span class="left_progress">
 								<span class="center_progress">
 									<span
-                                        class="percents_count">0</span>%</span> <?php printf(__("Export %ss", "wp_all_export_plugin"), ucwords(str_replace("_", " ", str_replace("shop", "", $child_export->export_post_type)))); ?></span>
+                                            class="percents_count">0</span>%</span> <?php printf(__("Export %ss", "wp_all_export_plugin"), ucwords(str_replace("_", " ", str_replace("shop", "", $child_export->export_post_type)))); ?></span>
                             <span class="right_progress"><?php _e('Exported', 'wp_all_export_plugin'); ?> <span
-                                    class="created_count">0</span></span>
+                                        class="created_count">0</span></span>
                         </div>
                     </div>
                     <?php
                 }
 
-            endif;
-            ?>
+            }            ?>
         </div>
 
         <div id="export_finished">
@@ -252,6 +251,4 @@
 
         });
     })(jQuery);
-
-    //]]>
 </script>

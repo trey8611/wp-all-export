@@ -36,6 +36,9 @@
 	function selectSpreadsheet()
 	{
 		vm.isGoogleMerchantsExport = false;
+		if(vm.availableDataSelector.css('position') == 'fixed') {
+            $('.template-sidebar').find('.wpae_available_data').css({'position': 'static', 'top': '50px'});
+        }
 		resetDraggable();
 		angular.element(document.getElementById('googleMerchants')).injector().get('$rootScope').$broadcast('googleMerchantsDeselected');
 		$('.wpallexport-custom-xml-template').slideUp();
@@ -200,6 +203,7 @@
 
 	$('.export_variations').change(function(){
 		setTimeout(liveFiltering, 200);
+		$('.wp-all-export-product-bundle-warning').hide();
 		if ($(this).val() == 3){
 			$('.warning-only-export-parent-products').show();
 		}
@@ -228,7 +232,7 @@
 	}, 10);
 
 	// help icons
-	$('.wpallexport-help, .help_scheduling').tipsy({
+    $('.wpallexport-help, .help_scheduling').tipsy({
 		gravity: function() {
 			var ver = 'n';
 			if ($(document).scrollTop() < $(this).offset().top - $('.tipsy').height() - 2) {
@@ -259,8 +263,7 @@
 	        mode: "application/x-httpd-php",
 	        indentUnit: 4,
 	        indentWithTabs: true,
-	        lineWrapping: true,
-			autoRefresh: true
+	        lineWrapping: true
 	    });
 	    editor.setCursor(1);
 
@@ -671,7 +674,9 @@
 			data: request,
 			success: function(response) {
 
-				vm.hasVariations = response.hasVariations;
+                $('.wpae-record-count').val(response.found_records);
+
+                vm.hasVariations = response.hasVariations;
 				if(vm.hasVariations) {
 
 					if($('#export_to_sheet').val() == 'xls' || $('#export_to_sheet').val() == 'xlsx') {
@@ -1348,6 +1353,11 @@
 			// set up additional element settings by element type
 			switch ( $fieldType )
 			{
+				case 'content':
+					var obj = {};
+					obj['export_images_from_gallery'] = $addAnotherForm.find('#export_images_from_gallery').is(':checked');
+					$clone.find('input[name^=cc_settings]').val(window.JSON.stringify(obj));
+					break;
 				// save post date field format
 				case 'date':
 				case 'comment_date':
@@ -1495,6 +1505,18 @@
 			if ($elementLabel.val() == '_sale_price_dates_from' || $elementLabel.val() == '_sale_price_dates_to') $fieldType = 'date';
 
 			switch ( $fieldType ){
+				case 'content':
+					$addAnotherForm.find('.content_field_type').show();
+					if ($settings != "" && $settings != 0)
+					{
+						var $field_options = window.JSON.parse($settings);
+						if ($field_options.export_images_from_gallery) $addAnotherForm.find('#export_images_from_gallery').attr('checked','checked');
+					}
+					else{
+						// this option should be enabled by default
+						$addAnotherForm.find('#export_images_from_gallery').attr('checked','checked');
+					}
+					break;
 				case 'sql':
 					$addAnotherForm.find('textarea.column_value').val($(this).find('input[name^=cc_sql]').val());
 					$addAnotherForm.find('.sql_field_type').show();

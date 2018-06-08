@@ -72,7 +72,9 @@ class SchedulingController extends BaseController
             return new JsonResponse(array('message' => 'Export not found'), 404);
         }
 
-        $logger = create_function('$m', 'echo "<p>$m</p>\\n";');
+        $logger = function($m) {
+            echo "<p>$m</p>\\n";
+        };
 
         if ($export->processing == 1 and (time() - strtotime($export->registered_on)) > 120) {
             // it means processor crashed, so it will reset processing to false, and terminate. Then next run it will work normally.

@@ -34,7 +34,7 @@ abstract class PMXE_Controller_Admin extends PMXE_Controller {
 		parent::__construct();
 		
 		// add special filter for url fields
-		$this->input->addFilter(create_function('$str', 'return "http://" == $str || "ftp://" == $str ? "" : $str;'));
+		$this->input->addFilter('pmxe_url_filter');
 		
 		// enqueue required sripts and styles
 		global $wp_styles;
