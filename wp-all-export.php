@@ -12,6 +12,13 @@ require_once(__DIR__.'/classes/CdataStrategyFactory.php');
 if( ! defined( 'PMXE_SESSION_COOKIE' ) )
 	define( 'PMXE_SESSION_COOKIE', '_pmxe_session' );
 
+// Enable error reporting in development
+if(getenv('WPAE_DEV')) {
+    error_reporting(E_ALL ^ E_DEPRECATED );
+    ini_set('display_errors', 1);
+    // xdebug_disable();
+}
+
 /**
  * Plugin root dir with forward slashes as directory separator regardless of actuall DIRECTORY_SEPARATOR value
  * @var string
@@ -225,7 +232,7 @@ else {
             add_action('admin_init', array($this, 'fix_db_schema'));
             add_action('init', array($this, 'init'));
         }
-        
+
         /**
 		 * Return singletone instance
 		 * @return PMXE_Plugin
@@ -382,8 +389,12 @@ else {
 							'is_user' => is_user_admin(),
 						);
 						add_filter('current_screen', array($this, 'getAdminCurrentScreen'));
-						add_filter('admin_body_class', create_function('', 'return "' . 'wpallexport-plugin";'));
-
+                        add_filter('admin_body_class',
+                            function() {
+                                return 'wpallexport-plugin';
+                            }
+                        );
+                        
 						$controller = new $controllerName();
 						if ( ! $controller instanceof PMXE_Controller_Admin) {
 							throw new Exception("Administration page `$page` matches to a wrong controller type.");

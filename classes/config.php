@@ -6,11 +6,13 @@
  * @author Pavel Kulbakin <p.kulbakin@gmail.com>
  */
 class PMXE_Config implements IteratorAggregate {
+
 	/**
 	 * Config variables stored
 	 * @var array
 	 */
 	protected $config = array();
+
 	/**
 	 * List of loaded files in order to avoid loading same file several times
 	 * @var array
@@ -27,7 +29,6 @@ class PMXE_Config implements IteratorAggregate {
 		$config = new self();
 		return $config->loadFromFile($filePath, $section);
 	}
-
 
     /**
      * Load config file
@@ -54,6 +55,7 @@ class PMXE_Config implements IteratorAggregate {
         }
         return $this;
     }
+
 	/**
 	 * Return value of setting with specified name
 	 * @param string $field Setting name
@@ -72,6 +74,7 @@ class PMXE_Config implements IteratorAggregate {
 	public function __isset($field) {
 		return isset($this->config[$field]);
 	}
+
 	/**
 	 * Magic method to implement object-like access to config parameters
 	 * @param string $field
