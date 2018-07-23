@@ -148,6 +148,84 @@ else {
 
         private static $hasActiveSchedulingLicense = null;
 
+        public static $cache_key = '';
+
+        /**
+         * Class constructor containing dispatching logic
+         * @param string $rootDir Plugin root dir
+         * @param string $pluginFilePath Plugin main file
+         */
+        protected function __construct() {
+
+            require_once (self::ROOT_DIR . '/classes/installer.php');
+
+            $installer = new PMXE_Installer();
+            $installer->checkActivationConditions();
+
+            $plugin_basename = plugin_basename( __FILE__ );
+
+            self::$cache_key = md5( 'edd_plugin_' . sanitize_key( $plugin_basename ) . '_version_info' );
+
+            // uncaught exception doesn't prevent plugin from being activated, therefore replace it with fatal error so it does
+            //set_exception_handler(create_function('$e', 'trigger_error($e->getMessage(), E_USER_ERROR);'));
+
+            // register autoloading method
+            spl_autoload_register(array($this, 'autoload'));
+
+            // register helpers
+            if (is_dir(self::ROOT_DIR . '/helpers')) foreach (PMXE_Helper::safe_glob(self::ROOT_DIR . '/helpers/*.php', PMXE_Helper::GLOB_RECURSE | PMXE_Helper::GLOB_PATH) as $filePath) {
+                require_once $filePath;
+            }
+
+            // init plugin options
+            $option_name = get_class($this) . '_Options';
+            $options_default = PMXE_Config::createFromFile(self::ROOT_DIR . '/config/options.php')->toArray();
+            $this->options = array_intersect_key(get_option($option_name, array()), $options_default) + $options_default;
+            $this->options = array_intersect_key($options_default, array_flip(array('info_api_url'))) + $this->options; // make sure hidden options apply upon plugin reactivation
+            if ('' == $this->options['cron_job_key']) $this->options['cron_job_key'] = wp_all_export_url_title(wp_all_export_rand_char(12));
+
+            update_option($option_name, $this->options);
+            $this->options = get_option(get_class($this) . '_Options');
+            register_activation_hook(self::FILE, array($this, 'activation'));
+
+            // register action handlers
+            if (is_dir(self::ROOT_DIR . '/actions')) if (is_dir(self::ROOT_DIR . '/actions')) foreach (PMXE_Helper::safe_glob(self::ROOT_DIR . '/actions/*.php', PMXE_Helper::GLOB_RECURSE | PMXE_Helper::GLOB_PATH) as $filePath) {
+                require_once $filePath;
+                $function = $actionName = basename($filePath, '.php');
+                if (preg_match('%^(.+?)[_-](\d+)$%', $actionName, $m)) {
+                    $actionName = $m[1];
+                    $priority = intval($m[2]);
+                } else {
+                    $priority = 10;
+                }
+                add_action($actionName, self::PREFIX . str_replace('-', '_', $function), $priority, 99); // since we don't know at this point how many parameters each plugin expects, we make sure they will be provided with all of them (it's unlikely any developer will specify more than 99 parameters in a function)
+            }
+
+            // register filter handlers
+            if (is_dir(self::ROOT_DIR . '/filters')) foreach (PMXE_Helper::safe_glob(self::ROOT_DIR . '/filters/*.php', PMXE_Helper::GLOB_RECURSE | PMXE_Helper::GLOB_PATH) as $filePath) {
+                require_once $filePath;
+                $function = $actionName = basename($filePath, '.php');
+                if (preg_match('%^(.+?)[_-](\d+)$%', $actionName, $m)) {
+                    $actionName = $m[1];
+                    $priority = intval($m[2]);
+                } else {
+                    $priority = 10;
+                }
+                add_filter($actionName, self::PREFIX . str_replace('-', '_', $function), $priority, 99); // since we don't know at this point how many parameters each plugin expects, we make sure they will be provided with all of them (it's unlikely any developer will specify more than 99 parameters in a function)
+            }
+
+            // register shortcodes handlers
+            if (is_dir(self::ROOT_DIR . '/shortcodes')) foreach (PMXE_Helper::safe_glob(self::ROOT_DIR . '/shortcodes/*.php', PMXE_Helper::GLOB_RECURSE | PMXE_Helper::GLOB_PATH) as $filePath) {
+                $tag = strtolower(str_replace('/', '_', preg_replace('%^' . preg_quote(self::ROOT_DIR . '/shortcodes/', '%') . '|\.php$%', '', $filePath)));
+                add_shortcode($tag, array($this, 'shortcodeDispatcher'));
+            }
+
+            // register admin page pre-dispatcher
+            add_action('admin_init', array($this, 'adminInit'));
+            add_action('admin_init', array($this, 'fix_db_schema'));
+            add_action('init', array($this, 'init'));
+        }
+        
         /**
 		 * Return singletone instance
 		 * @return PMXE_Plugin
@@ -241,78 +319,6 @@ else {
 			global $wpdb;
 			return ($this->isNetwork()) ? $wpdb->base_prefix : $wpdb->prefix;
 		}
-
-		/**
-		 * Class constructor containing dispatching logic
-		 * @param string $rootDir Plugin root dir
-		 * @param string $pluginFilePath Plugin main file
-		 */
-		protected function __construct() {
-
-			require_once (self::ROOT_DIR . '/classes/installer.php');
-			
-			$installer = new PMXE_Installer();
-			$installer->checkActivationConditions();
-			
-			// uncaught exception doesn't prevent plugin from being activated, therefore replace it with fatal error so it does
-			//set_exception_handler(create_function('$e', 'trigger_error($e->getMessage(), E_USER_ERROR);'));
-
-			// register autoloading method
-			spl_autoload_register(array($this, 'autoload'));
-
-			// register helpers
-			if (is_dir(self::ROOT_DIR . '/helpers')) foreach (PMXE_Helper::safe_glob(self::ROOT_DIR . '/helpers/*.php', PMXE_Helper::GLOB_RECURSE | PMXE_Helper::GLOB_PATH) as $filePath) {
-				require_once $filePath;
-			}			
-
-			// init plugin options
-			$option_name = get_class($this) . '_Options';
-			$options_default = PMXE_Config::createFromFile(self::ROOT_DIR . '/config/options.php')->toArray();
-			$this->options = array_intersect_key(get_option($option_name, array()), $options_default) + $options_default;
-			$this->options = array_intersect_key($options_default, array_flip(array('info_api_url'))) + $this->options; // make sure hidden options apply upon plugin reactivation								
-			if ('' == $this->options['cron_job_key']) $this->options['cron_job_key'] = wp_all_export_url_title(wp_all_export_rand_char(12));
-
-			update_option($option_name, $this->options);
-			$this->options = get_option(get_class($this) . '_Options');
-			register_activation_hook(self::FILE, array($this, 'activation'));
-
-			// register action handlers
-			if (is_dir(self::ROOT_DIR . '/actions')) if (is_dir(self::ROOT_DIR . '/actions')) foreach (PMXE_Helper::safe_glob(self::ROOT_DIR . '/actions/*.php', PMXE_Helper::GLOB_RECURSE | PMXE_Helper::GLOB_PATH) as $filePath) {
-				require_once $filePath;
-				$function = $actionName = basename($filePath, '.php');
-				if (preg_match('%^(.+?)[_-](\d+)$%', $actionName, $m)) {
-					$actionName = $m[1];
-					$priority = intval($m[2]);
-				} else {
-					$priority = 10;
-				}
-				add_action($actionName, self::PREFIX . str_replace('-', '_', $function), $priority, 99); // since we don't know at this point how many parameters each plugin expects, we make sure they will be provided with all of them (it's unlikely any developer will specify more than 99 parameters in a function)
-			}
-
-			// register filter handlers
-			if (is_dir(self::ROOT_DIR . '/filters')) foreach (PMXE_Helper::safe_glob(self::ROOT_DIR . '/filters/*.php', PMXE_Helper::GLOB_RECURSE | PMXE_Helper::GLOB_PATH) as $filePath) {
-				require_once $filePath;
-				$function = $actionName = basename($filePath, '.php');
-				if (preg_match('%^(.+?)[_-](\d+)$%', $actionName, $m)) {
-					$actionName = $m[1];
-					$priority = intval($m[2]);
-				} else {
-					$priority = 10;
-				}
-				add_filter($actionName, self::PREFIX . str_replace('-', '_', $function), $priority, 99); // since we don't know at this point how many parameters each plugin expects, we make sure they will be provided with all of them (it's unlikely any developer will specify more than 99 parameters in a function)
-			}
-
-			// register shortcodes handlers
-			if (is_dir(self::ROOT_DIR . '/shortcodes')) foreach (PMXE_Helper::safe_glob(self::ROOT_DIR . '/shortcodes/*.php', PMXE_Helper::GLOB_RECURSE | PMXE_Helper::GLOB_PATH) as $filePath) {
-				$tag = strtolower(str_replace('/', '_', preg_replace('%^' . preg_quote(self::ROOT_DIR . '/shortcodes/', '%') . '|\.php$%', '', $filePath)));
-				add_shortcode($tag, array($this, 'shortcodeDispatcher'));
-			}
-			
-			// register admin page pre-dispatcher
-			add_action('admin_init', array($this, 'adminInit'));
-			add_action('admin_init', array($this, 'fix_db_schema'));
-			add_action('init', array($this, 'init'));
-		}	
 
 		public function init(){
 			$this->load_plugin_textdomain();
