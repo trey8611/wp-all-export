@@ -47,6 +47,12 @@ $isGoogleFeed = false;
         <div class="tab-content-container">
             <div class="tab-content selected normal-tab" id="tab1-content">
                 <h3 style="margin-top: 30px; margin-bottom: 30px;"><?php _e("Click to Download", 'wp_all_export_plugin'); ?></h3>
+
+                <div class="wpallexport-free-edition-notice" id="migrate-orders-notice" style="padding: 20px; margin-bottom: 35px; display: none;">
+                    <a class="upgrade_link" target="_blank" href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=118611&edd_options%5Bprice_id%5D=1&utm_source=wordpress.org&utm_medium=migrate+orders&utm_campaign=free+wp+all+export+plugin"><?php _e('Upgrade to the Pro edition of WP All Export to Migrate Orders', PMXE_Plugin::LANGUAGE_DOMAIN);?></a>
+                    <p><?php _e('If you already own it, remove the free edition and install the Pro edition.', PMXE_Plugin::LANGUAGE_DOMAIN);?></p>
+                </div>
+
                 <div class="input">
                     <button class="button button-primary button-hero wpallexport-large-button download_data"
                             rel="<?php echo add_query_arg(array('action' => 'download', 'id' => $update_previous->id, '_wpnonce' => wp_create_nonce('_wpnonce-download_feed')), $this->baseUrl); ?>"><?php echo strtoupper(wp_all_export_get_export_format($update_previous->options)); ?></button>
@@ -56,7 +62,7 @@ $isGoogleFeed = false;
                     <?php endif; ?>
                     <?php if (PMXE_Export_Record::is_bundle_supported($update_previous->options)): ?>
                         <button class="button button-primary button-hero wpallexport-large-button download_data"
-                                rel="<?php echo add_query_arg(array('page' => 'pmxe-admin-manage', 'id' => $update_previous->id, 'action' => 'bundle', '_wpnonce' => wp_create_nonce('_wpnonce-download_bundle')), $this->baseUrl); ?>"><?php _e('Bundle', 'wp_all_export_plugin'); ?></button>
+                                id="download-bundle" rel="<?php echo add_query_arg(array('page' => 'pmxe-admin-manage', 'id' => $update_previous->id, 'action' => 'bundle', '_wpnonce' => wp_create_nonce('_wpnonce-download_bundle')), $this->baseUrl); ?>"><?php _e('Bundle', 'wp_all_export_plugin'); ?></button>
                     <?php endif; ?>
                 </div>
 
@@ -122,4 +128,5 @@ $isGoogleFeed = false;
         <?php
     }
     ?>
+    <input type="hidden" value="<?php echo $export['options']['cpt'][0]; ?>" id="export-cpt">
 </div>

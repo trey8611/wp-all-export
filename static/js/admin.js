@@ -947,6 +947,14 @@
 		});
 
 		$('a.auto-generate-template').live('click', function(){
+
+			var export_type = $('input[name="cpt"]').val();
+
+			if(export_type == 'shop_order') {
+				$('#migrate-orders-notice').slideDown();
+				return;
+			}
+
 			$('input[name^=auto_generate]').val('1');
 
 			$('.hierarhy-output').each(function(){
@@ -2158,6 +2166,18 @@
 	});
     // [ \Step 3 ( export options ) ]
 
+    $('#download-bundle').click(function(e){
+
+        var exportCpt = $('#export-cpt').val();
+
+        if(exportCpt == 'shop_order') {
+
+        	$('#migrate-orders-notice').slideDown();
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return false;
+        }
+    });
 
     // [ Step 4 ( export completed ) ]
     $('.download_data').click(function(){
@@ -2719,4 +2739,7 @@
             isValid: true
         };
     };
+
+
+
 });})(jQuery, window.EventService);
