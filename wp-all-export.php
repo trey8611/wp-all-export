@@ -592,7 +592,7 @@ else {
 		 */
 		public function activation() {
 			// uncaught exception doesn't prevent plugin from being activated, therefore replace it with fatal error so it does
-			set_exception_handler(create_function('$e', 'trigger_error($e->getMessage(), E_USER_ERROR);'));
+            set_exception_handler(function($e) {trigger_error($e->getMessage(), E_USER_ERROR); });
 
 			// create plugin options
 			$option_name = get_class($this) . '_Options';
