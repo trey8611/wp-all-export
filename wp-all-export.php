@@ -394,7 +394,7 @@ else {
                                 return 'wpallexport-plugin';
                             }
                         );
-                        
+
 						$controller = new $controllerName();
 						if ( ! $controller instanceof PMXE_Controller_Admin) {
 							throw new Exception("Administration page `$page` matches to a wrong controller type.");
