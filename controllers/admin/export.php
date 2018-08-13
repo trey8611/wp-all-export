@@ -110,10 +110,12 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin
         if (is_array($this->data['post']['cpt'])) $this->data['post']['cpt'] = $this->data['post']['cpt'][0];
 
         // Delete history
-        $history_files = PMXE_Helper::safe_glob(PMXE_ROOT_DIR . '/history/*', PMXE_Helper::GLOB_RECURSE | PMXE_Helper::GLOB_PATH);
-        if (!empty($history_files)) {
-            foreach ($history_files as $filePath) {
-                @file_exists($filePath) and @unlink($filePath);
+        if(is_dir(PMXE_ROOT_DIR.'/history')) {
+            $history_files = PMXE_Helper::safe_glob(PMXE_ROOT_DIR . '/history/*', PMXE_Helper::GLOB_RECURSE | PMXE_Helper::GLOB_PATH);
+            if (!empty($history_files)) {
+                foreach ($history_files as $filePath) {
+                    @file_exists($filePath) and @unlink($filePath);
+                }
             }
         }
 
