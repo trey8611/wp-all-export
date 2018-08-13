@@ -764,7 +764,7 @@ final Class XmlCsvExport
 			{				
 				foreach ($available_data[$section['content']] as $field) 
 				{					
-					if ( is_array($field) and (isset($field['auto']) or ! in_array('product', $post['cpt']) ))
+					if ( is_array($field) and (isset($field['auto']) or (is_array($post['cpt']) && ! in_array('product', $post['cpt']) )))
 					{							
 						$auto_generate['ids'][] 	   = 1;
 						$auto_generate['cc_label'][]   = is_array($field) ? $field['label'] : $field;
