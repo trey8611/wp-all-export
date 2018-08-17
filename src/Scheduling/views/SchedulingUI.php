@@ -463,7 +463,7 @@ $export_id = $export->id;
                                 $('#subscribe-button .button-subscribe').css('background-color','#425f9a');
                                 if(response.success) {
                                     hasActiveLicense = true;
-                                    $('.wpae-save-button').removeClass('disabled');
+                                    $('.wpae-save-button').slideDown();
                                     $('#subscribe-button .easing-spinner').hide();
                                     $('#subscribe-button svg.success').show();
                                     $('#subscribe-button svg.success').fadeOut(3000, function () {
@@ -548,7 +548,7 @@ $export_id = $export->id;
                     <label>
                         <input type="radio" name="scheduling_enable" value="1" <?php if($post['scheduling_enable'] == 1) {?> checked="checked" <?php }?>/>
                         <h4 style="margin: 0; position: relative; display: inline-block;"><?php _e('Automatic Scheduling', PMXE_Plugin::LANGUAGE_DOMAIN); ?>
-                            <span class="connection-icon" style="position: absolute; top:-1px; left: 152px;">
+                            <span class="connection-icon" style="position: absolute; top: 0px; left: 154px;">
 															<?php include_once('ConnectionIcon.php'); ?>
 														</span>
                             <?php if (!$scheduling->checkConnection()) { ?>
@@ -736,8 +736,8 @@ $export_id = $export->id;
     <div style="clear: both;"></div>
 </div>
 
-<div class="wpae-save-button button button-primary button-hero wpallexport-large-button wpae-export-complete-save-button <?php if(!$hasActiveLicense) { echo 'disabled'; }?>"
-     style="position: relative; width: 285px; display: block; margin:auto; background-image: none; margin-top: 25px;">
+<div class="wpae-save-button button button-primary button-hero wpallexport-large-button wpae-export-complete-save-button" id="save-scheduling-button"
+     style="position: relative; width: 285px; <?php if($hasActiveLicense) { echo 'display: block;';} else { echo "display: none;";}?> margin:auto; background-image: none; margin-top: 25px;">
     <svg width="30" height="30" viewBox="0 0 1792 1792"
          xmlns="http://www.w3.org/2000/svg"
          style="fill: white;">
