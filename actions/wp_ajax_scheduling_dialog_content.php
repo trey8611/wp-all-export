@@ -640,11 +640,11 @@ function pmxe_wp_ajax_scheduling_dialog_content()
                     <input type="radio" name="scheduling_enable"
                            value="1" <?php if ($post['scheduling_enable'] == 1) { ?> checked="checked" <?php } ?>/>
                     <h4 style="margin: 0; position: relative; display: inline-block;"><?php _e('Automatic Scheduling', PMXE_Plugin::LANGUAGE_DOMAIN); ?>
-                        <span class="connection-icon" style="position: absolute; top:-1px; left: 152px;">
+                        <span class="connection-icon">
 															<?php include __DIR__ . '/../src/Scheduling/views/ConnectionIcon.php'; ?>
 														</span>
                         <?php if (!$scheduling->checkConnection()) { ?>
-                            <span class="wpai-license" style="margin-left: 25px; display: inline-block; font-weight: normal; <?php if(!$hasActiveLicense) { ?> display: none; <?php }?> color: #f2b03d;  ">Unable to connect - <a target="_blank" style="text-decoration: underline;" href="http://wpallimport.com/support">please contact support</a>.</span>
+                            <span class="wpai-license  wpai-license-text" style="display: inline-block; font-weight: normal; <?php if(!$hasActiveLicense) { ?> display: none; <?php }?> color: #f2b03d;  ">Unable to connect - <a target="_blank" style="text-decoration: underline;" href="http://wpallimport.com/support">please contact support</a>.</span>
                         <?php } ?>
                     </h4>
                 </label>

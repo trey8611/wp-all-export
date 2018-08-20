@@ -298,6 +298,15 @@
 	.wpallexport-plugin #available_data ul li .pmxe_remove_column{
 		display: none;
 	}
+
+.wpallexport-plugin span.wpai-license-text {
+	margin-left: 20px;
+}
+
+.wpallexport-plugin .wpai-license img {
+	position: absolute;
+}
+
 .wpallexport-plugin .wpae-available-fields-group{
 	background: none repeat scroll 0 0 white;
 	border: 1px dotted #ccc;
