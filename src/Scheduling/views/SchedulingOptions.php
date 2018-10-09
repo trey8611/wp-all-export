@@ -153,7 +153,7 @@ $options = \PMXE_Plugin::getInstance()->getOption();
 
     #add-subscription-field {
         position: absolute;
-        left: -152px;
+        left: -155px;
         top: -2px;
         height: 46px;
         border-radius: 5px;
@@ -599,7 +599,7 @@ $options = \PMXE_Plugin::getInstance()->getOption();
 
                                     setTimeout(function () {
                                         $('#add-subscription-field').animate({width:'140px'}, 225);
-                                        $('#add-subscription-field').animate({left:'-152px'}, 225);
+                                        $('#add-subscription-field').animate({left:'-155px'}, 225);
                                     }, 300);
 
                                     $('#add-subscription-field').val('');

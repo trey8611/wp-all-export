@@ -195,7 +195,7 @@ function pmxe_wp_ajax_scheduling_dialog_content()
 
         #add-subscription-field {
             position: absolute;
-            left: -152px;
+            left: -155px;
             top: -1px;
             height: 46px;
             border-radius: 5px;
@@ -569,7 +569,7 @@ function pmxe_wp_ajax_scheduling_dialog_content()
 
                                         setTimeout(function () {
                                             $('#add-subscription-field').animate({width: '140px'}, 225);
-                                            $('#add-subscription-field').animate({left: '-152px'}, 225);
+                                            $('#add-subscription-field').animate({left: '-155px'}, 225);
                                         }, 300);
 
                                         $('#add-subscription-field').val('');

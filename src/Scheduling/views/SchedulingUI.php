@@ -489,7 +489,7 @@ $export_id = $export->id;
 
                                     setTimeout(function () {
                                         $('#add-subscription-field').animate({width:'140px'}, 225);
-                                        $('#add-subscription-field').animate({left:'-152px'}, 225);
+                                        $('#add-subscription-field').animate({left:'-155px'}, 225);
                                     }, 300);
 
                                     $('#add-subscription-field').val('');

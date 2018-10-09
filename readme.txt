@@ -1,8 +1,8 @@
 === Export WordPress data to XML/CSV ===
 Contributors: soflyy, wpallimport
 Requires at least: 4.1
-Tested up to: 4.9.4
-Stable tag: 1.2.0
+Tested up to: 4.9.8
+Stable tag: 1.2.1
 Tags: wordpress csv export, wordpress xml export, xml, csv, datafeed, export, migrate, export csv from wordpress, export xml from wordpress, advanced xml export, advanced csv export, export data, bulk csv export, export custom post type, export woocommerce products, export woocommerce orders, migrate woocommerce, csv export, export csv, xml export, export xml, csv exporter, datafeed
 
 WP All Export is an extremely powerful exporter that makes it easy to export any XML, CSV, or Excel file from WordPress.
@@ -85,6 +85,22 @@ Either: -
 * Unzip wp-all-export.zip and upload the contents to /wp-content/plugins/, and then activate the plugin from the Plugins page in WordPress
 
 == Changelog ==
+
+= 1.2.1 =
+* new filter: added pmxe_after_iteration action
+* bugfix: increase custom query meta limit
+* bugfix: remove deprecated function calls for PHP 7.2 compatibility
+* bugfix: address various PHP warnings and notices
+* bugfix: graceful failure for non:writable uploads folder
+* bugfix: warning when exporting WooCommerce orders using Automatic Scheduling
+* bugfix: WooCommerce product variations exported as separate products when adding product attributes to custom export fields
+* bugfix: small UI and spacing issues
+* bugfix: prices with more than two decimal places are not exported correctly
+* bugfix: exporting empty ACF values shifts rows in CSV exports
+* bugfix: Australia missing from scheduling timezones
+* bugfix: unable to filter or export WooCommerce product visibility data
+* bugfix: Automatic scheduling UI spacing issues
+* bugfix: unrelated errors are reported in functions.php file
 
 = 1.2.0 =
 * new feature: Automatic Scheduling - A new, optional service from Soflyy that makes scheduling exports incredibly easy.
